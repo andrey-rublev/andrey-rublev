@@ -2,34 +2,109 @@
 
 <h1>Nikhil&nbsp;Kolli</h1>
 
-<a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=680&height=42&lines=Computer+Engineering+%40+Purdue+%E2%80%94+GPA+3.96;ML+Researcher+%E2%80%94+autonomous+flight+with+RTX;Hybrid+quantum-classical+architectures;Agentic+AI%2C+LLM+evaluation%2C+full-stack" alt="Computer Engineering at Purdue - ML Researcher - Quantum + Classical - Agentic AI" /></a>
+<a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=680&height=42&lines=Hybrid+quantum-classical+ML;Autonomous+flight+routing;RL+agents+and+agentic+AI+infrastructure;Apps+shipped+to+176+countries" alt="Quantum ML - Autonomous flight - RL agents - Shipped apps" /></a>
 
 <a href="https://nikhilkolli.com"><img src="https://img.shields.io/badge/Portfolio-nikhilkolli.com-818CF8?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" /></a> <a href="https://linkedin.com/in/nikhilxkolli"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge" alt="LinkedIn" /></a> <a href="mailto:kolli16@purdue.edu"><img src="https://img.shields.io/badge/Email-1F2937?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
 
 </div>
 
-> Junior in **Computer Engineering at Purdue** (May 2028 &middot; 3.96 GPA). I work where ML meets systems that have to hold up — autonomy stacks for unmanned aircraft, quantum-classical hybrids, and harnesses that find where AI agents break.
+> I build ML systems and ship products — quantum-classical hybrids, autonomy stacks, RL agents, and apps people actually use.
 
-## Work
+## Featured
 
-| Where | Role | What |
+<table>
+<tr>
+<td width="34%" valign="top">
+
+### Hybrid Quantum-Classical ML
+
+[project-kryptos](https://github.com/andrey-rublev/project-kryptos) &middot; [QML](https://github.com/andrey-rublev/QML)
+
+`PennyLane` `PyTorch`
+
+</td>
+<td valign="top">
+
+A variational quantum circuit sandwiched between classical layers, trained on a **4M+ sample** corpus of substitution and transposition ciphertext I generated. Classifies ciphers at **96.59%** (6 qubits, 7 entangling layers) and decrypts at **99.85%** (4 qubits, 6 layers). Separately used zero-noise extrapolation on H&#8322; ground-state energy — quadratic fitting cut estimation error **~10&times;** over linear, from 2.4% to **0.24%** off the noiseless baseline.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### Autonomous Flight Routing
+
+*Research project &middot; in progress*
+
+`Python` `PyTorch`
+
+</td>
+<td valign="top">
+
+A 3D simulation environment for unmanned aircraft flight. Classical path-planning algorithms generate the training data; a neural network then produces obstacle-avoidance routes optimized for safety, fuel efficiency, and waypoint compliance, validated against an existing routing baseline. Currently extending it to **multi-aircraft formation flight** — relative navigation and formation integrity across a group mid-maneuver.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### Agentic AI Infrastructure
+
+*Private &middot; in progress*
+
+`MCP` `Python` `TypeScript`
+
+</td>
+<td valign="top">
+
+Multiple LLMs orchestrated behind a **model-routing layer**, with agent frameworks wired into messaging platforms for real-time remote interaction. I build the **MCP servers**, custom code skills, and connectors that automate development and ship web apps end to end.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### RealTalk
+
+*AI hiring assistant &middot; Co-Founder*
+
+`React` `Vite` `FastAPI` `AWS` `Whisper`
+
+</td>
+<td valign="top">
+
+An AI hiring assistant that reviews and improves **resumes and interviews** using custom models — speech in, structured feedback out. Built the full stack: React/TypeScript front end, FastAPI backend on AWS, Whisper for transcription.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### Gradus
+
+*Academic tracker &middot; Founding President*
+
+`Flutter` `Dart`
+
+</td>
+<td valign="top">
+
+A cross-platform academic progress tracking app. I led the team that built and shipped it — beta released and active in **176 countries and regions**.
+
+</td>
+</tr>
+</table>
+
+## Also Built
+
+| Project | What it is | Stack |
 | :--- | :--- | :--- |
-| **RTX** &times; Purdue Data Mine | ML Researcher | 3D flight sim + neural obstacle-avoidance routing for unmanned aircraft, now extending to formation flight |
-| **Purdue Quantum Computing Lab** | Quantum Error &amp; ML | Hybrid quantum-classical circuits for cryptanalysis; zero-noise extrapolation on H&#8322; ground-state energy |
-| **Mercor** | SWE, Contract | RL environment + rubric scoring framework for multi-agent customer-facing AI |
-| **Transpira Labs** | AI Eval | Browser-agent benchmarking — failure modes, accuracy, behavioral drift |
-
-## Projects
-
-| Project | What | Stack |
-| :--- | :--- | :--- |
-| **Agentic AI Infrastructure** | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
-| **RealTalk** &middot; *Co-Founder* | AI hiring assistant for resumes and interviews | `React` `FastAPI` `AWS` `Whisper` |
-| **Gradus** &middot; *Founding President* | Academic tracker, beta in **176 countries** | `Flutter` `Dart` |
-| [**project-kryptos**](https://github.com/andrey-rublev/project-kryptos) | Cipher pipeline — the 4M+ sample dataset behind the quantum ML work | `Python` |
-| [**QML**](https://github.com/andrey-rublev/QML) | Hybrid quantum-classical models for cipher classification and decryption | `PennyLane` `PyTorch` |
-| [**NK-Portfolio-Poker**](https://github.com/andrey-rublev/NK-Portfolio-Poker) | A poker-inspired portfolio | `TypeScript` `React` |
-| [**RLpokerAI**](https://github.com/andrey-rublev/RLpokerAI) &middot; [**SAP-AI**](https://github.com/andrey-rublev/SAP-AI) | RL agents for imperfect-information games | `Python` `RL` |
+| [**NK-Portfolio-Poker**](https://github.com/andrey-rublev/NK-Portfolio-Poker) | A poker-inspired portfolio site — a resume worth playing through | `TypeScript` `React` |
+| [**RLpokerAI**](https://github.com/andrey-rublev/RLpokerAI) | Reinforcement learning agent for poker, an imperfect-information testbed | `Python` `RL` |
+| [**SAP-AI**](https://github.com/andrey-rublev/SAP-AI) | Reinforcement learning agent that plays Super Auto Pets | `Python` `RL` |
+| [**Networking**](https://github.com/andrey-rublev/Networking) | Java socket programming and game projects — chat server, Connect 4, Wumpus World | `Java` |
+| **FRC Team 5427 Vision** | Vision tracking system that drove autonomous mode — District Chairman's Award | `Vision` |
+| [**leetcode-demon**](https://github.com/andrey-rublev/leetcode-demon) | Daily algorithm practice, kept honest by keeping it public | `Python` |
 
 ## Numbers
 
@@ -40,7 +115,7 @@
 <td width="16%"><h3>4M+</h3><sub>training<br />samples</sub></td>
 <td width="16%"><h3>~10&times;</h3><sub>error cut<br />via ZNE</sub></td>
 <td width="16%"><h3>176</h3><sub>countries<br />running Gradus</sub></td>
-<td width="16%"><h3>50</h3><sub>RL eval<br />scenarios</sub></td>
+<td width="16%"><h3>1,993</h3><sub>GitHub<br />contributions</sub></td>
 </tr>
 </table>
 
@@ -60,8 +135,6 @@
 
 <div align="center">
 
-Eagle Scout &middot; FIRST Robotics 5427 &middot; AWS Certified Cloud Practitioner
-
-**Looking for Summer 2027 internships** in ML, AI infrastructure, and systems engineering.
+Got something worth building? &nbsp;[**nikhilkolli.com**](https://nikhilkolli.com) &nbsp;&middot;&nbsp; [**LinkedIn**](https://linkedin.com/in/nikhilxkolli) &nbsp;&middot;&nbsp; [**kolli16@purdue.edu**](mailto:kolli16@purdue.edu)
 
 </div>
