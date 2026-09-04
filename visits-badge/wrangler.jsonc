@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nk-visits-badge",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Hostname as it appears in Cloudflare Web Analytics. The Worker uses this
+    // to look up the site_tag, so you never have to find it by hand.
+    "SITE_HOST": "nikhilkolli.com",
+
+    // Your Cloudflare account id (not a secret - it is safe in source).
+    // Dashboard -> any domain -> right sidebar -> Account ID.
+    "CF_ACCOUNT_ID": "",
+
+    // Rolling window. Web Analytics retention is finite, so there is no
+    // meaningful "all time" total.
+    "DAYS": "30",
+
+    "BADGE_COLOR": "818CF8"
+    // "BADGE_LABEL": "site visits"   // optional override
+    // "SITE_TAG": "..."              // optional; skips the lookup
+  }
+  // CF_API_TOKEN is a secret - never put it here.
+  // Set it with: npx wrangler secret put CF_API_TOKEN
+}
