@@ -13,7 +13,7 @@
 
     // Your Cloudflare account id (not a secret - it is safe in source).
     // Dashboard -> any domain -> right sidebar -> Account ID.
-    "CF_ACCOUNT_ID": "",
+    "CF_ACCOUNT_ID": "734ed893836d1463e4139d4054b63ea1",
 
     // Rolling window. Web Analytics retention is finite, so there is no
     // meaningful "all time" total.
