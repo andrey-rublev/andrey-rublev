@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://avatars.githubusercontent.com/u/95324143?v=4" width="128" alt="Nikhil Kolli" />
+
 <h1>Nikhil&nbsp;Kolli</h1>
 
 <a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=620&height=40&lines=Quantum+ML+%C2%B7+Autonomy+%C2%B7+RL+agents;I+build+things+and+ship+them" alt="Quantum ML, autonomy, RL agents" /></a>
@@ -15,6 +17,7 @@ Computer engineer building ML systems — quantum-classical hybrids, autonomy st
 | Project | What it does | Stack |
 | :--- | :--- | :--- |
 | [**Quantum-Classical ML**](https://github.com/andrey-rublev/QML) | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on [4M+ samples](https://github.com/andrey-rublev/project-kryptos) | `PennyLane` `PyTorch` |
+| [**Quantum Error Correction**](https://github.com/andrey-rublev/quantum-error-correction) | Zero-noise extrapolation on H&#8322; ground-state energy — quadratic fitting cut estimation error **~10&times;** over linear | `PennyLane` |
 | **Autonomous Flight Routing** | Neural obstacle-avoidance routing for unmanned aircraft in a 3D sim, extending to formation flight | `Python` `PyTorch` |
 | **Agentic AI Infrastructure** | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
 | **RealTalk** | AI hiring assistant that reviews resumes and interviews | `React` `FastAPI` `AWS` |
