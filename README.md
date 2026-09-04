@@ -4,7 +4,7 @@
 
 <a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=620&height=40&lines=Quantum+ML+%C2%B7+Autonomy+%C2%B7+RL+agents;I+build+things+and+ship+them" alt="Quantum ML, autonomy, RL agents" /></a>
 
-<a href="https://nikhilkolli.com"><img src="https://img.shields.io/badge/Portfolio-nikhilkolli.com-818CF8?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" /></a> <a href="https://linkedin.com/in/nikhilxkolli"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge" alt="LinkedIn" /></a> <a href="mailto:kolli16@purdue.edu"><img src="https://img.shields.io/badge/Email-1F2937?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
+<a href="https://nikhilkolli.com"><img src="https://img.shields.io/badge/Portfolio-nikhilkolli.com-818CF8?style=for-the-badge&logo=vercel&logoColor=white" alt="Portfolio" /></a> <a href="https://linkedin.com/in/nikhilxkolli"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge" alt="LinkedIn" /></a> <a href="mailto:kolli16@purdue.edu"><img src="https://img.shields.io/badge/Email-1F2937?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a> <img src="https://komarev.com/ghpvc/?username=andrey-rublev&style=for-the-badge&color=818CF8&label=VISITORS" alt="Profile views" />
 
 </div>
 
