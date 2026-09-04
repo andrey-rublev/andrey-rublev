@@ -16,7 +16,7 @@ Computer engineer building ML systems — quantum-classical hybrids, autonomy st
 | :--- | :--- | :--- |
 | [**nikhilkolli.com**](https://nikhilkolli.com) | My portfolio, dealt as a poker table — [source](https://github.com/andrey-rublev/NK-Portfolio-Poker) | `TypeScript` `React` |
 | [**Quantum-Classical ML**](https://github.com/andrey-rublev/QML) | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on [4M+ samples](https://github.com/andrey-rublev/project-kryptos) | `PennyLane` `PyTorch` |
-| [**Quantum Error Correction**](https://github.com/andrey-rublev/quantum-error-correction) | Zero-noise extrapolation recovering H&#8322; ground-state energy from a noisy 4-qubit VQE — a quadratic fit cut error **~10&times;** over linear | `PennyLane` `JAX` |
+| [**Quantum Error Mitigation**](https://github.com/andrey-rublev/quantum-error-mitigation) | Zero-noise extrapolation recovering H&#8322; ground-state energy from a noisy 4-qubit VQE — a quadratic fit cut error **~10&times;** over linear | `PennyLane` `JAX` |
 | **Autonomous Flight Routing** | Neural obstacle-avoidance routing for unmanned aircraft in a 3D sim, extending to formation flight | `Python` `PyTorch` |
 | **Agentic AI Infrastructure** | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
 | **RealTalk** | AI hiring assistant that reviews resumes and interviews | `React` `FastAPI` `AWS` |
