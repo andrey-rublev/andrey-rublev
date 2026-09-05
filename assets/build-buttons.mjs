@@ -17,13 +17,11 @@ const BUTTONS = {
   "portfolio.svg": {
     icon: "vercel",
     label: "portfolio",
-    value: "nikhilkolli.com",
     title: "Portfolio — nikhilkolli.com",
   },
   "linkedin.svg": {
     icon: "linkedin",
     label: "linkedin",
-    value: "nikhilxkolli",
     title: "LinkedIn — in/nikhilxkolli",
   },
 };

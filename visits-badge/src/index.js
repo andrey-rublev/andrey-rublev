@@ -64,7 +64,7 @@ export default {
           icon: "github",
           label: "github views",
           value: value === null ? "—" : fmt(value),
-          accent: true,
+          variant: "ghost",
           title: `GitHub profile views: ${value === null ? "unavailable" : fmt(value)}`,
         })
       );
@@ -87,7 +87,7 @@ export default {
             icon: "vercel",
             label: env.BADGE_LABEL || "portfolio views",
             value: fmt(stats.value),
-            accent: true,
+            variant: "ghost",
             title: `Portfolio views: ${fmt(stats.value)}`,
           })
         );
@@ -96,7 +96,7 @@ export default {
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
       if (!debug) {
-        return svg(button({ icon: "vercel", label: label(env), value: "—", title: "unavailable" }));
+        return svg(button({ icon: "vercel", label: label(env), value: "—", variant: "ghost", title: "unavailable" }));
       }
       payload = json({ ok: false, error: String(err && err.message ? err.message : err) }, 500);
     }

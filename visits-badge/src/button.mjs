@@ -10,30 +10,55 @@
  * where every glyph advances the same width, which makes the arithmetic exact
  * instead of an estimate. That is also why these read as a set with the
  * JetBrains Mono banner above them.
+ *
+ * Two variants, so the rows read as different kinds of thing:
+ *   solid — the links. Taller, filled, icon-led. These are actions.
+ *   ghost — the counters. Shorter, fully rounded, recessed. These are metadata.
+ *
+ * Both keep a dark fill on purpose. An outline-only variant would need
+ * prefers-color-scheme inside the SVG to stay legible on GitHub's light theme,
+ * and that is not reliable once the image is proxied.
  */
 
 const FONT = "ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace";
 
-const H = 34;
-const R = 9;
-const FS = 12;
+const VARIANTS = {
+  solid: {
+    h: 34,
+    r: 9,
+    fs: 12,
+    pad: 14,
+    icon: 14,
+    gapIcon: 9,
+    gapMid: 12,
+    bg: "#1B2029",
+    border: "#30363D",
+    iconFill: "#818CF8",
+    label: "#8B949E",
+    value: "#E6EDF3",
+    labelWeight: "400",
+    valueWeight: "600",
+  },
+  ghost: {
+    h: 26,
+    r: 13,
+    fs: 11,
+    pad: 12,
+    icon: 11,
+    gapIcon: 7,
+    gapMid: 9,
+    bg: "#12161D",
+    border: "#2C3444",
+    iconFill: "#6B7280",
+    label: "#7D8590",
+    value: "#A5B4FC",
+    labelWeight: "400",
+    valueWeight: "700",
+  },
+};
 
 /** Monospace advance is ~0.6em; a touch over avoids clipping on wider faces. */
-const ADV = FS * 0.605;
-
-const PAD = 14;
-const ICON = 14;
-const GAP_ICON = 9;
-const GAP_MID = 12;
-
-const THEME = {
-  bg: "#1B2029",
-  border: "#30363D",
-  icon: "#818CF8",
-  label: "#8B949E",
-  value: "#E6EDF3",
-  accent: "#A5B4FC",
-};
+const advance = (fs) => fs * 0.605;
 
 export const ICONS = {
   linkedin:
@@ -48,35 +73,45 @@ const esc = (s) =>
 
 /**
  * @param {object} o
- * @param {string} [o.icon]    key of ICONS
- * @param {string} o.label     muted left text
- * @param {string} o.value     bright right text
- * @param {boolean} [o.accent] tint the value with the accent colour
- * @param {string} [o.title]   accessible name
+ * @param {string} [o.icon]     key of ICONS
+ * @param {string} o.label      left text
+ * @param {string} [o.value]    right text; omit for a label-only button
+ * @param {'solid'|'ghost'} [o.variant]
+ * @param {string} [o.title]    accessible name
  */
-export function button({ icon, label, value, accent = false, title }) {
-  const labelW = label.length * ADV;
-  const valueW = value.length * ADV;
-  const iconW = icon ? ICON + GAP_ICON : 0;
-  const w = Math.ceil(PAD + iconW + labelW + GAP_MID + valueW + PAD);
+export function button({ icon, label, value, variant = "solid", title }) {
+  const v = VARIANTS[variant];
+  if (!v) throw new Error(`unknown variant: ${variant}`);
 
-  const iconX = PAD;
-  const labelX = PAD + iconW;
-  const valueX = labelX + labelW + GAP_MID;
-  const baseline = H / 2 + FS * 0.35;
+  const adv = advance(v.fs);
+  const labelW = label.length * adv;
+  const hasValue = value !== undefined && value !== null && value !== "";
+  const valueW = hasValue ? value.length * adv : 0;
+  const iconW = icon ? v.icon + v.gapIcon : 0;
+  const w = Math.ceil(v.pad + iconW + labelW + (hasValue ? v.gapMid + valueW : 0) + v.pad);
+
+  const labelX = v.pad + iconW;
+  const valueX = labelX + labelW + v.gapMid;
+  const baseline = v.h / 2 + v.fs * 0.35;
+
+  const name = title || (hasValue ? `${label} ${value}` : label);
 
   const iconMarkup = icon
-    ? `<g transform="translate(${iconX} ${(H - ICON) / 2}) scale(${ICON / 24})">` +
-      `<path fill="${THEME.icon}" d="${ICONS[icon]}"/></g>`
+    ? `<g transform="translate(${v.pad} ${(v.h - v.icon) / 2}) scale(${v.icon / 24})">` +
+      `<path fill="${v.iconFill}" d="${ICONS[icon]}"/></g>`
     : "";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" role="img" aria-label="${esc(title || `${label} ${value}`)}">
-  <title>${esc(title || `${label} ${value}`)}</title>
-  <rect x="0.5" y="0.5" width="${w - 1}" height="${H - 1}" rx="${R}" fill="${THEME.bg}" stroke="${THEME.border}"/>
+  const valueMarkup = hasValue
+    ? `<text x="${valueX}" y="${baseline}" fill="${v.value}" font-weight="${v.valueWeight}">${esc(value)}</text>`
+    : "";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${v.h}" viewBox="0 0 ${w} ${v.h}" role="img" aria-label="${esc(name)}">
+  <title>${esc(name)}</title>
+  <rect x="0.5" y="0.5" width="${w - 1}" height="${v.h - 1}" rx="${v.r}" fill="${v.bg}" stroke="${v.border}"/>
   ${iconMarkup}
-  <g font-family="${FONT}" font-size="${FS}" dominant-baseline="middle">
-    <text x="${labelX}" y="${baseline}" fill="${THEME.label}">${esc(label)}</text>
-    <text x="${valueX}" y="${baseline}" fill="${accent ? THEME.accent : THEME.value}" font-weight="600">${esc(value)}</text>
+  <g font-family="${FONT}" font-size="${v.fs}">
+    <text x="${labelX}" y="${baseline}" fill="${v.label}" font-weight="${v.labelWeight}">${esc(label)}</text>
+    ${valueMarkup}
   </g>
 </svg>`;
 }
