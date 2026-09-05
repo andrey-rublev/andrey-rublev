@@ -49,6 +49,42 @@ export default {
 
     let payload;
     try {
+      // Debug-only: per-day rows, to check whether sampleInterval varies.
+      if (debug && url.searchParams.get("breakdown") === "1") {
+        const days = Number(url.searchParams.get("days")) || 30;
+        const end = today();
+        const start = shiftDays(end, -(days - 1));
+        const rows = await graphql(
+          env,
+          `query B($accountTag: string!, $start: Date!, $end: Date!) {
+             viewer { accounts(filter: { accountTag: $accountTag }) {
+               rumPageloadEventsAdaptiveGroups(
+                 filter: { date_geq: $start, date_leq: $end }
+                 limit: 5000
+                 orderBy: [date_ASC]
+               ) { count sum { visits } avg { sampleInterval } dimensions { date siteTag } }
+             } } }`,
+          { accountTag: env.CF_ACCOUNT_ID, start: iso(start), end: iso(end) }
+        );
+        const rawSum = rows.reduce((a, r) => a + (r.count || 0), 0);
+        const scaledSum = rows.reduce(
+          (a, r) => a + (r.count || 0) * ((r.avg && Number(r.avg.sampleInterval)) || 1),
+          0
+        );
+        const visitsSum = rows.reduce((a, r) => a + ((r.sum && r.sum.visits) || 0), 0);
+        const intervals = [...new Set(rows.map((r) => r.avg && r.avg.sampleInterval))];
+        return json({
+          ok: true,
+          days,
+          rows: rows.length,
+          rawSum,
+          scaledSum,
+          visitsSum,
+          distinctSampleIntervals: intervals,
+          sample: rows.slice(0, 5),
+        });
+      }
+
       // ?days= is honoured only under debug, for probing retention limits.
       const override = debug ? url.searchParams.get("days") : null;
       const spec = override || env.DAYS || String(DEFAULT_DAYS);
