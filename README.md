@@ -1,12 +1,16 @@
 <div align="center">
 
-<h1>Nikhil&nbsp;Kolli</h1>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-light.svg" />
+  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-dark.svg" alt="Nikhil Kolli" width="560" />
+</picture>
 
 <a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=700&height=40&lines=RL%2FML%2FAI%2C+SWE%2C+ECE+%7C+CompE+%40+Purdue+%7C+nikhilkolli.com" alt="RL/ML/AI, SWE, ECE | CompE at Purdue | nikhilkolli.com" /></a>
 
 <a href="https://nikhilkolli.com"><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio.svg" alt="Portfolio" height="34" /></a> <a href="https://linkedin.com/in/nikhilxkolli"><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin.svg" alt="LinkedIn" height="34" /></a>
 
-<img src="https://nk-visits-badge.nikhilkolli1.workers.dev/github" alt="GitHub profile views" height="26" /> <img src="https://nk-visits-badge.nikhilkolli1.workers.dev/" alt="Portfolio views" height="26" />
+<a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/github" alt="GitHub profile views" height="26" /></a> <a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/" alt="Portfolio views" height="26" /></a>
 
 </div>
 
