@@ -3,8 +3,9 @@
  * zone, so the README can display a measured number rather than a hit counter
  * that anyone could inflate by loading the image.
  *
- * GET /            -> shields endpoint JSON
- * GET /?debug=1    -> non-sensitive diagnostics
+ * GET /            -> portfolio views button (SVG)
+ * GET /github      -> GitHub profile views button (SVG)
+ * GET /?debug=1    -> non-sensitive diagnostics (JSON)
  *
  * Reads `httpRequests1dGroups`, the zone-level daily rollup behind the
  * dashboard's Traffic page. An earlier version used Web Analytics
@@ -17,7 +18,12 @@
  * Token needs: Zone -> Analytics -> Read, with Zone Resources actually set.
  */
 
+import { button } from "./button.mjs";
+
 const GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
+
+/** Upstream for the GitHub profile counter; it has no API, only this SVG. */
+const GHPVC_URL = "https://komarev.com/ghpvc/?username=andrey-rublev&label=v&color=blue";
 
 /** Overridable so the flow can be exercised against a mock in tests. */
 const gqlUrl = (env) => env.GRAPHQL_URL || GRAPHQL_URL;
@@ -27,9 +33,6 @@ const FRESH_SECONDS = 600;
 
 /** How long the last good figure is retained as a fallback. */
 const STATE_TTL_SECONDS = 30 * 24 * 3600;
-
-/** Browser/shields caching of the badge itself. */
-const CACHE_SECONDS = 300;
 
 /** "all" resolves to this many days back - beyond retention is simply empty. */
 const ALL_TIME_DAYS = 365;
@@ -49,12 +52,22 @@ export default {
     const url = new URL(request.url);
     const debug = url.searchParams.get("debug") === "1";
 
-    const cache = caches.default;
-    const cacheKey = new Request(new URL(url.pathname + url.search, url.origin), { method: "GET" });
-
-    if (!debug) {
-      const hit = await cache.match(cacheKey);
-      if (hit) return hit;
+    if (url.pathname.replace(/\.svg$/, "") === "/github") {
+      let value;
+      try {
+        value = await githubViews();
+      } catch {
+        value = null;
+      }
+      return svg(
+        button({
+          icon: "github",
+          label: "github views",
+          value: value === null ? "—" : fmt(value),
+          accent: true,
+          title: `GitHub profile views: ${value === null ? "unavailable" : fmt(value)}`,
+        })
+      );
     }
 
     let payload;
@@ -68,18 +81,26 @@ export default {
       const spec = env.DAYS || String(DEFAULT_DAYS);
       const { stats, servedStale } = await statsWithFallback(env, ctx, spec);
 
-      payload = debug ? json({ ok: true, servedStale, ...stats }) : json(badge(env, stats));
+      if (!debug) {
+        return svg(
+          button({
+            icon: "vercel",
+            label: env.BADGE_LABEL || "portfolio views",
+            value: fmt(stats.value),
+            accent: true,
+            title: `Portfolio views: ${fmt(stats.value)}`,
+          })
+        );
+      }
+      payload = json({ ok: true, servedStale, ...stats });
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
-      payload = debug
-        ? json({ ok: false, error: String(err && err.message ? err.message : err) }, 500)
-        : json({ schemaVersion: 1, label: label(env), message: "unavailable", color: "inactive" });
+      if (!debug) {
+        return svg(button({ icon: "vercel", label: label(env), value: "—", title: "unavailable" }));
+      }
+      payload = json({ ok: false, error: String(err && err.message ? err.message : err) }, 500);
     }
 
-    if (!debug && payload.status === 200) {
-      payload.headers.set("Cache-Control", `public, max-age=${CACHE_SECONDS}`);
-      ctx.waitUntil(cache.put(cacheKey, payload.clone()));
-    }
     return payload;
   },
 };
@@ -243,6 +264,33 @@ function requireEnv(env, keys) {
 function summarize(errors) {
   if (!errors || !errors.length) return "";
   return errors.map((e) => e.message).join("; ").slice(0, 200);
+}
+
+/**
+ * The profile counter has no API - only an SVG whose number is baked in - so
+ * the count is read back out of it and redrawn in this button set. Fetched
+ * fresh every time: it increments per render, which is the behaviour to keep.
+ */
+async function githubViews() {
+  const res = await fetch(GHPVC_URL, { headers: { Accept: "image/svg+xml" } });
+  const body = await res.text();
+  const texts = [...body.matchAll(/>([\d,]+)<\/text>/g)].map((m) => m[1]);
+  const n = texts.length ? Number(texts[texts.length - 1].replace(/,/g, "")) : NaN;
+  if (!Number.isFinite(n)) throw new Error("could not read count from upstream");
+  return n;
+}
+
+const fmt = (n) => new Intl.NumberFormat("en-US").format(n);
+
+/** No-store so each render re-counts and the number never sticks. */
+function svg(markup) {
+  return new Response(markup, {
+    headers: {
+      "Content-Type": "image/svg+xml; charset=utf-8",
+      "Cache-Control": "max-age=0, no-cache, no-store, must-revalidate",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
 }
 
 function json(obj, status = 200) {
