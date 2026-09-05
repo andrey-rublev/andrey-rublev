@@ -90,11 +90,20 @@ curl 'http://127.0.0.1:8791/?debug=1'
 | `CF_API_TOKEN` | yes | **Secret.** Account Analytics → Read. |
 | `CF_ACCOUNT_ID` | yes | Not secret. |
 | `SITE_TAG` | no | Only needed if more than one site has data. |
-| `DAYS` | no | Rolling window, default `30`. |
+| `DAYS` | no | Day count, or `all`. Default `30`. |
+| `METRIC` | no | `pageviews` or `visits` (sessions). Default `visits`. |
 | `BADGE_LABEL` | no | Default `site visits · <days>d`. |
 | `BADGE_COLOR` | no | Default `818CF8`. |
 
-## Why a rolling window
+## All-time totals
 
-Cloudflare Web Analytics retention is finite, so there is no meaningful all-time
-total to report. The badge shows a window and says so in its label.
+Cloudflare refuses any single query wider than **13w2d** (93 days), so `DAYS=all`
+walks backwards in 90-day chunks and sums them, stopping after two consecutive
+empty chunks or when a range is refused for having aged out of retention.
+
+That makes the total complete for any site whose history is still within
+retention. For an older site it becomes "as far back as Cloudflare still has",
+which is the most that can honestly be claimed — `/?debug=1` reports `chunks`
+and `oldestDay` so you can see how far it actually reached.
+
+Each cache miss costs one API call per chunk, bounded at 16.

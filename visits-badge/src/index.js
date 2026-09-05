@@ -18,14 +18,21 @@ const GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
 /** Overridable so the flow can be exercised against a mock in tests. */
 const gqlUrl = (env) => env.GRAPHQL_URL || GRAPHQL_URL;
 
-/** How long to hold a result before asking Cloudflare again. */
 const CACHE_SECONDS = 600;
+const DEFAULT_DAYS = 30;
 
 /**
- * Web Analytics retention is finite, so an "all time" total isn't available.
- * The badge reports a rolling window and says so in the label.
+ * Cloudflare refuses any single query wider than 13w2d (93 days), so an
+ * all-time total is assembled from consecutive chunks walked backwards.
+ * 90 keeps a safe margin under the cap.
  */
-const DEFAULT_DAYS = 30;
+const CHUNK_DAYS = 90;
+
+/** Bounds the walk so a cache miss can never fan out indefinitely. */
+const MAX_CHUNKS = 16;
+
+/** Stop after this many consecutive empty chunks, to tolerate quiet gaps. */
+const EMPTY_CHUNKS_BEFORE_STOP = 2;
 
 export default {
   async fetch(request, env, ctx) {
@@ -42,11 +49,21 @@ export default {
 
     let payload;
     try {
-      const days = Number(env.DAYS) || DEFAULT_DAYS;
-      const stats = await collect(env, days);
+      // ?days= is honoured only under debug, for probing retention limits.
+      const override = debug ? url.searchParams.get("days") : null;
+      const spec = override || env.DAYS || String(DEFAULT_DAYS);
+      const stats = await collect(env, spec);
       payload = debug
-        ? json({ ok: true, siteTag: mask(stats.siteTag), metric: stats.metric, value: stats.value, days })
-        : json(badge(env, stats.value, days));
+        ? json({
+            ok: true,
+            siteTag: mask(stats.siteTag),
+            metric: stats.metric,
+            value: stats.value,
+            window: stats.window,
+            chunks: stats.chunks,
+            oldestDay: stats.oldestDay,
+          })
+        : json(badge(env, stats));
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
       payload = debug
@@ -62,10 +79,61 @@ export default {
   },
 };
 
-async function collect(env, days) {
+/** `spec` is either a day count or "all". */
+async function collect(env, spec) {
   requireEnv(env, ["CF_API_TOKEN", "CF_ACCOUNT_ID"]);
-  const { start, end } = window(days);
-  return queryTraffic(env, env.SITE_TAG || null, start, end);
+  return String(spec).toLowerCase() === "all"
+    ? collectAllTime(env)
+    : collectWindow(env, Number(spec) || DEFAULT_DAYS);
+}
+
+async function collectWindow(env, days) {
+  const end = today();
+  const start = shiftDays(end, -(days - 1));
+  const r = await queryTraffic(env, env.SITE_TAG || null, iso(start), iso(end));
+  return { ...r, window: `${days}d`, chunks: 1, oldestDay: iso(start) };
+}
+
+/**
+ * Walks backwards in chunks and sums them. Stops on a run of empty chunks, or
+ * when Cloudflare refuses the range because it has aged out of retention -
+ * either way, that is as far back as the data goes.
+ */
+async function collectAllTime(env) {
+  let total = 0;
+  let chunks = 0;
+  let empties = 0;
+  let siteTag = env.SITE_TAG || null;
+  let metric = null;
+  let oldestDay = null;
+
+  let end = today();
+
+  for (let i = 0; i < MAX_CHUNKS; i++) {
+    const start = shiftDays(end, -(CHUNK_DAYS - 1));
+
+    let r;
+    try {
+      r = await queryTraffic(env, siteTag, iso(start), iso(end));
+    } catch (err) {
+      // Out of retention, or the range was refused - nothing older to read.
+      if (chunks === 0) throw err;
+      break;
+    }
+
+    chunks++;
+    total += r.value;
+    if (r.siteTag) siteTag = r.siteTag;
+    if (r.metric) metric = r.metric;
+    if (r.value > 0) oldestDay = iso(start);
+
+    empties = r.value === 0 ? empties + 1 : 0;
+    if (empties >= EMPTY_CHUNKS_BEFORE_STOP) break;
+
+    end = shiftDays(start, -1);
+  }
+
+  return { siteTag, metric: metric || "visits", value: total, window: "all", chunks, oldestDay };
 }
 
 /**
@@ -73,12 +141,14 @@ async function collect(env, days) {
  * tag never has to be configured for a single-site account, and a multi-site
  * account gets a clear error naming its options instead of a silent wrong sum.
  *
- * Falls back from `sum { visits }` to the pageview `count` if the schema
- * rejects the field, so the badge still shows something true.
+ * Which number is reported follows METRIC; if the schema rejects
+ * `sum { visits }` it falls back to the pageview `count` and says so.
  */
 async function queryTraffic(env, siteTag, start, end) {
+  const wantPageviews = (env.METRIC || "visits").toLowerCase() === "pageviews";
+
   const build = (metricFields) => `
-    query Visits($accountTag: string!, $start: Date!, $end: Date!) {
+    query Traffic($accountTag: string!, $start: Date!, $end: Date!) {
       viewer {
         accounts(filter: { accountTag: $accountTag }) {
           rumPageloadEventsAdaptiveGroups(
@@ -91,20 +161,27 @@ async function queryTraffic(env, siteTag, start, end) {
 
   const vars = { accountTag: env.CF_ACCOUNT_ID, start, end };
 
-  // Keep the first failure: if both attempts fail the cause is usually auth or
-  // permissions, and that error is far more useful than the fallback's.
-  let firstError = null;
-  let rows = await graphql(env, build("count sum { visits }"), vars).catch((e) => {
-    firstError = e;
-    return null;
-  });
-  let metric = "visits";
+  let rows;
+  let metric;
 
-  if (!rows) {
-    rows = await graphql(env, build("count"), vars).catch((e) => {
-      throw firstError || e;
-    });
+  if (wantPageviews) {
+    rows = await graphql(env, build("count"), vars);
     metric = "pageviews";
+  } else {
+    // Keep the first failure: if both attempts fail the cause is usually auth
+    // or permissions, and that error is more useful than the fallback's.
+    let firstError = null;
+    rows = await graphql(env, build("count sum { visits }"), vars).catch((e) => {
+      firstError = e;
+      return null;
+    });
+    metric = "visits";
+    if (!rows) {
+      rows = await graphql(env, build("count"), vars).catch((e) => {
+        throw firstError || e;
+      });
+      metric = "pageviews";
+    }
   }
 
   const row = pickSite(rows, siteTag);
@@ -124,9 +201,8 @@ function pickSite(rows, siteTag) {
   if (!rows.length) return null;
 
   if (siteTag) {
-    const match = rows.find((r) => r.dimensions && r.dimensions.siteTag === siteTag);
-    if (!match) throw new Error(`SITE_TAG not found in analytics for this window`);
-    return match;
+    // A chunk with no traffic for this site is a legitimate zero, not an error.
+    return rows.find((r) => r.dimensions && r.dimensions.siteTag === siteTag) || null;
   }
 
   if (rows.length === 1) return rows[0];
@@ -173,26 +249,24 @@ async function readJson(res, what) {
   }
 }
 
-/** Inclusive date window ending today, in the YYYY-MM-DD the API expects. */
-function window(days) {
-  const end = new Date();
-  const start = new Date(end.getTime() - (days - 1) * 86400000);
-  const iso = (d) => d.toISOString().slice(0, 10);
-  return { start: iso(start), end: iso(end) };
-}
+const DAY_MS = 86400000;
+const today = () => new Date();
+const shiftDays = (d, n) => new Date(d.getTime() + n * DAY_MS);
+const iso = (d) => d.toISOString().slice(0, 10);
 
-function badge(env, value, days) {
+function badge(env, stats) {
   return {
     schemaVersion: 1,
-    label: label(env, days),
-    message: new Intl.NumberFormat("en-US").format(value),
+    label: label(env, stats.window),
+    message: new Intl.NumberFormat("en-US").format(stats.value),
     color: env.BADGE_COLOR || "818CF8",
   };
 }
 
-function label(env, days) {
+function label(env, window) {
   if (env.BADGE_LABEL) return env.BADGE_LABEL;
-  return days ? `site visits · ${days}d` : "site visits";
+  if (!window || window === "all") return "site visits";
+  return `site visits · ${window}`;
 }
 
 function requireEnv(env, keys) {

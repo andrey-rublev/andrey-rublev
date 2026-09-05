@@ -11,12 +11,16 @@
     // Dashboard -> any domain -> right sidebar -> Account ID.
     "CF_ACCOUNT_ID": "734ed893836d1463e4139d4054b63ea1",
 
-    // Rolling window. Web Analytics retention is finite, so there is no
-    // meaningful "all time" total.
-    "DAYS": "30",
+    // "all" walks backwards in 90-day chunks (Cloudflare caps a single
+    // query at 13w2d) and sums them, stopping where the data runs out.
+    "DAYS": "all",
+
+    // "pageviews" matches a "views" label; "visits" counts sessions instead.
+    "METRIC": "pageviews",
+
+    "BADGE_LABEL": "portfolio views",
 
     "BADGE_COLOR": "818CF8"
-    // "BADGE_LABEL": "site visits"   // optional override
     // "SITE_TAG": "..."              // only if >1 site has data
   }
   // CF_API_TOKEN is a secret - never put it here.
