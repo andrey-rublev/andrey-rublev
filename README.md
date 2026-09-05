@@ -15,7 +15,7 @@ Computer engineer building ML systems — quantum-classical hybrids, autonomy st
 | Project | What it does | Stack |
 | :--- | :--- | :--- |
 | [**nikhilkolli.com**](https://nikhilkolli.com) | My portfolio, dealt as a poker table — [source](https://github.com/andrey-rublev/NK-Portfolio-Poker) | `TypeScript` `React` |
-| **Quantum-Classical ML** | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on a [4M+ sample corpus](https://github.com/andrey-rublev/QML) | `PennyLane` `PyTorch` |
+| **Quantum-Classical ML** | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on a [4M+ sample dataset](https://github.com/andrey-rublev/QML) | `PennyLane` `PyTorch` |
 | [**Quantum Error Mitigation**](https://github.com/andrey-rublev/quantum-error-mitigation) | Zero-noise extrapolation recovering H&#8322; ground-state energy from a noisy 4-qubit VQE — a quadratic fit cut error **~10&times;** over linear | `PennyLane` `JAX` |
 | **Agentic AI Infrastructure** | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
 | **RealTalk** | AI hiring assistant that reviews resumes and interviews | `React` `FastAPI` `AWS` |
