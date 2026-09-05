@@ -63,6 +63,39 @@ export default {
         return await breakdown(env, url);
       }
 
+      // Debug-only: what zone analytics reports, for picking a metric.
+      if (debug && url.searchParams.get("zones") === "1") {
+        const days = Number(url.searchParams.get("days")) || 30;
+        const end = today();
+        const start = shiftDays(end, -(days - 1));
+        const res = await fetch(gqlUrl(env), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.CF_API_TOKEN}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            query: `query Z($start: Time!, $end: Time!) {
+              viewer { zones {
+                zoneTag
+                httpRequestsAdaptiveGroups(
+                  filter: { datetime_geq: $start, datetime_lt: $end }
+                  limit: 1
+                ) { count sum { visits } avg { sampleInterval } }
+              } }
+            }`,
+            variables: { start: `${iso(start)}T00:00:00Z`, end: `${iso(end)}T23:59:59Z` },
+          }),
+        });
+        const b = await res.json();
+        return json({
+          ok: !b.errors,
+          errors: b.errors ? b.errors.map((e) => e.message).slice(0, 3) : undefined,
+          zones: b.data && b.data.viewer && b.data.viewer.zones,
+        });
+      }
+
       // ?days= is honoured only under debug, for probing retention limits.
       const override = debug ? url.searchParams.get("days") : null;
       if (override) {
