@@ -17,6 +17,9 @@ const multiSite = process.argv.includes("--multi-site");
 const historyArg = process.argv.find((a) => a.startsWith("--history="));
 const historyDays = historyArg ? Number(historyArg.split("=")[1]) : Infinity;
 
+/** Adaptive datasets return sampled rows; 10 means 1-in-10, as seen live. */
+const SAMPLE_INTERVAL = 10;
+
 const SITE_TAG = "abcd1234abcd1234abcd1234abcd1234";
 const OTHER_TAG = "99999999999999999999999999999999";
 
@@ -48,10 +51,12 @@ const server = createServer((req, res) => {
       });
     }
 
-    const row = (tag, count, visits) =>
-      wantsVisits
-        ? { count, sum: { visits }, dimensions: { siteTag: tag } }
-        : { count, dimensions: { siteTag: tag } };
+    const row = (tag, count, visits) => ({
+      count,
+      ...(wantsVisits ? { sum: { visits } } : {}),
+      avg: { sampleInterval: SAMPLE_INTERVAL },
+      dimensions: { siteTag: tag },
+    });
 
     const groups = multiSite
       ? [row(SITE_TAG, 4821, 1337), row(OTHER_TAG, 12, 3)]

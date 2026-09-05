@@ -59,6 +59,8 @@ export default {
             siteTag: mask(stats.siteTag),
             metric: stats.metric,
             value: stats.value,
+            raw: stats.raw,
+            sampleInterval: stats.sampleInterval,
             window: stats.window,
             chunks: stats.chunks,
             oldestDay: stats.oldestDay,
@@ -103,8 +105,10 @@ async function collectAllTime(env) {
   let total = 0;
   let chunks = 0;
   let empties = 0;
+  let rawTotal = 0;
   let siteTag = env.SITE_TAG || null;
   let metric = null;
+  let sampleInterval = 1;
   let oldestDay = null;
 
   let end = today();
@@ -123,8 +127,10 @@ async function collectAllTime(env) {
 
     chunks++;
     total += r.value;
+    rawTotal += r.raw || 0;
     if (r.siteTag) siteTag = r.siteTag;
     if (r.metric) metric = r.metric;
+    if (r.raw > 0 && r.sampleInterval) sampleInterval = r.sampleInterval;
     if (r.value > 0) oldestDay = iso(start);
 
     empties = r.value === 0 ? empties + 1 : 0;
@@ -133,7 +139,16 @@ async function collectAllTime(env) {
     end = shiftDays(start, -1);
   }
 
-  return { siteTag, metric: metric || "visits", value: total, window: "all", chunks, oldestDay };
+  return {
+    siteTag,
+    metric: metric || "visits",
+    value: total,
+    raw: rawTotal,
+    sampleInterval,
+    window: "all",
+    chunks,
+    oldestDay,
+  };
 }
 
 /**
@@ -154,7 +169,7 @@ async function queryTraffic(env, siteTag, start, end) {
           rumPageloadEventsAdaptiveGroups(
             filter: { date_geq: $start, date_leq: $end }
             limit: 100
-          ) { ${metricFields} dimensions { siteTag } }
+          ) { ${metricFields} avg { sampleInterval } dimensions { siteTag } }
         }
       }
     }`;
@@ -185,15 +200,22 @@ async function queryTraffic(env, siteTag, start, end) {
   }
 
   const row = pickSite(rows, siteTag);
-  if (!row) return { siteTag, metric, value: 0 };
+  if (!row) return { siteTag, metric, value: 0, raw: 0, sampleInterval: 1 };
 
   const visits = row.sum && typeof row.sum.visits === "number" ? row.sum.visits : null;
   if (metric === "visits" && visits === null) metric = "pageviews";
 
+  const raw = metric === "visits" ? visits : row.count || 0;
+  const sampleInterval = (row.avg && Number(row.avg.sampleInterval)) || 1;
+
   return {
     siteTag: (row.dimensions && row.dimensions.siteTag) || siteTag,
     metric,
-    value: metric === "visits" ? visits : row.count || 0,
+    raw,
+    sampleInterval,
+    // Adaptive datasets return sampled rows; the true total is the sampled
+    // count scaled by the interval. Without this the badge reads N times low.
+    value: Math.round(raw * sampleInterval),
   };
 }
 

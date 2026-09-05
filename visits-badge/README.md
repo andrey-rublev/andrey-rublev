@@ -70,6 +70,23 @@ Returns the resolved metric and value, with the site tag masked:
 
 On failure it returns `{ "ok": false, "error": "..." }` with the reason.
 
+`raw` is the sampled row count Cloudflare returned; `value` is that scaled by
+`sampleInterval`. See below.
+
+## Sampling
+
+`rumPageloadEventsAdaptiveGroups` is an **adaptive sampling** dataset: `count` is
+the number of sampled rows, not the true number of pageloads. The estimate is
+`count × avg(sampleInterval)`.
+
+This account samples at 1-in-10, so skipping that multiplication reports a figure
+ten times too low — which is easy to miss, because the undercounted number still
+looks plausible. `/?debug=1` exposes `raw` and `sampleInterval` so the badge can
+always be reconciled against the Cloudflare dashboard.
+
+Sampling also means the total drifts slightly between reads. It is a good
+estimate, not a ledger.
+
 ## Local test, no token needed
 
 `test/mock-cf-api.mjs` stands in for the Cloudflare GraphQL API so the whole path
