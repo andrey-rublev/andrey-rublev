@@ -14,15 +14,15 @@ Computer engineer building ML systems — quantum-classical hybrids, autonomy st
 
 | Project | What it does | Stack |
 | :--- | :--- | :--- |
-| [**nikhilkolli.com**](https://nikhilkolli.com) | My portfolio, dealt as a poker table — [source](https://github.com/andrey-rublev/NK-Portfolio-Poker) | `TypeScript` `React` |
-| **Quantum-Classical ML** | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on a [4M+ sample dataset](https://github.com/andrey-rublev/QML) | `PennyLane` `PyTorch` |
-| [**Quantum Error Mitigation**](https://github.com/andrey-rublev/quantum-error-mitigation) | Zero-noise extrapolation recovering H&#8322; ground-state energy from a noisy 4-qubit VQE — a quadratic fit cut error **~10&times;** over linear | `PennyLane` `JAX` |
-| **Agentic AI Infrastructure** | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
-| **RealTalk** | AI hiring assistant that reviews resumes and interviews | `React` `FastAPI` `AWS` |
-| **Gradus** | Academic tracking app, shipped to **176 countries** | `Flutter` `Dart` |
-| [**project-kryptos**](https://github.com/andrey-rublev/project-kryptos) | Identifies and decodes Caesar, Vigenère, skip and columnar ciphers from ciphertext alone, with no key | `Python` |
-| [**RLpokerAI**](https://github.com/andrey-rublev/RLpokerAI) &middot; [**SAP-AI**](https://github.com/andrey-rublev/SAP-AI) | RL agents for imperfect-information games | `Python` `RL` |
-| [**Networking**](https://github.com/andrey-rublev/Networking) | Java socket programming and game projects | `Java` |
+| <a href="https://nikhilkolli.com"><img src="https://img.shields.io/badge/nikhilkolli.com-818CF8?style=flat-square&logo=vercel&logoColor=white" alt="nikhilkolli.com" /></a> | My portfolio, dealt as a poker table — [source](https://github.com/andrey-rublev/NK-Portfolio-Poker) | `TypeScript` `React` |
+| <img src="https://img.shields.io/badge/Quantum--Classical_ML-262C36?style=flat-square" alt="Quantum-Classical ML" /> | Variational circuits classifying ciphers at **96.59%** and decrypting at **99.85%**, trained on a [4M+ sample dataset](https://github.com/andrey-rublev/QML) | `PennyLane` `PyTorch` |
+| <a href="https://github.com/andrey-rublev/quantum-error-mitigation"><img src="https://img.shields.io/badge/Quantum_Error_Mitigation-4B5563?style=flat-square&logo=github&logoColor=white" alt="Quantum Error Mitigation" /></a> | Zero-noise extrapolation recovering H&#8322; ground-state energy from a noisy 4-qubit VQE — a quadratic fit cut error **~10&times;** over linear | `PennyLane` `JAX` |
+| <img src="https://img.shields.io/badge/Agentic_AI_Infrastructure-262C36?style=flat-square" alt="Agentic AI Infrastructure" /> | Multi-LLM model routing, MCP servers, custom skills, and connectors | `MCP` `Python` `TS` |
+| <img src="https://img.shields.io/badge/RealTalk-262C36?style=flat-square" alt="RealTalk" /> | AI hiring assistant that reviews resumes and interviews | `React` `FastAPI` `AWS` |
+| <img src="https://img.shields.io/badge/Gradus-262C36?style=flat-square" alt="Gradus" /> | Academic tracking app, shipped to **176 countries** | `Flutter` `Dart` |
+| <a href="https://github.com/andrey-rublev/project-kryptos"><img src="https://img.shields.io/badge/project--kryptos-4B5563?style=flat-square&logo=github&logoColor=white" alt="project-kryptos" /></a> | Identifies and decodes Caesar, Vigenère, skip and columnar ciphers from ciphertext alone, with no key | `Python` |
+| <a href="https://github.com/andrey-rublev/RLpokerAI"><img src="https://img.shields.io/badge/RLpokerAI-4B5563?style=flat-square&logo=github&logoColor=white" alt="RLpokerAI" /></a> <a href="https://github.com/andrey-rublev/SAP-AI"><img src="https://img.shields.io/badge/SAP--AI-4B5563?style=flat-square&logo=github&logoColor=white" alt="SAP-AI" /></a> | RL agents for imperfect-information games | `Python` `RL` |
+| <a href="https://github.com/andrey-rublev/Networking"><img src="https://img.shields.io/badge/Networking-4B5563?style=flat-square&logo=github&logoColor=white" alt="Networking" /></a> | Java socket programming and game projects | `Java` |
 
 <div align="center">
 
