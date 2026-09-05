@@ -73,6 +73,18 @@ On failure it returns `{ "ok": false, "error": "..." }` with the reason.
 `raw` is the sampled row count Cloudflare returned; `value` is that scaled by
 `sampleInterval`. See below.
 
+## Reliability
+
+Assembling an all-time total takes several sequential API calls. Making
+shields.io wait for those on every cache miss made the badge intermittently
+render as `unavailable`.
+
+The Worker now keeps the last good figure for 30 days. A request is answered
+from that immediately; once the figure is older than 10 minutes a refresh runs
+in the background behind the response. If a refresh fails, the last good number
+is served rather than an error — so after the first success the badge does not
+break, it just goes stale.
+
 ## Sampling
 
 `rumPageloadEventsAdaptiveGroups` is an **adaptive sampling** dataset: `count` is

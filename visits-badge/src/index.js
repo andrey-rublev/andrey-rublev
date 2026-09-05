@@ -18,7 +18,16 @@ const GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
 /** Overridable so the flow can be exercised against a mock in tests. */
 const gqlUrl = (env) => env.GRAPHQL_URL || GRAPHQL_URL;
 
-const CACHE_SECONDS = 600;
+/** How long a fetched figure is served before a background refresh starts. */
+const FRESH_SECONDS = 600;
+
+/** How long the last good figure is retained as a fallback. */
+const STATE_TTL_SECONDS = 30 * 24 * 3600;
+
+/** Browser/shields caching of the badge itself. */
+const CACHE_SECONDS = 300;
+
+const STATE_KEY = "https://nk-visits-badge.internal/state";
 const DEFAULT_DAYS = 30;
 
 /**
@@ -51,56 +60,21 @@ export default {
     try {
       // Debug-only: per-day rows, to check whether sampleInterval varies.
       if (debug && url.searchParams.get("breakdown") === "1") {
-        const days = Number(url.searchParams.get("days")) || 30;
-        const end = today();
-        const start = shiftDays(end, -(days - 1));
-        const rows = await graphql(
-          env,
-          `query B($accountTag: string!, $start: Date!, $end: Date!) {
-             viewer { accounts(filter: { accountTag: $accountTag }) {
-               rumPageloadEventsAdaptiveGroups(
-                 filter: { date_geq: $start, date_leq: $end }
-                 limit: 5000
-                 orderBy: [date_ASC]
-               ) { count sum { visits } avg { sampleInterval } dimensions { date siteTag } }
-             } } }`,
-          { accountTag: env.CF_ACCOUNT_ID, start: iso(start), end: iso(end) }
-        );
-        const rawSum = rows.reduce((a, r) => a + (r.count || 0), 0);
-        const scaledSum = rows.reduce(
-          (a, r) => a + (r.count || 0) * ((r.avg && Number(r.avg.sampleInterval)) || 1),
-          0
-        );
-        const visitsSum = rows.reduce((a, r) => a + ((r.sum && r.sum.visits) || 0), 0);
-        const intervals = [...new Set(rows.map((r) => r.avg && r.avg.sampleInterval))];
-        return json({
-          ok: true,
-          days,
-          rows: rows.length,
-          rawSum,
-          scaledSum,
-          visitsSum,
-          distinctSampleIntervals: intervals,
-          sample: rows.slice(0, 5),
-        });
+        return await breakdown(env, url);
       }
 
       // ?days= is honoured only under debug, for probing retention limits.
       const override = debug ? url.searchParams.get("days") : null;
-      const spec = override || env.DAYS || String(DEFAULT_DAYS);
-      const stats = await collect(env, spec);
+      if (override) {
+        const stats = await collect(env, override);
+        return json({ ok: true, ...publicStats(stats) });
+      }
+
+      const spec = env.DAYS || String(DEFAULT_DAYS);
+      const { stats, servedStale } = await statsWithFallback(env, ctx, spec);
+
       payload = debug
-        ? json({
-            ok: true,
-            siteTag: mask(stats.siteTag),
-            metric: stats.metric,
-            value: stats.value,
-            raw: stats.raw,
-            sampleInterval: stats.sampleInterval,
-            window: stats.window,
-            chunks: stats.chunks,
-            oldestDay: stats.oldestDay,
-          })
+        ? json({ ok: true, servedStale, ...publicStats(stats) })
         : json(badge(env, stats));
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
@@ -116,6 +90,103 @@ export default {
     return payload;
   },
 };
+
+/**
+ * Serves the last good figure when a refresh fails, and refreshes in the
+ * background once it goes stale. Assembling an all-time total costs several
+ * sequential API calls, and making shields.io wait for those on every cache
+ * miss is what made the badge intermittently show "unavailable".
+ */
+async function statsWithFallback(env, ctx, spec) {
+  const cached = await readState();
+  const age = cached ? (Date.now() - cached.fetchedAt) / 1000 : Infinity;
+
+  if (cached && age < FRESH_SECONDS) return { stats: cached.stats, servedStale: false };
+
+  if (cached) {
+    // Stale but usable: answer immediately, refresh behind the response.
+    ctx.waitUntil(refresh(env, spec).catch(() => {}));
+    return { stats: cached.stats, servedStale: true };
+  }
+
+  return { stats: await refresh(env, spec), servedStale: false };
+}
+
+async function refresh(env, spec) {
+  const stats = await collect(env, spec);
+  await writeState(stats);
+  return stats;
+}
+
+async function readState() {
+  const hit = await caches.default.match(new Request(STATE_KEY));
+  if (!hit) return null;
+  try {
+    return await hit.json();
+  } catch {
+    return null;
+  }
+}
+
+async function writeState(stats) {
+  const body = JSON.stringify({ stats, fetchedAt: Date.now() });
+  await caches.default.put(
+    new Request(STATE_KEY),
+    new Response(body, {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": `public, max-age=${STATE_TTL_SECONDS}`,
+      },
+    })
+  );
+}
+
+function publicStats(stats) {
+  return {
+    siteTag: mask(stats.siteTag),
+    metric: stats.metric,
+    value: stats.value,
+    raw: stats.raw,
+    sampleInterval: stats.sampleInterval,
+    window: stats.window,
+    chunks: stats.chunks,
+    oldestDay: stats.oldestDay,
+  };
+}
+
+/** Per-day rows, for reconciling the badge against the dashboard. */
+async function breakdown(env, url) {
+  const days = Number(url.searchParams.get("days")) || 30;
+  const end = today();
+  const start = shiftDays(end, -(days - 1));
+  const rows = await graphql(
+    env,
+    `query B($accountTag: string!, $start: Date!, $end: Date!) {
+       viewer { accounts(filter: { accountTag: $accountTag }) {
+         rumPageloadEventsAdaptiveGroups(
+           filter: { date_geq: $start, date_leq: $end }
+           limit: 5000
+           orderBy: [date_ASC]
+         ) { count sum { visits } avg { sampleInterval } dimensions { date siteTag } }
+       } } }`,
+    { accountTag: env.CF_ACCOUNT_ID, start: iso(start), end: iso(end) }
+  );
+  const rawSum = rows.reduce((a, r) => a + (r.count || 0), 0);
+  const scaledSum = rows.reduce(
+    (a, r) => a + (r.count || 0) * ((r.avg && Number(r.avg.sampleInterval)) || 1),
+    0
+  );
+  return json({
+    ok: true,
+    days,
+    rows: rows.length,
+    rawSum,
+    scaledSum,
+    visitsSum: rows.reduce((a, r) => a + ((r.sum && r.sum.visits) || 0), 0),
+    distinctSampleIntervals: [...new Set(rows.map((r) => r.avg && r.avg.sampleInterval))],
+    sample: rows.slice(0, 5),
+  });
+}
 
 /** `spec` is either a day count or "all". */
 async function collect(env, spec) {
