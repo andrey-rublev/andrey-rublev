@@ -3,5 +3,4 @@ CF_API_TOKEN=your-account-analytics-read-token
 CF_ACCOUNT_ID=your-account-id
 
 # Only for the offline mock test - leave these out to hit the real API.
-# API_BASE=http://127.0.0.1:8788/client/v4
-# GRAPHQL_URL=http://127.0.0.1:8788/client/v4/graphql
+# GRAPHQL_URL=http://127.0.0.1:8788/graphql

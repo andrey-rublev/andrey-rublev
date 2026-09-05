@@ -12,12 +12,16 @@ website at all. This reads the actual analytics instead.
 ```
 shields.io  ->  this Worker  ->  Cloudflare GraphQL Analytics API
                      |
-                     +-- resolves site_tag from SITE_HOST (cached 10 min)
+                     +-- site tag read from grouped dimensions (cached 10 min)
 ```
 
-The beacon's `site_token` (public, in your page source) is **not** the `site_tag`
-the analytics dataset filters on, so the Worker looks the tag up by hostname via
-`/rum/site_info/list` rather than making you find it by hand.
+Everything goes through the GraphQL Analytics API. The site tag comes back as a
+grouped dimension, so nothing needs configuring for a single-site account — and
+the REST management endpoint (`/rum/site_info`) is deliberately avoided, since it
+needs a second, broader token permission that the badge has no use for.
+
+(The `site_token` in your page source is a different value from the `site_tag`
+the analytics dataset uses — worth knowing if you ever query this by hand.)
 
 If the schema rejects `sum { visits }`, it retries with the pageview `count` and
 relabels the metric, so the badge still shows something true rather than breaking.
@@ -33,7 +37,7 @@ Create Token → Custom token. It needs exactly one permission:
 | Account | Account Analytics | Read |
 
 **2. Set your account id** in `wrangler.jsonc` → `vars.CF_ACCOUNT_ID`. It is not a
-secret; find it in the dashboard sidebar of any domain.
+secret; find it in the dashboard sidebar of any domain, or run `wrangler whoami`.
 
 **3. Deploy.**
 
@@ -68,13 +72,13 @@ On failure it returns `{ "ok": false, "error": "..." }` with the reason.
 
 ## Local test, no token needed
 
-`test/mock-cf-api.mjs` stands in for the Cloudflare API so the whole path can be
-exercised offline — site-tag discovery, the GraphQL query, and the visits →
+`test/mock-cf-api.mjs` stands in for the Cloudflare GraphQL API so the whole path
+can be exercised offline — site-tag discovery, the query, and the visits →
 pageviews fallback.
 
 ```bash
-cp .dev.vars.example .dev.vars     # then uncomment API_BASE and GRAPHQL_URL
-node test/mock-cf-api.mjs 8788     # add --no-visits to exercise the fallback
+cp .dev.vars.example .dev.vars     # then uncomment GRAPHQL_URL
+node test/mock-cf-api.mjs 8788     # --no-visits or --multi-site to vary it
 npx wrangler dev --port 8791 --local
 curl 'http://127.0.0.1:8791/?debug=1'
 ```
@@ -85,8 +89,7 @@ curl 'http://127.0.0.1:8791/?debug=1'
 | :--- | :--- | :--- |
 | `CF_API_TOKEN` | yes | **Secret.** Account Analytics → Read. |
 | `CF_ACCOUNT_ID` | yes | Not secret. |
-| `SITE_HOST` | yes* | Hostname in Web Analytics. \*Unless `SITE_TAG` is set. |
-| `SITE_TAG` | no | Skips the lookup. |
+| `SITE_TAG` | no | Only needed if more than one site has data. |
 | `DAYS` | no | Rolling window, default `30`. |
 | `BADGE_LABEL` | no | Default `site visits · <days>d`. |
 | `BADGE_COLOR` | no | Default `818CF8`. |

@@ -5,14 +5,18 @@
  *
  * GET /            -> shields endpoint JSON
  * GET /?debug=1    -> non-sensitive diagnostics (no token, no account id)
+ *
+ * Everything runs through the GraphQL Analytics API, which needs exactly one
+ * token permission: Account -> Account Analytics -> Read. The REST management
+ * endpoint (/rum/site_info) is deliberately not used - it requires a separate
+ * permission and is not needed, since the site tag is available as a GraphQL
+ * dimension.
  */
 
 const GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
-const API_BASE = "https://api.cloudflare.com/client/v4";
 
 /** Overridable so the flow can be exercised against a mock in tests. */
 const gqlUrl = (env) => env.GRAPHQL_URL || GRAPHQL_URL;
-const apiBase = (env) => env.API_BASE || API_BASE;
 
 /** How long to hold a result before asking Cloudflare again. */
 const CACHE_SECONDS = 600;
@@ -58,78 +62,77 @@ export default {
   },
 };
 
-/** Resolve the site tag, then pull the traffic number for the window. */
 async function collect(env, days) {
   requireEnv(env, ["CF_API_TOKEN", "CF_ACCOUNT_ID"]);
-
-  const siteTag = env.SITE_TAG || (await discoverSiteTag(env));
   const { start, end } = window(days);
-  const { metric, value } = await queryTraffic(env, siteTag, start, end);
-  return { siteTag, metric, value };
+  return queryTraffic(env, env.SITE_TAG || null, start, end);
 }
 
 /**
- * The beacon's site_token is not the site_tag the analytics dataset filters
- * on, so look the tag up by hostname instead of asking the user for it.
- */
-async function discoverSiteTag(env) {
-  const host = env.SITE_HOST;
-  if (!host) throw new Error("Set SITE_HOST (or SITE_TAG) in wrangler.jsonc");
-
-  const res = await fetch(`${apiBase(env)}/accounts/${env.CF_ACCOUNT_ID}/rum/site_info/list`, {
-    headers: { Authorization: `Bearer ${env.CF_API_TOKEN}` },
-  });
-  const body = await res.json();
-  if (!res.ok || !body.success) {
-    throw new Error(`site_info/list failed: ${summarize(body.errors) || res.status}`);
-  }
-
-  const sites = body.result || [];
-  const match = sites.find((s) => hostOf(s) === host) || sites.find((s) => (hostOf(s) || "").endsWith(host));
-  if (!match) {
-    throw new Error(`No Web Analytics site matching "${host}" (found: ${sites.map(hostOf).join(", ") || "none"})`);
-  }
-  return match.site_tag;
-}
-
-function hostOf(site) {
-  return site.host || (site.ruleset && site.ruleset.zone_name) || "";
-}
-
-/**
- * Ask for visits and pageviews together; if the schema rejects `sum { visits }`
- * fall back to the pageview count so the badge still renders something true.
+ * Pull traffic grouped by site tag. Grouping rather than filtering means the
+ * tag never has to be configured for a single-site account, and a multi-site
+ * account gets a clear error naming its options instead of a silent wrong sum.
+ *
+ * Falls back from `sum { visits }` to the pageview `count` if the schema
+ * rejects the field, so the badge still shows something true.
  */
 async function queryTraffic(env, siteTag, start, end) {
-  const full = `
-    query Visits($accountTag: string!, $siteTag: string!, $start: Date!, $end: Date!) {
+  const build = (metricFields) => `
+    query Visits($accountTag: string!, $start: Date!, $end: Date!) {
       viewer {
         accounts(filter: { accountTag: $accountTag }) {
           rumPageloadEventsAdaptiveGroups(
-            filter: { siteTag: $siteTag, date_geq: $start, date_leq: $end }
-            limit: 1
-          ) { count sum { visits } }
+            filter: { date_geq: $start, date_leq: $end }
+            limit: 100
+          ) { ${metricFields} dimensions { siteTag } }
         }
       }
     }`;
 
-  const countOnly = full.replace("{ count sum { visits } }", "{ count }");
-  const vars = { accountTag: env.CF_ACCOUNT_ID, siteTag, start, end };
+  const vars = { accountTag: env.CF_ACCOUNT_ID, start, end };
 
-  let groups = await graphql(env, full, vars).catch(() => null);
+  // Keep the first failure: if both attempts fail the cause is usually auth or
+  // permissions, and that error is far more useful than the fallback's.
+  let firstError = null;
+  let rows = await graphql(env, build("count sum { visits }"), vars).catch((e) => {
+    firstError = e;
+    return null;
+  });
   let metric = "visits";
 
-  if (!groups) {
-    groups = await graphql(env, countOnly, vars);
+  if (!rows) {
+    rows = await graphql(env, build("count"), vars).catch((e) => {
+      throw firstError || e;
+    });
     metric = "pageviews";
   }
 
-  const row = groups[0];
-  if (!row) return { metric, value: 0 };
+  const row = pickSite(rows, siteTag);
+  if (!row) return { siteTag, metric, value: 0 };
 
   const visits = row.sum && typeof row.sum.visits === "number" ? row.sum.visits : null;
   if (metric === "visits" && visits === null) metric = "pageviews";
-  return { metric, value: metric === "visits" ? visits : row.count || 0 };
+
+  return {
+    siteTag: (row.dimensions && row.dimensions.siteTag) || siteTag,
+    metric,
+    value: metric === "visits" ? visits : row.count || 0,
+  };
+}
+
+function pickSite(rows, siteTag) {
+  if (!rows.length) return null;
+
+  if (siteTag) {
+    const match = rows.find((r) => r.dimensions && r.dimensions.siteTag === siteTag);
+    if (!match) throw new Error(`SITE_TAG not found in analytics for this window`);
+    return match;
+  }
+
+  if (rows.length === 1) return rows[0];
+
+  const tags = rows.map((r) => (r.dimensions && r.dimensions.siteTag) || "?");
+  throw new Error(`${rows.length} sites have data - set SITE_TAG to one of: ${tags.join(", ")}`);
 }
 
 async function graphql(env, query, variables) {
@@ -138,17 +141,36 @@ async function graphql(env, query, variables) {
     headers: {
       Authorization: `Bearer ${env.CF_API_TOKEN}`,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({ query, variables }),
   });
 
-  const body = await res.json();
-  if (body.errors && body.errors.length) throw new Error(summarize(body.errors));
+  const body = await readJson(res, "graphql");
+  if (body.errors && body.errors.length) throw new Error(`GraphQL: ${summarize(body.errors)}`);
   if (!res.ok) throw new Error(`GraphQL HTTP ${res.status}`);
 
   const accounts = body.data && body.data.viewer && body.data.viewer.accounts;
   if (!accounts || !accounts.length) throw new Error("No account matched CF_ACCOUNT_ID");
   return accounts[0].rumPageloadEventsAdaptiveGroups || [];
+}
+
+/**
+ * Cloudflare can answer with an empty body or an HTML error page. Parsing that
+ * blind yields "Unexpected end of JSON input", which says nothing useful - so
+ * surface the status and a snippet of what actually came back.
+ */
+async function readJson(res, what) {
+  const text = await res.text();
+  if (!text.trim()) {
+    const ct = res.headers.get("content-type") || "none";
+    throw new Error(`${what}: HTTP ${res.status} empty body (content-type: ${ct})`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${what}: HTTP ${res.status} non-JSON: ${text.slice(0, 140)}`);
+  }
 }
 
 /** Inclusive date window ending today, in the YYYY-MM-DD the API expects. */
