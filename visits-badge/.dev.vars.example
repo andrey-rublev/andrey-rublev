@@ -1,6 +1,6 @@
 # Copy to .dev.vars for local development (gitignored).
-CF_API_TOKEN=your-account-analytics-read-token
-CF_ACCOUNT_ID=your-account-id
+CF_API_TOKEN=your-zone-analytics-read-token
+ZONE_TAG=your-zone-id
 
-# Only for the offline mock test - leave these out to hit the real API.
+# Only for the offline mock test - leave out to hit the real API.
 # GRAPHQL_URL=http://127.0.0.1:8788/graphql

@@ -7,21 +7,19 @@
     "enabled": true
   },
   "vars": {
-    // Your Cloudflare account id (not a secret - it is safe in source).
-    // Dashboard -> any domain -> right sidebar -> Account ID.
-    "CF_ACCOUNT_ID": "734ed893836d1463e4139d4054b63ea1",
+    // Zone id for nikhilkolli.com (not a secret - dashboard sidebar).
+    "ZONE_TAG": "8d60a9e02808f681461afbb0e5adbfa8",
 
-    // "all" walks backwards in 90-day chunks (Cloudflare caps a single
-    // query at 13w2d) and sums them, stopping where the data runs out.
+    // "all" looks back a year in one query; the daily rollup has no
+    // 93-day ceiling the way the adaptive datasets do.
     "DAYS": "all",
 
-    // "pageviews" matches a "views" label; "visits" counts sessions instead.
+    // pageviews | uniques | requests
     "METRIC": "pageviews",
 
     "BADGE_LABEL": "portfolio views",
 
     "BADGE_COLOR": "818CF8"
-    // "SITE_TAG": "..."              // only if >1 site has data
   }
   // CF_API_TOKEN is a secret - never put it here.
   // Set it with: npx wrangler secret put CF_API_TOKEN

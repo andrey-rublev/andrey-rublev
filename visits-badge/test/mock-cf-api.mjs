@@ -1,27 +1,24 @@
 /**
- * Stands in for the Cloudflare GraphQL Analytics API so the Worker's full path
- * can be exercised without a real token: site-tag discovery from the grouped
- * dimensions, and the visits -> pageviews fallback when the schema rejects
- * `sum { visits }`.
+ * Stands in for the Cloudflare GraphQL Analytics API so the Worker can be
+ * exercised without a token: the zone lookup, metric selection, and the
+ * failure paths.
  *
- *   node test/mock-cf-api.mjs [port] [--no-visits] [--multi-site] [--history=N]
+ *   node test/mock-cf-api.mjs [port] [--no-zone] [--range-error]
  *
- * --history=N makes data exist only within the last N days, so the all-time
- * walk runs out of history and its stop condition can be exercised.
+ * --no-zone     returns an empty zones list, as a token without Zone
+ *               Resources does - the failure that cost the most time to
+ *               diagnose, because it looks like success.
+ * --range-error rejects the window the way Cloudflare does past its cap.
  */
 import { createServer } from "node:http";
 
 const port = Number(process.argv[2]) || 8788;
-const supportsVisits = !process.argv.includes("--no-visits");
-const multiSite = process.argv.includes("--multi-site");
-const historyArg = process.argv.find((a) => a.startsWith("--history="));
-const historyDays = historyArg ? Number(historyArg.split("=")[1]) : Infinity;
+const noZone = process.argv.includes("--no-zone");
+const rangeError = process.argv.includes("--range-error");
 
-/** Adaptive datasets return sampled rows; 10 means 1-in-10, as seen live. */
-const SAMPLE_INTERVAL = 10;
+const ZONE_TAG = "8d60a9e02808f681461afbb0e5adbfa8";
 
-const SITE_TAG = "abcd1234abcd1234abcd1234abcd1234";
-const OTHER_TAG = "99999999999999999999999999999999";
+const TOTALS = { requests: 49230, pageViews: 30877, uniques: 4632 };
 
 const server = createServer((req, res) => {
   let body = "";
@@ -36,39 +33,39 @@ const server = createServer((req, res) => {
       return send({ success: false, errors: [{ message: "not found" }] }, 404);
     }
 
-    const { query, variables } = JSON.parse(body || "{}");
-    const wantsVisits = query.includes("sum { visits }");
+    const { variables } = JSON.parse(body || "{}");
 
-    // Outside the simulated history there is simply nothing to report.
-    const ageDays = (Date.now() - Date.parse(variables.end)) / 86400000;
-    if (ageDays > historyDays) {
-      return send({ data: { viewer: { accounts: [{ rumPageloadEventsAdaptiveGroups: [] }] } } });
-    }
-
-    if (wantsVisits && !supportsVisits) {
+    if (rangeError) {
       return send({
-        errors: [{ message: 'Unknown field "visits" on type "RumPageloadEventsAdaptiveGroupsSum"' }],
+        errors: [{ message: `zone "${ZONE_TAG}" cannot request a time range wider than 52w1d1h` }],
       });
     }
 
-    const row = (tag, count, visits) => ({
-      count,
-      ...(wantsVisits ? { sum: { visits } } : {}),
-      avg: { sampleInterval: SAMPLE_INTERVAL },
-      dimensions: { siteTag: tag },
+    // A token missing Zone Resources returns an empty list, not an error.
+    if (noZone || variables.zoneTag !== ZONE_TAG) {
+      return send({ data: { viewer: { zones: [] } } });
+    }
+
+    send({
+      data: {
+        viewer: {
+          zones: [
+            {
+              httpRequests1dGroups: [
+                {
+                  sum: { requests: TOTALS.requests, pageViews: TOTALS.pageViews },
+                  uniq: { uniques: TOTALS.uniques },
+                },
+              ],
+            },
+          ],
+        },
+      },
     });
-
-    const groups = multiSite
-      ? [row(SITE_TAG, 4821, 1337), row(OTHER_TAG, 12, 3)]
-      : [row(SITE_TAG, 4821, 1337)];
-
-    send({ data: { viewer: { accounts: [{ rumPageloadEventsAdaptiveGroups: groups }] } } });
   });
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(
-    `mock CF GraphQL on :${port} (visits ${supportsVisits ? "supported" : "unsupported"},` +
-      ` ${multiSite ? "multi-site" : "single-site"})`
-  );
+  const mode = noZone ? "no-zone" : rangeError ? "range-error" : "ok";
+  console.log(`mock CF GraphQL on :${port} (${mode})`);
 });

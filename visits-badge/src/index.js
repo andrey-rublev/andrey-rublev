@@ -1,16 +1,20 @@
 /**
- * Serves a shields.io endpoint badge showing real Cloudflare Web Analytics
- * traffic for a site, so the README can display an actual measured number
- * rather than a hit counter that anyone could inflate by loading the image.
+ * Serves a shields.io endpoint badge showing real Cloudflare traffic for a
+ * zone, so the README can display a measured number rather than a hit counter
+ * that anyone could inflate by loading the image.
  *
  * GET /            -> shields endpoint JSON
- * GET /?debug=1    -> non-sensitive diagnostics (no token, no account id)
+ * GET /?debug=1    -> non-sensitive diagnostics
  *
- * Everything runs through the GraphQL Analytics API, which needs exactly one
- * token permission: Account -> Account Analytics -> Read. The REST management
- * endpoint (/rum/site_info) is deliberately not used - it requires a separate
- * permission and is not needed, since the site tag is available as a GraphQL
- * dimension.
+ * Reads `httpRequests1dGroups`, the zone-level daily rollup behind the
+ * dashboard's Traffic page. An earlier version used Web Analytics
+ * (rumPageloadEventsAdaptiveGroups) and was badly wrong: that dataset is a
+ * sampled JS beacon which, on this zone, reported traffic on 3 days out of 30
+ * and quantised every count to a multiple of the sample interval. The zone
+ * rollup is unsampled, matches the dashboard, and answers a whole year in one
+ * request.
+ *
+ * Token needs: Zone -> Analytics -> Read, with Zone Resources actually set.
  */
 
 const GRAPHQL_URL = "https://api.cloudflare.com/client/v4/graphql";
@@ -27,21 +31,18 @@ const STATE_TTL_SECONDS = 30 * 24 * 3600;
 /** Browser/shields caching of the badge itself. */
 const CACHE_SECONDS = 300;
 
-const STATE_KEY = "https://nk-visits-badge.internal/state";
+/** "all" resolves to this many days back - beyond retention is simply empty. */
+const ALL_TIME_DAYS = 365;
+
 const DEFAULT_DAYS = 30;
 
-/**
- * Cloudflare refuses any single query wider than 13w2d (93 days), so an
- * all-time total is assembled from consecutive chunks walked backwards.
- * 90 keeps a safe margin under the cap.
- */
-const CHUNK_DAYS = 90;
+const STATE_KEY = "https://nk-visits-badge.internal/state";
 
-/** Bounds the walk so a cache miss can never fan out indefinitely. */
-const MAX_CHUNKS = 16;
-
-/** Stop after this many consecutive empty chunks, to tolerate quiet gaps. */
-const EMPTY_CHUNKS_BEFORE_STOP = 2;
+const METRICS = {
+  pageviews: (t) => t.pageViews,
+  uniques: (t) => t.uniques,
+  requests: (t) => t.requests,
+};
 
 export default {
   async fetch(request, env, ctx) {
@@ -58,57 +59,16 @@ export default {
 
     let payload;
     try {
-      // Debug-only: per-day rows, to check whether sampleInterval varies.
-      if (debug && url.searchParams.get("breakdown") === "1") {
-        return await breakdown(env, url);
-      }
-
-      // Debug-only: what zone analytics reports, for picking a metric.
-      if (debug && url.searchParams.get("zones") === "1") {
-        const days = Number(url.searchParams.get("days")) || 30;
-        const end = today();
-        const start = shiftDays(end, -(days - 1));
-        const res = await fetch(gqlUrl(env), {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${env.CF_API_TOKEN}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            query: `query Z($start: Time!, $end: Time!) {
-              viewer { zones {
-                zoneTag
-                httpRequestsAdaptiveGroups(
-                  filter: { datetime_geq: $start, datetime_lt: $end }
-                  limit: 1
-                ) { count sum { visits } avg { sampleInterval } }
-              } }
-            }`,
-            variables: { start: `${iso(start)}T00:00:00Z`, end: `${iso(end)}T23:59:59Z` },
-          }),
-        });
-        const b = await res.json();
-        return json({
-          ok: !b.errors,
-          errors: b.errors ? b.errors.map((e) => e.message).slice(0, 3) : undefined,
-          zones: b.data && b.data.viewer && b.data.viewer.zones,
-        });
-      }
-
-      // ?days= is honoured only under debug, for probing retention limits.
+      // ?days= is honoured only under debug, for probing retention.
       const override = debug ? url.searchParams.get("days") : null;
       if (override) {
-        const stats = await collect(env, override);
-        return json({ ok: true, ...publicStats(stats) });
+        return json({ ok: true, ...(await collect(env, override)) });
       }
 
       const spec = env.DAYS || String(DEFAULT_DAYS);
       const { stats, servedStale } = await statsWithFallback(env, ctx, spec);
 
-      payload = debug
-        ? json({ ok: true, servedStale, ...publicStats(stats) })
-        : json(badge(env, stats));
+      payload = debug ? json({ ok: true, servedStale, ...stats }) : json(badge(env, stats));
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
       payload = debug
@@ -124,11 +84,78 @@ export default {
   },
 };
 
+/** `spec` is either a day count or "all". */
+async function collect(env, spec) {
+  requireEnv(env, ["CF_API_TOKEN", "ZONE_TAG"]);
+
+  const isAll = String(spec).toLowerCase() === "all";
+  const days = isAll ? ALL_TIME_DAYS : Number(spec) || DEFAULT_DAYS;
+  const end = today();
+  const start = shiftDays(end, -(days - 1));
+
+  const totals = await queryZone(env, iso(start), iso(end));
+  const name = (env.METRIC || "pageviews").toLowerCase();
+  const pick = METRICS[name];
+  if (!pick) throw new Error(`METRIC must be one of: ${Object.keys(METRICS).join(", ")}`);
+
+  return {
+    metric: name,
+    value: pick(totals) || 0,
+    totals,
+    window: isAll ? "all" : `${days}d`,
+    since: iso(start),
+  };
+}
+
+/**
+ * One request covers the whole range: the daily rollup has no 93-day ceiling,
+ * and asking for the range as a single group lets Cloudflare deduplicate
+ * `uniques` across it. Summing per-day uniques would double-count anyone who
+ * visited on more than one day.
+ */
+async function queryZone(env, start, end) {
+  const query = `
+    query Traffic($zoneTag: string!, $start: Date!, $end: Date!) {
+      viewer {
+        zones(filter: { zoneTag: $zoneTag }) {
+          httpRequests1dGroups(
+            filter: { date_geq: $start, date_leq: $end }
+            limit: 1
+          ) { sum { requests pageViews } uniq { uniques } }
+        }
+      }
+    }`;
+
+  const res = await fetch(gqlUrl(env), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.CF_API_TOKEN}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ query, variables: { zoneTag: env.ZONE_TAG, start, end } }),
+  });
+
+  const body = await readJson(res, "graphql");
+  if (body.errors && body.errors.length) throw new Error(`GraphQL: ${summarize(body.errors)}`);
+  if (!res.ok) throw new Error(`GraphQL HTTP ${res.status}`);
+
+  const zones = body.data && body.data.viewer && body.data.viewer.zones;
+  if (!zones || !zones.length) {
+    throw new Error("ZONE_TAG not visible - token needs Zone > Analytics > Read with Zone Resources set");
+  }
+
+  const row = (zones[0].httpRequests1dGroups || [])[0];
+  return {
+    requests: (row && row.sum && row.sum.requests) || 0,
+    pageViews: (row && row.sum && row.sum.pageViews) || 0,
+    uniques: (row && row.uniq && row.uniq.uniques) || 0,
+  };
+}
+
 /**
  * Serves the last good figure when a refresh fails, and refreshes in the
- * background once it goes stale. Assembling an all-time total costs several
- * sequential API calls, and making shields.io wait for those on every cache
- * miss is what made the badge intermittently show "unavailable".
+ * background once it goes stale, so shields.io never waits on the API.
  */
 async function statsWithFallback(env, ctx, spec) {
   const cached = await readState();
@@ -137,7 +164,6 @@ async function statsWithFallback(env, ctx, spec) {
   if (cached && age < FRESH_SECONDS) return { stats: cached.stats, servedStale: false };
 
   if (cached) {
-    // Stale but usable: answer immediately, refresh behind the response.
     ctx.waitUntil(refresh(env, spec).catch(() => {}));
     return { stats: cached.stats, servedStale: true };
   }
@@ -162,235 +188,15 @@ async function readState() {
 }
 
 async function writeState(stats) {
-  const body = JSON.stringify({ stats, fetchedAt: Date.now() });
   await caches.default.put(
     new Request(STATE_KEY),
-    new Response(body, {
+    new Response(JSON.stringify({ stats, fetchedAt: Date.now() }), {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": `public, max-age=${STATE_TTL_SECONDS}`,
       },
     })
   );
-}
-
-function publicStats(stats) {
-  return {
-    siteTag: mask(stats.siteTag),
-    metric: stats.metric,
-    value: stats.value,
-    raw: stats.raw,
-    sampleInterval: stats.sampleInterval,
-    window: stats.window,
-    chunks: stats.chunks,
-    oldestDay: stats.oldestDay,
-  };
-}
-
-/** Per-day rows, for reconciling the badge against the dashboard. */
-async function breakdown(env, url) {
-  const days = Number(url.searchParams.get("days")) || 30;
-  const end = today();
-  const start = shiftDays(end, -(days - 1));
-  const rows = await graphql(
-    env,
-    `query B($accountTag: string!, $start: Date!, $end: Date!) {
-       viewer { accounts(filter: { accountTag: $accountTag }) {
-         rumPageloadEventsAdaptiveGroups(
-           filter: { date_geq: $start, date_leq: $end }
-           limit: 5000
-           orderBy: [date_ASC]
-         ) { count sum { visits } avg { sampleInterval } dimensions { date siteTag } }
-       } } }`,
-    { accountTag: env.CF_ACCOUNT_ID, start: iso(start), end: iso(end) }
-  );
-  const rawSum = rows.reduce((a, r) => a + (r.count || 0), 0);
-  const scaledSum = rows.reduce(
-    (a, r) => a + (r.count || 0) * ((r.avg && Number(r.avg.sampleInterval)) || 1),
-    0
-  );
-  return json({
-    ok: true,
-    days,
-    rows: rows.length,
-    rawSum,
-    scaledSum,
-    visitsSum: rows.reduce((a, r) => a + ((r.sum && r.sum.visits) || 0), 0),
-    distinctSampleIntervals: [...new Set(rows.map((r) => r.avg && r.avg.sampleInterval))],
-    sample: rows.slice(0, 5),
-  });
-}
-
-/** `spec` is either a day count or "all". */
-async function collect(env, spec) {
-  requireEnv(env, ["CF_API_TOKEN", "CF_ACCOUNT_ID"]);
-  return String(spec).toLowerCase() === "all"
-    ? collectAllTime(env)
-    : collectWindow(env, Number(spec) || DEFAULT_DAYS);
-}
-
-async function collectWindow(env, days) {
-  const end = today();
-  const start = shiftDays(end, -(days - 1));
-  const r = await queryTraffic(env, env.SITE_TAG || null, iso(start), iso(end));
-  return { ...r, window: `${days}d`, chunks: 1, oldestDay: iso(start) };
-}
-
-/**
- * Walks backwards in chunks and sums them. Stops on a run of empty chunks, or
- * when Cloudflare refuses the range because it has aged out of retention -
- * either way, that is as far back as the data goes.
- */
-async function collectAllTime(env) {
-  let total = 0;
-  let chunks = 0;
-  let empties = 0;
-  let rawTotal = 0;
-  let siteTag = env.SITE_TAG || null;
-  let metric = null;
-  let sampleInterval = 1;
-  let oldestDay = null;
-
-  let end = today();
-
-  for (let i = 0; i < MAX_CHUNKS; i++) {
-    const start = shiftDays(end, -(CHUNK_DAYS - 1));
-
-    let r;
-    try {
-      r = await queryTraffic(env, siteTag, iso(start), iso(end));
-    } catch (err) {
-      // Out of retention, or the range was refused - nothing older to read.
-      if (chunks === 0) throw err;
-      break;
-    }
-
-    chunks++;
-    total += r.value;
-    rawTotal += r.raw || 0;
-    if (r.siteTag) siteTag = r.siteTag;
-    if (r.metric) metric = r.metric;
-    if (r.raw > 0 && r.sampleInterval) sampleInterval = r.sampleInterval;
-    if (r.value > 0) oldestDay = iso(start);
-
-    empties = r.value === 0 ? empties + 1 : 0;
-    if (empties >= EMPTY_CHUNKS_BEFORE_STOP) break;
-
-    end = shiftDays(start, -1);
-  }
-
-  return {
-    siteTag,
-    metric: metric || "visits",
-    value: total,
-    raw: rawTotal,
-    sampleInterval,
-    window: "all",
-    chunks,
-    oldestDay,
-  };
-}
-
-/**
- * Pull traffic grouped by site tag. Grouping rather than filtering means the
- * tag never has to be configured for a single-site account, and a multi-site
- * account gets a clear error naming its options instead of a silent wrong sum.
- *
- * Which number is reported follows METRIC; if the schema rejects
- * `sum { visits }` it falls back to the pageview `count` and says so.
- */
-async function queryTraffic(env, siteTag, start, end) {
-  const wantPageviews = (env.METRIC || "visits").toLowerCase() === "pageviews";
-
-  const build = (metricFields) => `
-    query Traffic($accountTag: string!, $start: Date!, $end: Date!) {
-      viewer {
-        accounts(filter: { accountTag: $accountTag }) {
-          rumPageloadEventsAdaptiveGroups(
-            filter: { date_geq: $start, date_leq: $end }
-            limit: 100
-          ) { ${metricFields} avg { sampleInterval } dimensions { siteTag } }
-        }
-      }
-    }`;
-
-  const vars = { accountTag: env.CF_ACCOUNT_ID, start, end };
-
-  let rows;
-  let metric;
-
-  if (wantPageviews) {
-    rows = await graphql(env, build("count"), vars);
-    metric = "pageviews";
-  } else {
-    // Keep the first failure: if both attempts fail the cause is usually auth
-    // or permissions, and that error is more useful than the fallback's.
-    let firstError = null;
-    rows = await graphql(env, build("count sum { visits }"), vars).catch((e) => {
-      firstError = e;
-      return null;
-    });
-    metric = "visits";
-    if (!rows) {
-      rows = await graphql(env, build("count"), vars).catch((e) => {
-        throw firstError || e;
-      });
-      metric = "pageviews";
-    }
-  }
-
-  const row = pickSite(rows, siteTag);
-  if (!row) return { siteTag, metric, value: 0, raw: 0, sampleInterval: 1 };
-
-  const visits = row.sum && typeof row.sum.visits === "number" ? row.sum.visits : null;
-  if (metric === "visits" && visits === null) metric = "pageviews";
-
-  const raw = metric === "visits" ? visits : row.count || 0;
-  const sampleInterval = (row.avg && Number(row.avg.sampleInterval)) || 1;
-
-  return {
-    siteTag: (row.dimensions && row.dimensions.siteTag) || siteTag,
-    metric,
-    raw,
-    sampleInterval,
-    // Adaptive datasets return sampled rows; the true total is the sampled
-    // count scaled by the interval. Without this the badge reads N times low.
-    value: Math.round(raw * sampleInterval),
-  };
-}
-
-function pickSite(rows, siteTag) {
-  if (!rows.length) return null;
-
-  if (siteTag) {
-    // A chunk with no traffic for this site is a legitimate zero, not an error.
-    return rows.find((r) => r.dimensions && r.dimensions.siteTag === siteTag) || null;
-  }
-
-  if (rows.length === 1) return rows[0];
-
-  const tags = rows.map((r) => (r.dimensions && r.dimensions.siteTag) || "?");
-  throw new Error(`${rows.length} sites have data - set SITE_TAG to one of: ${tags.join(", ")}`);
-}
-
-async function graphql(env, query, variables) {
-  const res = await fetch(gqlUrl(env), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.CF_API_TOKEN}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  const body = await readJson(res, "graphql");
-  if (body.errors && body.errors.length) throw new Error(`GraphQL: ${summarize(body.errors)}`);
-  if (!res.ok) throw new Error(`GraphQL HTTP ${res.status}`);
-
-  const accounts = body.data && body.data.viewer && body.data.viewer.accounts;
-  if (!accounts || !accounts.length) throw new Error("No account matched CF_ACCOUNT_ID");
-  return accounts[0].rumPageloadEventsAdaptiveGroups || [];
 }
 
 /**
@@ -419,16 +225,14 @@ const iso = (d) => d.toISOString().slice(0, 10);
 function badge(env, stats) {
   return {
     schemaVersion: 1,
-    label: label(env, stats.window),
+    label: label(env),
     message: new Intl.NumberFormat("en-US").format(stats.value),
     color: env.BADGE_COLOR || "818CF8",
   };
 }
 
-function label(env, window) {
-  if (env.BADGE_LABEL) return env.BADGE_LABEL;
-  if (!window || window === "all") return "site visits";
-  return `site visits · ${window}`;
+function label(env) {
+  return env.BADGE_LABEL || "portfolio views";
 }
 
 function requireEnv(env, keys) {
@@ -439,11 +243,6 @@ function requireEnv(env, keys) {
 function summarize(errors) {
   if (!errors || !errors.length) return "";
   return errors.map((e) => e.message).join("; ").slice(0, 200);
-}
-
-/** Never echo identifiers back in full from a public endpoint. */
-function mask(tag) {
-  return tag ? `${tag.slice(0, 4)}…${tag.slice(-4)}` : null;
 }
 
 function json(obj, status = 200) {
