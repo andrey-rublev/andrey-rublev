@@ -94,84 +94,14 @@ const THEMES = {
     // animating and still invisible - the wave has to clear the trace colour
     // by a lot to read at this stroke width.
     ripple: "#EEF2FF", rippleHalo: 0.3, halo: true,
-    // Background layers sit below the base copper, never above it.
-    grid: "#171E29", net: "#1E2735",
   },
   light: {
     base: "#D5DBE3", trace: "#5B4BD6", viaFill: "#FFFFFF",
     // On white a brighter ripple would read as fading out, so it goes the
     // other way - a much deeper hue passing over the trace colour.
     ripple: "#1E1B4B", rippleHalo: 0.14, halo: false,
-    grid: "#ECEFF3", net: "#E3E8EE",
   },
 };
-
-/* ------------------------------------------------------- board background */
-/**
- * Decoy routing and a ground-plane dot grid behind the name.
- *
- * A real board is never bare substrate carrying one net, and the difference
- * between "letters drawn out of lines" and "a board that happens to spell a
- * name" is mostly this layer. The nets route to the same 90/45-degree rule as
- * the letters and pass behind them, the way another layer would.
- *
- * Seeded, so a rebuild is byte-identical rather than reshuffling the board
- * every time the file is regenerated.
- */
-const BOARD_DETAIL = true;
-const GRID_PITCH = 16;
-/** Net start heights, kept off 0/35/70 so they never trace a letter stroke. */
-const NET_ROWS = [-26, -13, 9, 23, 47, 59, 81, 95];
-
-let _seed = 20260906;
-const rnd = () => ((_seed = (_seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-
-/** Two-pad passives, dropped onto straight runs the way they would be placed. */
-const DESIGNATORS = ["R", "C", "L", "D"];
-
-function backgroundNets(left, right, top, bottom) {
-  const nets = [];
-  const stitches = [];
-  const parts = [];
-  let refCount = 0;
-
-  for (const startY of NET_ROWS) {
-    let x = left;
-    let y = startY;
-    const pts = [[x, y]];
-    let guard = 0;
-    while (x < right && guard++ < 40) {
-      const from = x;
-      x = Math.min(right, x + 40 + rnd() * 90);
-      pts.push([x, y]);
-
-      // A passive sits in line with the trace it interrupts.
-      if (x - from > 52 && rnd() < 0.34) {
-        parts.push({
-          x: r1((from + x) / 2),
-          y: r1(y),
-          ref: DESIGNATORS[Math.floor(rnd() * DESIGNATORS.length)] + (++refCount),
-        });
-      }
-
-      if (x >= right) break;
-      if (rnd() < 0.5) {
-        let dy = (rnd() < 0.5 ? -1 : 1) * (8 + Math.floor(rnd() * 16));
-        if (y + dy < top || y + dy > bottom) dy = -dy;
-        if (y + dy < top || y + dy > bottom) continue;
-        const run = Math.abs(dy);          // 45 degrees: run equals rise
-        if (x + run >= right) continue;
-        x += run;
-        y += dy;
-        pts.push([x, y]);
-        stitches.push([x, y]);
-      }
-    }
-    if (pts[pts.length - 1][0] < right) pts.push([right, y]);
-    nets.push(pts);
-  }
-  return { nets, stitches, parts };
-}
 
 /** Widening stroke, falling opacity - stands in for a blur. */
 const HALO = [
@@ -271,10 +201,6 @@ const VB = {
   h: CELL_H + PAD * 2,
 };
 
-const BOARD = BOARD_DETAIL
-  ? backgroundNets(VB.x, VB.x + VB.w, VB.y + 5, VB.y + VB.h - 5)
-  : { nets: [], stitches: [] };
-
 /**
  * An SVG served as image/svg+xml is parsed as XML, so a bare "<" or "&"
  * anywhere in the stylesheet is a parse error and the whole mark fails to
@@ -315,31 +241,6 @@ function render(t) {
     .map((v, i) => `.g${i}{animation:rip ${RIPPLE_PERIOD}ms linear ${r1(rippleAt(v))}ms infinite}`)
     .join("\n    ");
 
-  const netPaths = BOARD.nets.map((pts) => `<path d="${dOf(pts)}"/>`).join("");
-  const netStitches = BOARD.stitches
-    .map(([x, y]) => `<circle cx="${r1(x)}" cy="${r1(y)}" r="2.6"/>`)
-    .join("");
-  // Body plus two end pads, sitting in line with the trace it interrupts.
-  const partMarkup = BOARD.parts
-    .map(
-      (c) =>
-        `<rect x="${r1(c.x - 10)}" y="${r1(c.y - 3.6)}" width="6.4" height="7.2" rx="1.4"/>` +
-        `<rect x="${r1(c.x + 3.6)}" y="${r1(c.y - 3.6)}" width="6.4" height="7.2" rx="1.4"/>` +
-        `<rect x="${r1(c.x - 4.2)}" y="${r1(c.y - 2.6)}" width="8.4" height="5.2" rx="0.8"/>`
-    )
-    .join("");
-  const refMarkup = BOARD.parts
-    .map((c) => `<text x="${r1(c.x)}" y="${r1(c.y - 6.4)}">${c.ref}</text>`)
-    .join("");
-
-  const boardLayers = BOARD_DETAIL
-    ? `<rect x="${VB.x}" y="${VB.y}" width="${VB.w}" height="${VB.h}" fill="url(#grid)"/>
-  <g class="nets">${netPaths}</g>
-  <g class="stitch">${netStitches}</g>
-  <g class="parts">${partMarkup}</g>
-  <g class="silk">${refMarkup}</g>`
-    : "";
-
   const base = plan.map((s) => `<path d="${s.d}"/>`).join("");
   const power = plan.map((s, i) => `<path class="t${i}" d="${s.d}"/>`).join("");
   const ripple = plan.map((s, i) => `<path class="r${i}" d="${s.d}"/>`).join("");
@@ -376,11 +277,6 @@ function render(t) {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" width="${VB.w}" height="${VB.h}" role="img" aria-label="Nikhil Kolli">
   <title>Nikhil Kolli</title>
-  <defs>
-    <pattern id="grid" width="${GRID_PITCH}" height="${GRID_PITCH}" patternUnits="userSpaceOnUse">
-      <circle cx="${GRID_PITCH / 2}" cy="${GRID_PITCH / 2}" r="1.05" fill="${t.grid}"/>
-    </pattern>
-  </defs>
   <style>
     .l{fill:none;stroke-width:${TRACE_W};stroke-linecap:round;stroke-linejoin:round}
     .base{stroke:${t.base}}
@@ -398,14 +294,6 @@ function render(t) {
     .via circle{opacity:0}
     .ring{fill:none;stroke:${t.ripple};stroke-width:2.6}
     .ring circle{opacity:0}
-    .nets{fill:none;stroke:${t.net};stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
-    .stitch{fill:${t.viaFill};stroke:${t.net};stroke-width:1.5}
-    .parts{fill:${t.net};stroke:none}
-    /* Silkscreen. No web font loads inside a proxied SVG, so this has to be a
-       system monospace stack; at header size it reads as texture either way,
-       which is what real silkscreen looks like at a glance. */
-    .silk{fill:${t.net};font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-          font-size:7px;text-anchor:middle;letter-spacing:0.3px}
     @keyframes up{to{stroke-dashoffset:0}}
     @keyframes pad{to{opacity:1}}
     @keyframes rip{
@@ -419,7 +307,6 @@ function render(t) {
     ${viaCss}
     ${viaRingCss}${guard}
   </style>
-  ${boardLayers}
   <g class="l base">${base}</g>
   ${haloLayers}
   <g class="l pwr">${power}</g>
