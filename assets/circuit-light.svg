@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -34 932 138" width="932" height="138" role="img" aria-label="Nikhil Kolli">
+  <title>Nikhil Kolli</title>
+  <defs></defs>
+  <style>
+    .l{fill:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+    .base{stroke:#D5DBE3}
+    .pwr{stroke:#5B4BD6}
+    .pls{stroke:#0E7490;stroke-width:4.5;stroke-dasharray:3 120;stroke-dashoffset:3;opacity:.85}
+    .via{fill:#FFFFFF;stroke:#5B4BD6;stroke-width:3.4}
+    /* opacity has to sit on the circles: opacity is not inherited, so hiding
+       the group instead would leave the per-via fade-ins animating nothing. */
+    .via circle{opacity:0}
+    @keyframes up{to{stroke-dashoffset:0}}
+    @keyframes pad{to{opacity:1}}
+    @keyframes pulse{
+      0%{stroke-dashoffset:3}
+      22%{stroke-dashoffset:-110}
+      100%{stroke-dashoffset:-110}
+    }
+    .t0{stroke-dasharray:26;stroke-dashoffset:26;animation:up 180ms cubic-bezier(.3,.7,.4,1) 0ms forwards}
+    .t1{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 46.5ms forwards}
+    .t2{stroke-dasharray:70.7;stroke-dashoffset:70.7;animation:up 180ms cubic-bezier(.3,.7,.4,1) 46.5ms forwards}
+    .t3{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 136ms forwards}
+    .t4{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 175.4ms forwards}
+    .t5{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 220.2ms forwards}
+    .t6{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 175.4ms forwards}
+    .t7{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 304.3ms forwards}
+    .t8{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 393.8ms forwards}
+    .t9{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 331.1ms forwards}
+    .t10{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 304.3ms forwards}
+    .t11{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 433.2ms forwards}
+    .t12{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 522.7ms forwards}
+    .t13{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 433.2ms forwards}
+    .t14{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 562.1ms forwards}
+    .t15{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 606.8ms forwards}
+    .t16{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 562.1ms forwards}
+    .t17{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 690.9ms forwards}
+    .t18{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 690.9ms forwards}
+    .t19{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 895ms forwards}
+    .t20{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 984.5ms forwards}
+    .t21{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 921.8ms forwards}
+    .t22{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 895ms forwards}
+    .t23{stroke-dasharray:204.9;stroke-dashoffset:204.9;animation:up 353.2ms cubic-bezier(.3,.7,.4,1) 1050.7ms forwards}
+    .t24{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1152.7ms forwards}
+    .t25{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1152.7ms forwards}
+    .t26{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1281.6ms forwards}
+    .t27{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1281.6ms forwards}
+    .t28{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1410.5ms forwards}
+    .t29{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1455.3ms forwards}
+    .t30{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1410.5ms forwards}
+    .t31{stroke-dasharray:26;stroke-dashoffset:26;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1500ms forwards}
+    .u0{animation:pulse 4200ms linear 2000ms infinite}
+    .u1{animation:pulse 4200ms linear 2021.7ms infinite}
+    .u2{animation:pulse 4200ms linear 2021.7ms infinite}
+    .u3{animation:pulse 4200ms linear 2063.5ms infinite}
+    .u4{animation:pulse 4200ms linear 2081.9ms infinite}
+    .u5{animation:pulse 4200ms linear 2102.7ms infinite}
+    .u6{animation:pulse 4200ms linear 2081.9ms infinite}
+    .u7{animation:pulse 4200ms linear 2142ms infinite}
+    .u8{animation:pulse 4200ms linear 2183.8ms infinite}
+    .u9{animation:pulse 4200ms linear 2154.5ms infinite}
+    .u10{animation:pulse 4200ms linear 2142ms infinite}
+    .u11{animation:pulse 4200ms linear 2202.1ms infinite}
+    .u12{animation:pulse 4200ms linear 2243.9ms infinite}
+    .u13{animation:pulse 4200ms linear 2202.1ms infinite}
+    .u14{animation:pulse 4200ms linear 2262.3ms infinite}
+    .u15{animation:pulse 4200ms linear 2283.2ms infinite}
+    .u16{animation:pulse 4200ms linear 2262.3ms infinite}
+    .u17{animation:pulse 4200ms linear 2322.4ms infinite}
+    .u18{animation:pulse 4200ms linear 2322.4ms infinite}
+    .u19{animation:pulse 4200ms linear 2417.7ms infinite}
+    .u20{animation:pulse 4200ms linear 2459.4ms infinite}
+    .u21{animation:pulse 4200ms linear 2430.2ms infinite}
+    .u22{animation:pulse 4200ms linear 2417.7ms infinite}
+    .u23{animation:pulse 4200ms linear 2490.3ms infinite}
+    .u24{animation:pulse 4200ms linear 2537.9ms infinite}
+    .u25{animation:pulse 4200ms linear 2537.9ms infinite}
+    .u26{animation:pulse 4200ms linear 2598.1ms infinite}
+    .u27{animation:pulse 4200ms linear 2598.1ms infinite}
+    .u28{animation:pulse 4200ms linear 2658.2ms infinite}
+    .u29{animation:pulse 4200ms linear 2679.1ms infinite}
+    .u30{animation:pulse 4200ms linear 2658.2ms infinite}
+    .u31{animation:pulse 4200ms linear 2700ms infinite}
+    .v0{animation:pad 320ms ease-out 110ms forwards}
+    .v1{animation:pad 320ms ease-out 156.5ms forwards}
+    .v2{animation:pad 320ms ease-out 156.5ms forwards}
+    .v3{animation:pad 320ms ease-out 246ms forwards}
+    .v4{animation:pad 320ms ease-out 246ms forwards}
+    .v5{animation:pad 320ms ease-out 246ms forwards}
+    .v6{animation:pad 320ms ease-out 285.4ms forwards}
+    .v7{animation:pad 320ms ease-out 374.9ms forwards}
+    .v8{animation:pad 320ms ease-out 330.2ms forwards}
+    .v9{animation:pad 320ms ease-out 330.2ms forwards}
+    .v10{animation:pad 320ms ease-out 285.4ms forwards}
+    .v11{animation:pad 320ms ease-out 374.9ms forwards}
+    .v12{animation:pad 320ms ease-out 414.3ms forwards}
+    .v13{animation:pad 320ms ease-out 414.3ms forwards}
+    .v14{animation:pad 320ms ease-out 503.8ms forwards}
+    .v15{animation:pad 320ms ease-out 441.1ms forwards}
+    .v16{animation:pad 320ms ease-out 503.8ms forwards}
+    .v17{animation:pad 320ms ease-out 414.3ms forwards}
+    .v18{animation:pad 320ms ease-out 543.2ms forwards}
+    .v19{animation:pad 320ms ease-out 543.2ms forwards}
+    .v20{animation:pad 320ms ease-out 632.7ms forwards}
+    .v21{animation:pad 320ms ease-out 632.7ms forwards}
+    .v22{animation:pad 320ms ease-out 543.2ms forwards}
+    .v23{animation:pad 320ms ease-out 632.7ms forwards}
+    .v24{animation:pad 320ms ease-out 672.1ms forwards}
+    .v25{animation:pad 320ms ease-out 761.6ms forwards}
+    .v26{animation:pad 320ms ease-out 716.8ms forwards}
+    .v27{animation:pad 320ms ease-out 716.8ms forwards}
+    .v28{animation:pad 320ms ease-out 672.1ms forwards}
+    .v29{animation:pad 320ms ease-out 761.6ms forwards}
+    .v30{animation:pad 320ms ease-out 800.9ms forwards}
+    .v31{animation:pad 320ms ease-out 800.9ms forwards}
+    .v32{animation:pad 320ms ease-out 890.4ms forwards}
+    .v33{animation:pad 320ms ease-out 1005ms forwards}
+    .v34{animation:pad 320ms ease-out 1005ms forwards}
+    .v35{animation:pad 320ms ease-out 1094.5ms forwards}
+    .v36{animation:pad 320ms ease-out 1031.8ms forwards}
+    .v37{animation:pad 320ms ease-out 1094.5ms forwards}
+    .v38{animation:pad 320ms ease-out 1005ms forwards}
+    .v39{animation:pad 320ms ease-out 1160.7ms forwards}
+    .v40{animation:pad 320ms ease-out 1262.7ms forwards}
+    .v41{animation:pad 320ms ease-out 1262.7ms forwards}
+    .v42{animation:pad 320ms ease-out 1352.2ms forwards}
+    .v43{animation:pad 320ms ease-out 1391.6ms forwards}
+    .v44{animation:pad 320ms ease-out 1391.6ms forwards}
+    .v45{animation:pad 320ms ease-out 1481.1ms forwards}
+    .v46{animation:pad 320ms ease-out 1520.5ms forwards}
+    .v47{animation:pad 320ms ease-out 1610ms forwards}
+    .v48{animation:pad 320ms ease-out 1565.3ms forwards}
+    .v49{animation:pad 320ms ease-out 1565.3ms forwards}
+    .v50{animation:pad 320ms ease-out 1520.5ms forwards}
+    .v51{animation:pad 320ms ease-out 1610ms forwards}
+    .v52{animation:pad 320ms ease-out 1656.5ms forwards}
+    @media (prefers-reduced-motion:reduce){
+      path,circle{animation:none!important}
+      .pwr path{stroke-dashoffset:0!important}
+      .pls{display:none!important}
+      .via circle{opacity:1!important}
+    }
+  </style>
+  <g class="l base"><path d="M -26,70 L 0,70"/><path d="M 0,70 L 0,0"/><path d="M 0,0 L 50,50"/><path d="M 50,0 L 50,70"/><path d="M 72,0 L 122,0"/><path d="M 97,0 L 97,70"/><path d="M 72,70 L 122,70"/><path d="M 144,0 L 144,70"/><path d="M 194,0 L 159,35"/><path d="M 159,35 L 194,70"/><path d="M 144,35 L 159,35"/><path d="M 216,0 L 216,70"/><path d="M 266,0 L 266,70"/><path d="M 216,35 L 266,35"/><path d="M 288,0 L 338,0"/><path d="M 313,0 L 313,70"/><path d="M 288,70 L 338,70"/><path d="M 360,0 L 360,70"/><path d="M 360,70 L 410,70"/><path d="M 474,0 L 474,70"/><path d="M 524,0 L 489,35"/><path d="M 489,35 L 524,70"/><path d="M 474,35 L 489,35"/><path d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path d="M 618,0 L 618,70"/><path d="M 618,70 L 668,70"/><path d="M 690,0 L 690,70"/><path d="M 690,70 L 740,70"/><path d="M 762,0 L 812,0"/><path d="M 787,0 L 787,70"/><path d="M 762,70 L 812,70"/><path d="M 812,70 L 838,70"/></g>
+  <g class="l pwr"><path class="t0" d="M -26,70 L 0,70"/><path class="t1" d="M 0,70 L 0,0"/><path class="t2" d="M 0,0 L 50,50"/><path class="t3" d="M 50,0 L 50,70"/><path class="t4" d="M 72,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 266,35"/><path class="t14" d="M 288,0 L 338,0"/><path class="t15" d="M 313,0 L 313,70"/><path class="t16" d="M 288,70 L 338,70"/><path class="t17" d="M 360,0 L 360,70"/><path class="t18" d="M 360,70 L 410,70"/><path class="t19" d="M 474,0 L 474,70"/><path class="t20" d="M 524,0 L 489,35"/><path class="t21" d="M 489,35 L 524,70"/><path class="t22" d="M 474,35 L 489,35"/><path class="t23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t24" d="M 618,0 L 618,70"/><path class="t25" d="M 618,70 L 668,70"/><path class="t26" d="M 690,0 L 690,70"/><path class="t27" d="M 690,70 L 740,70"/><path class="t28" d="M 762,0 L 812,0"/><path class="t29" d="M 787,0 L 787,70"/><path class="t30" d="M 762,70 L 812,70"/><path class="t31" d="M 812,70 L 838,70"/></g>
+  <g class="l pls"><path class="u0" pathLength="100" d="M -26,70 L 0,70"/><path class="u1" pathLength="100" d="M 0,70 L 0,0"/><path class="u2" pathLength="100" d="M 0,0 L 50,50"/><path class="u3" pathLength="100" d="M 50,0 L 50,70"/><path class="u4" pathLength="100" d="M 72,0 L 122,0"/><path class="u5" pathLength="100" d="M 97,0 L 97,70"/><path class="u6" pathLength="100" d="M 72,70 L 122,70"/><path class="u7" pathLength="100" d="M 144,0 L 144,70"/><path class="u8" pathLength="100" d="M 194,0 L 159,35"/><path class="u9" pathLength="100" d="M 159,35 L 194,70"/><path class="u10" pathLength="100" d="M 144,35 L 159,35"/><path class="u11" pathLength="100" d="M 216,0 L 216,70"/><path class="u12" pathLength="100" d="M 266,0 L 266,70"/><path class="u13" pathLength="100" d="M 216,35 L 266,35"/><path class="u14" pathLength="100" d="M 288,0 L 338,0"/><path class="u15" pathLength="100" d="M 313,0 L 313,70"/><path class="u16" pathLength="100" d="M 288,70 L 338,70"/><path class="u17" pathLength="100" d="M 360,0 L 360,70"/><path class="u18" pathLength="100" d="M 360,70 L 410,70"/><path class="u19" pathLength="100" d="M 474,0 L 474,70"/><path class="u20" pathLength="100" d="M 524,0 L 489,35"/><path class="u21" pathLength="100" d="M 489,35 L 524,70"/><path class="u22" pathLength="100" d="M 474,35 L 489,35"/><path class="u23" pathLength="100" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="u24" pathLength="100" d="M 618,0 L 618,70"/><path class="u25" pathLength="100" d="M 618,70 L 668,70"/><path class="u26" pathLength="100" d="M 690,0 L 690,70"/><path class="u27" pathLength="100" d="M 690,70 L 740,70"/><path class="u28" pathLength="100" d="M 762,0 L 812,0"/><path class="u29" pathLength="100" d="M 787,0 L 787,70"/><path class="u30" pathLength="100" d="M 762,70 L 812,70"/><path class="u31" pathLength="100" d="M 812,70 L 838,70"/></g>
+  <g class="via"><circle class="v0" cx="-26" cy="70" r="6"/><circle class="v1" cx="0" cy="70" r="6"/><circle class="v2" cx="0" cy="0" r="6"/><circle class="v3" cx="50" cy="50" r="6"/><circle class="v4" cx="50" cy="0" r="6"/><circle class="v5" cx="50" cy="70" r="6"/><circle class="v6" cx="72" cy="0" r="6"/><circle class="v7" cx="122" cy="0" r="6"/><circle class="v8" cx="97" cy="0" r="6"/><circle class="v9" cx="97" cy="70" r="6"/><circle class="v10" cx="72" cy="70" r="6"/><circle class="v11" cx="122" cy="70" r="6"/><circle class="v12" cx="144" cy="0" r="6"/><circle class="v13" cx="144" cy="70" r="6"/><circle class="v14" cx="194" cy="0" r="6"/><circle class="v15" cx="159" cy="35" r="6"/><circle class="v16" cx="194" cy="70" r="6"/><circle class="v17" cx="144" cy="35" r="6"/><circle class="v18" cx="216" cy="0" r="6"/><circle class="v19" cx="216" cy="70" r="6"/><circle class="v20" cx="266" cy="0" r="6"/><circle class="v21" cx="266" cy="70" r="6"/><circle class="v22" cx="216" cy="35" r="6"/><circle class="v23" cx="266" cy="35" r="6"/><circle class="v24" cx="288" cy="0" r="6"/><circle class="v25" cx="338" cy="0" r="6"/><circle class="v26" cx="313" cy="0" r="6"/><circle class="v27" cx="313" cy="70" r="6"/><circle class="v28" cx="288" cy="70" r="6"/><circle class="v29" cx="338" cy="70" r="6"/><circle class="v30" cx="360" cy="0" r="6"/><circle class="v31" cx="360" cy="70" r="6"/><circle class="v32" cx="410" cy="70" r="6"/><circle class="v33" cx="474" cy="0" r="6"/><circle class="v34" cx="474" cy="70" r="6"/><circle class="v35" cx="524" cy="0" r="6"/><circle class="v36" cx="489" cy="35" r="6"/><circle class="v37" cx="524" cy="70" r="6"/><circle class="v38" cx="474" cy="35" r="6"/><circle class="v39" cx="561" cy="0" r="6"/><circle class="v40" cx="618" cy="0" r="6"/><circle class="v41" cx="618" cy="70" r="6"/><circle class="v42" cx="668" cy="70" r="6"/><circle class="v43" cx="690" cy="0" r="6"/><circle class="v44" cx="690" cy="70" r="6"/><circle class="v45" cx="740" cy="70" r="6"/><circle class="v46" cx="762" cy="0" r="6"/><circle class="v47" cx="812" cy="0" r="6"/><circle class="v48" cx="787" cy="0" r="6"/><circle class="v49" cx="787" cy="70" r="6"/><circle class="v50" cx="762" cy="70" r="6"/><circle class="v51" cx="812" cy="70" r="6"/><circle class="v52" cx="838" cy="70" r="6"/></g>
+</svg>
