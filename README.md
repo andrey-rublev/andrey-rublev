@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/circuit-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/circuit-light.svg" />
-  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/circuit-dark.svg" alt="Nikhil Kolli" width="600" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/wordmark-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/wordmark-light.svg" />
+  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/wordmark-dark.svg" alt="Nikhil Kolli" width="560" />
 </picture>
 
 <a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=700&height=40&lines=RL%2FML%2FAI%2C+SWE%2C+ECE+%7C+CompE+%40+Purdue+%7C+nikhilkolli.com" alt="RL/ML/AI, SWE, ECE | CompE at Purdue | nikhilkolli.com" /></a>
@@ -35,5 +35,17 @@ Computer engineer building ML systems — quantum-classical hybrids, autonomy st
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white) ![PennyLane](https://img.shields.io/badge/PennyLane-39B54A?style=flat-square) ![MCP](https://img.shields.io/badge/MCP-1F2937?style=flat-square&logo=modelcontextprotocol&logoColor=white) ![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white) ![Three.js](https://img.shields.io/badge/Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square)
+
+</div>
+
+## Contributions
+
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-night-view.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-green-animate.svg" />
+  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-night-view.svg" alt="3D contribution graph" width="820" />
+</picture>
 
 </div>
