@@ -30,8 +30,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "cards"
 OUT.mkdir(exist_ok=True)
 
-W, H = 400, 150     # box width; artwork is inset by GAP each side
-GAP = 7
+# 380 is not arbitrary: GitHub's README column measures 791px, so two cards
+# plus their gaps have to fit inside that or they wrap to one per row.
+W, H = 380, 150     # box width; artwork is inset by GAP each side
+GAP = 5
 WRAP = 42
 BTN_BAR_H = 36
 
