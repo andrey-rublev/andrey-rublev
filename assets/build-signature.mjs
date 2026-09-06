@@ -23,6 +23,17 @@
  * The strokes are also the pen order a person would actually use: each word in
  * one pass, the K's arm as a second stroke, then the three i-dots, then the
  * underline. Nothing here is drawn in an order a hand could not produce.
+ *
+ * On reduced motion the whole mark renders drawn and still. The guard has to
+ * repaint the strokes flat as well as stop the CSS animations: the shine is
+ * SMIL, which `animation:none` does not touch, so without that the sweep went
+ * on looping for exactly the people who asked for no motion. Pointing the
+ * stroke at a flat colour leaves the gradient animating but unreferenced.
+ *
+ * Worth knowing when testing: media queries inside an SVG loaded through <img>
+ * are evaluated in an isolated document that reads the OS setting, not the
+ * host page's. A machine with Windows animations off renders this static even
+ * though the page around it reports no-preference.
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -292,10 +303,11 @@ function render(t) {
     ${css}
     @media (prefers-reduced-motion:reduce){
       path{animation:none!important;stroke-dashoffset:0!important}
+      .ink{stroke:${t.ink}!important}
     }
   </style>
   <g transform="skewX(${SLANT_DEG})" fill="none" stroke-width="${STROKE_W}" stroke-linecap="round" stroke-linejoin="round">
-    <g stroke="url(#shine)">
+    <g class="ink" stroke="url(#shine)">
 ${paths("ink")}
     </g>
     <g stroke="${t.accent}" stroke-width="${STROKE_W - 2}" opacity="0.9">

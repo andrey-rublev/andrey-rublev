@@ -22,10 +22,11 @@
     .k7{stroke-dasharray:475.7 488.7;stroke-dashoffset:482.2;animation:w 500.8ms cubic-bezier(.2,.6,.3,1) 4122.4ms forwards}
     @media (prefers-reduced-motion:reduce){
       path{animation:none!important;stroke-dashoffset:0!important}
+      .ink{stroke:#1F2328!important}
     }
   </style>
   <g transform="skewX(-6)" fill="none" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
-    <g stroke="url(#shine)">
+    <g class="ink" stroke="url(#shine)">
       <path class="k0" d="M 24,132 C 33,112 46,62 58,26 C 65,6 38,2 36,24 C 33,50 35,90 45,120 C 53,86 63,52 76,32 C 84,19 93,24 91,46 C 89,72 87,98 89,120 C 94,110 101,101 108,94 C 115,86 120,74 122,64 C 124,84 126,104 128,120 C 136,98 148,56 158,22 C 166,4 138,0 136,22 C 133,44 134,62 137,78 C 147,72 160,62 157,75 C 154,86 144,86 141,92 C 148,104 157,114 167,120 C 175,98 186,56 196,22 C 204,4 176,0 174,22 C 171,46 173,90 180,120 C 186,96 196,64 207,64 C 216,64 214,94 217,120 C 223,106 229,82 231,64 C 233,84 235,104 237,120 C 245,98 256,56 266,22 C 274,4 246,0 244,22 C 241,46 243,90 251,120 C 257,113 264,108 272,105"/>
       <path class="k1" d="M 300,128 C 310,106 326,58 338,22 C 347,4 316,0 314,22 C 311,50 313,88 318,120"/>
       <path class="k2" d="M 366,26 C 350,46 336,60 325,70 C 338,74 348,82 342,93 C 337,102 340,110 349,114 C 356,117 364,119 374,120"/>
