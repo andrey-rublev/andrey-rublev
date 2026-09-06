@@ -10,7 +10,7 @@
 
 <a href="https://nikhilkolli.com"><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio.svg" alt="Portfolio" height="34" /></a> <a href="https://linkedin.com/in/nikhilxkolli"><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin.svg" alt="LinkedIn" height="34" /></a>
 
-<a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/github" alt="GitHub profile views" height="26" /></a> <a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/" alt="Portfolio views" height="26" /></a>
+<a href="#"><img src="https://komarev.com/ghpvc/?username=andrey-rublev&label=github%20views&color=21262D&style=flat" alt="GitHub profile views" height="26" /></a> <a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/" alt="Portfolio views" height="26" /></a>
 
 </div>
 
