@@ -158,13 +158,26 @@ function layout() {
 
 const { runs, width } = layout();
 
+/**
+ * The far ends of the two power leads get no via. A pad out there terminates
+ * the rail, which is wrong twice over: the rail is meant to continue off the
+ * board, and visually it reads as a stray dot floating away from the mark. A
+ * plain round cap reads as a trace running off the edge.
+ */
+const NO_VIA = new Set([
+  [-LEAD, CELL_H].join(),
+  [width + LEAD, CELL_H].join(),
+]);
+
 // One via per distinct run endpoint - shared corners get a single pad.
 const seen = new Set();
 const vias = [];
 for (const pts of runs) {
   for (const p of [pts[0], pts[pts.length - 1]]) {
     const k = p.join();
-    if (!seen.has(k)) { seen.add(k); vias.push(p); }
+    if (NO_VIA.has(k) || seen.has(k)) continue;
+    seen.add(k);
+    vias.push(p);
   }
 }
 
