@@ -7,17 +7,25 @@
     .h1{stroke:#818CF8;stroke-width:19;opacity:0.1}
     .h2{stroke:#818CF8;stroke-width:13;opacity:0.14}
     .pwr{stroke:#818CF8}
-    .pls{stroke:#A5F3FC;stroke-width:4.5;stroke-dasharray:3 120;stroke-dashoffset:3;opacity:.85}
+    .rip{stroke:#EEF2FF;stroke-width:9.5}
+    /* The bloom carries the same .rN classes, so it flashes in lockstep. Group
+       opacity multiplies the animated child opacity, which is how the wave gets
+       a soft spread without a filter. */
+    .riph{stroke:#EEF2FF;stroke-width:24;opacity:0.3}
+    .rip path,.riph path{opacity:0}
     .via{fill:#0D1117;stroke:#818CF8;stroke-width:3.4}
     /* opacity has to sit on the circles: opacity is not inherited, so hiding
        the group instead would leave the per-via fade-ins animating nothing. */
     .via circle{opacity:0}
+    .ring{fill:none;stroke:#EEF2FF;stroke-width:2.6}
+    .ring circle{opacity:0}
     @keyframes up{to{stroke-dashoffset:0}}
     @keyframes pad{to{opacity:1}}
-    @keyframes pulse{
-      0%{stroke-dashoffset:3}
-      22%{stroke-dashoffset:-110}
-      100%{stroke-dashoffset:-110}
+    @keyframes rip{
+      0%{opacity:0}
+      6.9%{opacity:1}
+      21.6%{opacity:0}
+      100%{opacity:0}
     }
     .t0{stroke-dasharray:26;stroke-dashoffset:26;animation:up 180ms cubic-bezier(.3,.7,.4,1) 0ms forwards}
     .t1{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 46.5ms forwards}
@@ -51,38 +59,38 @@
     .t29{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1455.3ms forwards}
     .t30{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1410.5ms forwards}
     .t31{stroke-dasharray:26;stroke-dashoffset:26;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1500ms forwards}
-    .u0{animation:pulse 4200ms linear 2000ms infinite}
-    .u1{animation:pulse 4200ms linear 2021.7ms infinite}
-    .u2{animation:pulse 4200ms linear 2021.7ms infinite}
-    .u3{animation:pulse 4200ms linear 2063.5ms infinite}
-    .u4{animation:pulse 4200ms linear 2081.9ms infinite}
-    .u5{animation:pulse 4200ms linear 2102.7ms infinite}
-    .u6{animation:pulse 4200ms linear 2081.9ms infinite}
-    .u7{animation:pulse 4200ms linear 2142ms infinite}
-    .u8{animation:pulse 4200ms linear 2183.8ms infinite}
-    .u9{animation:pulse 4200ms linear 2154.5ms infinite}
-    .u10{animation:pulse 4200ms linear 2142ms infinite}
-    .u11{animation:pulse 4200ms linear 2202.1ms infinite}
-    .u12{animation:pulse 4200ms linear 2243.9ms infinite}
-    .u13{animation:pulse 4200ms linear 2202.1ms infinite}
-    .u14{animation:pulse 4200ms linear 2262.3ms infinite}
-    .u15{animation:pulse 4200ms linear 2283.2ms infinite}
-    .u16{animation:pulse 4200ms linear 2262.3ms infinite}
-    .u17{animation:pulse 4200ms linear 2322.4ms infinite}
-    .u18{animation:pulse 4200ms linear 2322.4ms infinite}
-    .u19{animation:pulse 4200ms linear 2417.7ms infinite}
-    .u20{animation:pulse 4200ms linear 2459.4ms infinite}
-    .u21{animation:pulse 4200ms linear 2430.2ms infinite}
-    .u22{animation:pulse 4200ms linear 2417.7ms infinite}
-    .u23{animation:pulse 4200ms linear 2490.3ms infinite}
-    .u24{animation:pulse 4200ms linear 2537.9ms infinite}
-    .u25{animation:pulse 4200ms linear 2537.9ms infinite}
-    .u26{animation:pulse 4200ms linear 2598.1ms infinite}
-    .u27{animation:pulse 4200ms linear 2598.1ms infinite}
-    .u28{animation:pulse 4200ms linear 2658.2ms infinite}
-    .u29{animation:pulse 4200ms linear 2679.1ms infinite}
-    .u30{animation:pulse 4200ms linear 2658.2ms infinite}
-    .u31{animation:pulse 4200ms linear 2700ms infinite}
+    .r0{animation:rip 3800ms linear 2116.6ms infinite}
+    .r1{animation:rip 3800ms linear 2155.5ms infinite}
+    .r2{animation:rip 3800ms linear 2186.6ms infinite}
+    .r3{animation:rip 3800ms linear 2206.5ms infinite}
+    .r4{animation:rip 3800ms linear 2280.2ms infinite}
+    .r5{animation:rip 3800ms linear 2262.8ms infinite}
+    .r6{animation:rip 3800ms linear 2256.6ms infinite}
+    .r7{animation:rip 3800ms linear 2321ms infinite}
+    .r8{animation:rip 3800ms linear 2366.3ms infinite}
+    .r9{animation:rip 3800ms linear 2358.8ms infinite}
+    .r10{animation:rip 3800ms linear 2330.3ms infinite}
+    .r11{animation:rip 3800ms linear 2411.3ms infinite}
+    .r12{animation:rip 3800ms linear 2474.4ms infinite}
+    .r13{animation:rip 3800ms linear 2442.8ms infinite}
+    .r14{animation:rip 3800ms linear 2540.7ms infinite}
+    .r15{animation:rip 3800ms linear 2533.9ms infinite}
+    .r16{animation:rip 3800ms linear 2531.6ms infinite}
+    .r17{animation:rip 3800ms linear 2593.5ms infinite}
+    .r18{animation:rip 3800ms linear 2623.3ms infinite}
+    .r19{animation:rip 3800ms linear 2738.1ms infinite}
+    .r20{animation:rip 3800ms linear 2781.2ms infinite}
+    .r21{animation:rip 3800ms linear 2778.3ms infinite}
+    .r22{animation:rip 3800ms linear 2747.7ms infinite}
+    .r23{animation:rip 3800ms linear 2860.3ms infinite}
+    .r24{animation:rip 3800ms linear 2921.1ms infinite}
+    .r25{animation:rip 3800ms linear 2951.7ms infinite}
+    .r26{animation:rip 3800ms linear 3012.7ms infinite}
+    .r27{animation:rip 3800ms linear 3043.4ms infinite}
+    .r28{animation:rip 3800ms linear 3138.9ms infinite}
+    .r29{animation:rip 3800ms linear 3136ms infinite}
+    .r30{animation:rip 3800ms linear 3135.1ms infinite}
+    .r31{animation:rip 3800ms linear 3183.4ms infinite}
     .v0{animation:pad 320ms ease-out 110ms forwards}
     .v1{animation:pad 320ms ease-out 156.5ms forwards}
     .v2{animation:pad 320ms ease-out 156.5ms forwards}
@@ -136,6 +144,59 @@
     .v50{animation:pad 320ms ease-out 1520.5ms forwards}
     .v51{animation:pad 320ms ease-out 1610ms forwards}
     .v52{animation:pad 320ms ease-out 1656.5ms forwards}
+    .g0{animation:rip 3800ms linear 2100ms infinite}
+    .g1{animation:rip 3800ms linear 2133.1ms infinite}
+    .g2{animation:rip 3800ms linear 2195.1ms infinite}
+    .g3{animation:rip 3800ms linear 2200.1ms infinite}
+    .g4{animation:rip 3800ms linear 2231.5ms infinite}
+    .g5{animation:rip 3800ms linear 2196.8ms infinite}
+    .g6{animation:rip 3800ms linear 2253.3ms infinite}
+    .g7{animation:rip 3800ms linear 2308.4ms infinite}
+    .g8{animation:rip 3800ms linear 2280.2ms infinite}
+    .g9{animation:rip 3800ms linear 2256.6ms infinite}
+    .g10{animation:rip 3800ms linear 2224.8ms infinite}
+    .g11{animation:rip 3800ms linear 2288.4ms infinite}
+    .g12{animation:rip 3800ms linear 2334.1ms infinite}
+    .g13{animation:rip 3800ms linear 2316.4ms infinite}
+    .g14{animation:rip 3800ms linear 2393.9ms infinite}
+    .g15{animation:rip 3800ms linear 2339.7ms infinite}
+    .g16{animation:rip 3800ms linear 2380.1ms infinite}
+    .g17{animation:rip 3800ms linear 2321ms infinite}
+    .g18{animation:rip 3800ms linear 2420.7ms infinite}
+    .g19{animation:rip 3800ms linear 2408.1ms infinite}
+    .g20{animation:rip 3800ms linear 2482.3ms infinite}
+    .g21{animation:rip 3800ms linear 2471.8ms infinite}
+    .g22{animation:rip 3800ms linear 2411.3ms infinite}
+    .g23{animation:rip 3800ms linear 2474.4ms infinite}
+    .g24{animation:rip 3800ms linear 2509.6ms infinite}
+    .g25{animation:rip 3800ms linear 2571.9ms infinite}
+    .g26{animation:rip 3800ms linear 2540.7ms infinite}
+    .g27{animation:rip 3800ms linear 2531.6ms infinite}
+    .g28{animation:rip 3800ms linear 2499.8ms infinite}
+    .g29{animation:rip 3800ms linear 2563.4ms infinite}
+    .g30{animation:rip 3800ms linear 2599.5ms infinite}
+    .g31{animation:rip 3800ms linear 2591.4ms infinite}
+    .g32{animation:rip 3800ms linear 2655.1ms infinite}
+    .g33{animation:rip 3800ms linear 2742.8ms infinite}
+    .g34{animation:rip 3800ms linear 2736.6ms infinite}
+    .g35{animation:rip 3800ms linear 2805.9ms infinite}
+    .g36{animation:rip 3800ms linear 2757.2ms infinite}
+    .g37{animation:rip 3800ms linear 2800.2ms infinite}
+    .g38{animation:rip 3800ms linear 2738.1ms infinite}
+    .g39{animation:rip 3800ms linear 2852.6ms infinite}
+    .g40{animation:rip 3800ms linear 2924.7ms infinite}
+    .g41{animation:rip 3800ms linear 2919.9ms infinite}
+    .g42{animation:rip 3800ms linear 2983.6ms infinite}
+    .g43{animation:rip 3800ms linear 3015.9ms infinite}
+    .g44{animation:rip 3800ms linear 3011.6ms infinite}
+    .g45{animation:rip 3800ms linear 3075.2ms infinite}
+    .g46{animation:rip 3800ms linear 3107.2ms infinite}
+    .g47{animation:rip 3800ms linear 3170.6ms infinite}
+    .g48{animation:rip 3800ms linear 3138.9ms infinite}
+    .g49{animation:rip 3800ms linear 3135.1ms infinite}
+    .g50{animation:rip 3800ms linear 3103.2ms infinite}
+    .g51{animation:rip 3800ms linear 3166.9ms infinite}
+    .g52{animation:rip 3800ms linear 3200ms infinite}
     /* No prefers-reduced-motion guard, on purpose - see RESPECT_REDUCED_MOTION
        in the build script. Inside an img element that query reports the OS
        setting regardless of the host page, so honouring it froze the mark on
@@ -146,6 +207,8 @@
   <g class="l h1"><path class="t0" d="M -26,70 L 0,70"/><path class="t1" d="M 0,70 L 0,0"/><path class="t2" d="M 0,0 L 50,50"/><path class="t3" d="M 50,0 L 50,70"/><path class="t4" d="M 72,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 266,35"/><path class="t14" d="M 288,0 L 338,0"/><path class="t15" d="M 313,0 L 313,70"/><path class="t16" d="M 288,70 L 338,70"/><path class="t17" d="M 360,0 L 360,70"/><path class="t18" d="M 360,70 L 410,70"/><path class="t19" d="M 474,0 L 474,70"/><path class="t20" d="M 524,0 L 489,35"/><path class="t21" d="M 489,35 L 524,70"/><path class="t22" d="M 474,35 L 489,35"/><path class="t23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t24" d="M 618,0 L 618,70"/><path class="t25" d="M 618,70 L 668,70"/><path class="t26" d="M 690,0 L 690,70"/><path class="t27" d="M 690,70 L 740,70"/><path class="t28" d="M 762,0 L 812,0"/><path class="t29" d="M 787,0 L 787,70"/><path class="t30" d="M 762,70 L 812,70"/><path class="t31" d="M 812,70 L 838,70"/></g>
   <g class="l h2"><path class="t0" d="M -26,70 L 0,70"/><path class="t1" d="M 0,70 L 0,0"/><path class="t2" d="M 0,0 L 50,50"/><path class="t3" d="M 50,0 L 50,70"/><path class="t4" d="M 72,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 266,35"/><path class="t14" d="M 288,0 L 338,0"/><path class="t15" d="M 313,0 L 313,70"/><path class="t16" d="M 288,70 L 338,70"/><path class="t17" d="M 360,0 L 360,70"/><path class="t18" d="M 360,70 L 410,70"/><path class="t19" d="M 474,0 L 474,70"/><path class="t20" d="M 524,0 L 489,35"/><path class="t21" d="M 489,35 L 524,70"/><path class="t22" d="M 474,35 L 489,35"/><path class="t23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t24" d="M 618,0 L 618,70"/><path class="t25" d="M 618,70 L 668,70"/><path class="t26" d="M 690,0 L 690,70"/><path class="t27" d="M 690,70 L 740,70"/><path class="t28" d="M 762,0 L 812,0"/><path class="t29" d="M 787,0 L 787,70"/><path class="t30" d="M 762,70 L 812,70"/><path class="t31" d="M 812,70 L 838,70"/></g>
   <g class="l pwr"><path class="t0" d="M -26,70 L 0,70"/><path class="t1" d="M 0,70 L 0,0"/><path class="t2" d="M 0,0 L 50,50"/><path class="t3" d="M 50,0 L 50,70"/><path class="t4" d="M 72,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 266,35"/><path class="t14" d="M 288,0 L 338,0"/><path class="t15" d="M 313,0 L 313,70"/><path class="t16" d="M 288,70 L 338,70"/><path class="t17" d="M 360,0 L 360,70"/><path class="t18" d="M 360,70 L 410,70"/><path class="t19" d="M 474,0 L 474,70"/><path class="t20" d="M 524,0 L 489,35"/><path class="t21" d="M 489,35 L 524,70"/><path class="t22" d="M 474,35 L 489,35"/><path class="t23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t24" d="M 618,0 L 618,70"/><path class="t25" d="M 618,70 L 668,70"/><path class="t26" d="M 690,0 L 690,70"/><path class="t27" d="M 690,70 L 740,70"/><path class="t28" d="M 762,0 L 812,0"/><path class="t29" d="M 787,0 L 787,70"/><path class="t30" d="M 762,70 L 812,70"/><path class="t31" d="M 812,70 L 838,70"/></g>
-  <g class="l pls"><path class="u0" pathLength="100" d="M -26,70 L 0,70"/><path class="u1" pathLength="100" d="M 0,70 L 0,0"/><path class="u2" pathLength="100" d="M 0,0 L 50,50"/><path class="u3" pathLength="100" d="M 50,0 L 50,70"/><path class="u4" pathLength="100" d="M 72,0 L 122,0"/><path class="u5" pathLength="100" d="M 97,0 L 97,70"/><path class="u6" pathLength="100" d="M 72,70 L 122,70"/><path class="u7" pathLength="100" d="M 144,0 L 144,70"/><path class="u8" pathLength="100" d="M 194,0 L 159,35"/><path class="u9" pathLength="100" d="M 159,35 L 194,70"/><path class="u10" pathLength="100" d="M 144,35 L 159,35"/><path class="u11" pathLength="100" d="M 216,0 L 216,70"/><path class="u12" pathLength="100" d="M 266,0 L 266,70"/><path class="u13" pathLength="100" d="M 216,35 L 266,35"/><path class="u14" pathLength="100" d="M 288,0 L 338,0"/><path class="u15" pathLength="100" d="M 313,0 L 313,70"/><path class="u16" pathLength="100" d="M 288,70 L 338,70"/><path class="u17" pathLength="100" d="M 360,0 L 360,70"/><path class="u18" pathLength="100" d="M 360,70 L 410,70"/><path class="u19" pathLength="100" d="M 474,0 L 474,70"/><path class="u20" pathLength="100" d="M 524,0 L 489,35"/><path class="u21" pathLength="100" d="M 489,35 L 524,70"/><path class="u22" pathLength="100" d="M 474,35 L 489,35"/><path class="u23" pathLength="100" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="u24" pathLength="100" d="M 618,0 L 618,70"/><path class="u25" pathLength="100" d="M 618,70 L 668,70"/><path class="u26" pathLength="100" d="M 690,0 L 690,70"/><path class="u27" pathLength="100" d="M 690,70 L 740,70"/><path class="u28" pathLength="100" d="M 762,0 L 812,0"/><path class="u29" pathLength="100" d="M 787,0 L 787,70"/><path class="u30" pathLength="100" d="M 762,70 L 812,70"/><path class="u31" pathLength="100" d="M 812,70 L 838,70"/></g>
+  <g class="l riph"><path class="r0" d="M -26,70 L 0,70"/><path class="r1" d="M 0,70 L 0,0"/><path class="r2" d="M 0,0 L 50,50"/><path class="r3" d="M 50,0 L 50,70"/><path class="r4" d="M 72,0 L 122,0"/><path class="r5" d="M 97,0 L 97,70"/><path class="r6" d="M 72,70 L 122,70"/><path class="r7" d="M 144,0 L 144,70"/><path class="r8" d="M 194,0 L 159,35"/><path class="r9" d="M 159,35 L 194,70"/><path class="r10" d="M 144,35 L 159,35"/><path class="r11" d="M 216,0 L 216,70"/><path class="r12" d="M 266,0 L 266,70"/><path class="r13" d="M 216,35 L 266,35"/><path class="r14" d="M 288,0 L 338,0"/><path class="r15" d="M 313,0 L 313,70"/><path class="r16" d="M 288,70 L 338,70"/><path class="r17" d="M 360,0 L 360,70"/><path class="r18" d="M 360,70 L 410,70"/><path class="r19" d="M 474,0 L 474,70"/><path class="r20" d="M 524,0 L 489,35"/><path class="r21" d="M 489,35 L 524,70"/><path class="r22" d="M 474,35 L 489,35"/><path class="r23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r24" d="M 618,0 L 618,70"/><path class="r25" d="M 618,70 L 668,70"/><path class="r26" d="M 690,0 L 690,70"/><path class="r27" d="M 690,70 L 740,70"/><path class="r28" d="M 762,0 L 812,0"/><path class="r29" d="M 787,0 L 787,70"/><path class="r30" d="M 762,70 L 812,70"/><path class="r31" d="M 812,70 L 838,70"/></g>
+  <g class="l rip"><path class="r0" d="M -26,70 L 0,70"/><path class="r1" d="M 0,70 L 0,0"/><path class="r2" d="M 0,0 L 50,50"/><path class="r3" d="M 50,0 L 50,70"/><path class="r4" d="M 72,0 L 122,0"/><path class="r5" d="M 97,0 L 97,70"/><path class="r6" d="M 72,70 L 122,70"/><path class="r7" d="M 144,0 L 144,70"/><path class="r8" d="M 194,0 L 159,35"/><path class="r9" d="M 159,35 L 194,70"/><path class="r10" d="M 144,35 L 159,35"/><path class="r11" d="M 216,0 L 216,70"/><path class="r12" d="M 266,0 L 266,70"/><path class="r13" d="M 216,35 L 266,35"/><path class="r14" d="M 288,0 L 338,0"/><path class="r15" d="M 313,0 L 313,70"/><path class="r16" d="M 288,70 L 338,70"/><path class="r17" d="M 360,0 L 360,70"/><path class="r18" d="M 360,70 L 410,70"/><path class="r19" d="M 474,0 L 474,70"/><path class="r20" d="M 524,0 L 489,35"/><path class="r21" d="M 489,35 L 524,70"/><path class="r22" d="M 474,35 L 489,35"/><path class="r23" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r24" d="M 618,0 L 618,70"/><path class="r25" d="M 618,70 L 668,70"/><path class="r26" d="M 690,0 L 690,70"/><path class="r27" d="M 690,70 L 740,70"/><path class="r28" d="M 762,0 L 812,0"/><path class="r29" d="M 787,0 L 787,70"/><path class="r30" d="M 762,70 L 812,70"/><path class="r31" d="M 812,70 L 838,70"/></g>
   <g class="via"><circle class="v0" cx="-26" cy="70" r="6"/><circle class="v1" cx="0" cy="70" r="6"/><circle class="v2" cx="0" cy="0" r="6"/><circle class="v3" cx="50" cy="50" r="6"/><circle class="v4" cx="50" cy="0" r="6"/><circle class="v5" cx="50" cy="70" r="6"/><circle class="v6" cx="72" cy="0" r="6"/><circle class="v7" cx="122" cy="0" r="6"/><circle class="v8" cx="97" cy="0" r="6"/><circle class="v9" cx="97" cy="70" r="6"/><circle class="v10" cx="72" cy="70" r="6"/><circle class="v11" cx="122" cy="70" r="6"/><circle class="v12" cx="144" cy="0" r="6"/><circle class="v13" cx="144" cy="70" r="6"/><circle class="v14" cx="194" cy="0" r="6"/><circle class="v15" cx="159" cy="35" r="6"/><circle class="v16" cx="194" cy="70" r="6"/><circle class="v17" cx="144" cy="35" r="6"/><circle class="v18" cx="216" cy="0" r="6"/><circle class="v19" cx="216" cy="70" r="6"/><circle class="v20" cx="266" cy="0" r="6"/><circle class="v21" cx="266" cy="70" r="6"/><circle class="v22" cx="216" cy="35" r="6"/><circle class="v23" cx="266" cy="35" r="6"/><circle class="v24" cx="288" cy="0" r="6"/><circle class="v25" cx="338" cy="0" r="6"/><circle class="v26" cx="313" cy="0" r="6"/><circle class="v27" cx="313" cy="70" r="6"/><circle class="v28" cx="288" cy="70" r="6"/><circle class="v29" cx="338" cy="70" r="6"/><circle class="v30" cx="360" cy="0" r="6"/><circle class="v31" cx="360" cy="70" r="6"/><circle class="v32" cx="410" cy="70" r="6"/><circle class="v33" cx="474" cy="0" r="6"/><circle class="v34" cx="474" cy="70" r="6"/><circle class="v35" cx="524" cy="0" r="6"/><circle class="v36" cx="489" cy="35" r="6"/><circle class="v37" cx="524" cy="70" r="6"/><circle class="v38" cx="474" cy="35" r="6"/><circle class="v39" cx="561" cy="0" r="6"/><circle class="v40" cx="618" cy="0" r="6"/><circle class="v41" cx="618" cy="70" r="6"/><circle class="v42" cx="668" cy="70" r="6"/><circle class="v43" cx="690" cy="0" r="6"/><circle class="v44" cx="690" cy="70" r="6"/><circle class="v45" cx="740" cy="70" r="6"/><circle class="v46" cx="762" cy="0" r="6"/><circle class="v47" cx="812" cy="0" r="6"/><circle class="v48" cx="787" cy="0" r="6"/><circle class="v49" cx="787" cy="70" r="6"/><circle class="v50" cx="762" cy="70" r="6"/><circle class="v51" cx="812" cy="70" r="6"/><circle class="v52" cx="838" cy="70" r="6"/></g>
+  <g class="ring"><circle class="g0" cx="-26" cy="70" r="8.5"/><circle class="g1" cx="0" cy="70" r="8.5"/><circle class="g2" cx="0" cy="0" r="8.5"/><circle class="g3" cx="50" cy="50" r="8.5"/><circle class="g4" cx="50" cy="0" r="8.5"/><circle class="g5" cx="50" cy="70" r="8.5"/><circle class="g6" cx="72" cy="0" r="8.5"/><circle class="g7" cx="122" cy="0" r="8.5"/><circle class="g8" cx="97" cy="0" r="8.5"/><circle class="g9" cx="97" cy="70" r="8.5"/><circle class="g10" cx="72" cy="70" r="8.5"/><circle class="g11" cx="122" cy="70" r="8.5"/><circle class="g12" cx="144" cy="0" r="8.5"/><circle class="g13" cx="144" cy="70" r="8.5"/><circle class="g14" cx="194" cy="0" r="8.5"/><circle class="g15" cx="159" cy="35" r="8.5"/><circle class="g16" cx="194" cy="70" r="8.5"/><circle class="g17" cx="144" cy="35" r="8.5"/><circle class="g18" cx="216" cy="0" r="8.5"/><circle class="g19" cx="216" cy="70" r="8.5"/><circle class="g20" cx="266" cy="0" r="8.5"/><circle class="g21" cx="266" cy="70" r="8.5"/><circle class="g22" cx="216" cy="35" r="8.5"/><circle class="g23" cx="266" cy="35" r="8.5"/><circle class="g24" cx="288" cy="0" r="8.5"/><circle class="g25" cx="338" cy="0" r="8.5"/><circle class="g26" cx="313" cy="0" r="8.5"/><circle class="g27" cx="313" cy="70" r="8.5"/><circle class="g28" cx="288" cy="70" r="8.5"/><circle class="g29" cx="338" cy="70" r="8.5"/><circle class="g30" cx="360" cy="0" r="8.5"/><circle class="g31" cx="360" cy="70" r="8.5"/><circle class="g32" cx="410" cy="70" r="8.5"/><circle class="g33" cx="474" cy="0" r="8.5"/><circle class="g34" cx="474" cy="70" r="8.5"/><circle class="g35" cx="524" cy="0" r="8.5"/><circle class="g36" cx="489" cy="35" r="8.5"/><circle class="g37" cx="524" cy="70" r="8.5"/><circle class="g38" cx="474" cy="35" r="8.5"/><circle class="g39" cx="561" cy="0" r="8.5"/><circle class="g40" cx="618" cy="0" r="8.5"/><circle class="g41" cx="618" cy="70" r="8.5"/><circle class="g42" cx="668" cy="70" r="8.5"/><circle class="g43" cx="690" cy="0" r="8.5"/><circle class="g44" cx="690" cy="70" r="8.5"/><circle class="g45" cx="740" cy="70" r="8.5"/><circle class="g46" cx="762" cy="0" r="8.5"/><circle class="g47" cx="812" cy="0" r="8.5"/><circle class="g48" cx="787" cy="0" r="8.5"/><circle class="g49" cx="787" cy="70" r="8.5"/><circle class="g50" cx="762" cy="70" r="8.5"/><circle class="g51" cx="812" cy="70" r="8.5"/><circle class="g52" cx="838" cy="70" r="8.5"/></g>
 </svg>
