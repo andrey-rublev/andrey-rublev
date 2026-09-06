@@ -9,18 +9,24 @@
  * constraint is the whole idea: the mark is legible as a name and correct as a
  * layout, rather than a typeface with a circuit texture laid over it.
  *
- * Three layers, drawn in that order:
+ * Layers, drawn in that order:
  *   base   unpowered copper, always visible
- *   power  the same runs lit, revealed left to right by stroke-dashoffset
+ *   halo   wide translucent copies of the powered runs, standing in for a glow
+ *   power  the runs lit, revealed left to right by stroke-dashoffset
+ *   pulse  a signal running the traces once the board is up
  *   vias   pads, fading in just behind the power front
  *
- * Everything animates in CSS, deliberately. An earlier mark used SMIL for its
- * highlight and the reduced-motion guard could not switch it off, because
- * animation:none is a CSS property and does not reach SMIL. Keeping one
- * mechanism means one guard covers all of it.
+ * Two deliberate choices here are both about rendering the same on any machine:
  *
- * The looping pulse uses pathLength="100" so a single @keyframes drives runs of
- * every length; without it each run would need its own keyframes block.
+ * 1. No SVG filters. The glow used to be an feGaussianBlur over the animated
+ *    group, which is exactly the case renderers disagree on - a filtered group
+ *    whose children animate has to re-run the filter every frame, and support
+ *    for that inside an <img> is the least consistent thing in this file.
+ *    Stacked translucent strokes approximate the falloff with plain geometry
+ *    every renderer draws identically.
+ *
+ * 2. No SMIL, only CSS. One mechanism, so behaviour does not depend on which of
+ *    the two a given renderer implements more completely inside an <img>.
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -38,6 +44,7 @@ const SPACE = 42;    // word gap
 const PAD = 34;      // margin around the mark
 const TRACE_W = 8;
 const VIA_R = 6;
+const LEAD = 26;     // power rail stub entering and leaving the mark
 
 /** Power-up: the front crosses the whole word in this long. */
 const SWEEP_MS = 1500;
@@ -49,16 +56,40 @@ const PULSE_PERIOD = 4200;
 const PULSE_SPAN = 22;   // % of the period the pulse is travelling
 const PULSE_STAGGER = 700;
 
+/**
+ * Whether to hold the mark still for `prefers-reduced-motion: reduce`.
+ *
+ * Off by design. That query is answered by the OS, and inside an SVG loaded
+ * through <img> it is read from the OS even when the surrounding page reports
+ * otherwise - so honouring it left the mark frozen on any machine with Windows
+ * animation effects switched off, which is a common default rather than
+ * necessarily a request for stillness. Flip this to true to restore the guard;
+ * nothing else needs changing.
+ *
+ * What makes that defensible rather than merely convenient: the motion here is
+ * a thin line lighting up over 1.7s plus a low-contrast pulse. There is no
+ * large-area movement, parallax, zoom or flashing - the patterns reduced motion
+ * exists to suppress.
+ */
+const RESPECT_REDUCED_MOTION = false;
+
 const THEMES = {
   dark: {
     base: "#273040", trace: "#818CF8", viaFill: "#0D1117",
-    pulse: "#A5F3FC", glow: true,
+    pulse: "#A5F3FC", halo: true,
   },
   light: {
     base: "#D5DBE3", trace: "#5B4BD6", viaFill: "#FFFFFF",
-    pulse: "#0E7490", glow: false,
+    pulse: "#0E7490", halo: false,
   },
 };
+
+/** Widening stroke, falling opacity - stands in for a blur. */
+const HALO = [
+  { grow: 18, opacity: 0.07 },
+  { grow: 11, opacity: 0.1 },
+  { grow: 5, opacity: 0.14 },
+];
 
 /* -------------------------------------------------------------- glyph set */
 // 50x70 cell. Diagonals are true 45 degrees.
@@ -90,16 +121,14 @@ function layout() {
   const width = x - (ADVANCE - CELL_W);
 
   // Power arrives from off-mark and leaves at the far side, so the sweep has a
-  // visible source rather than starting nowhere.
-  const lead = 26;
-  // Both leads sit on the baseline so the mark reads as one rail running
-  // through it; entering low and leaving high looked like a stray stub.
-  runs.unshift([[-lead, CELL_H], [0, CELL_H]]);
-  runs.push([[width, CELL_H], [width + lead, CELL_H]]);
-  return { runs, width, lead };
+  // visible source. Both leads sit on the baseline so it reads as one rail
+  // running through; entering low and leaving high looked like a stray stub.
+  runs.unshift([[-LEAD, CELL_H], [0, CELL_H]]);
+  runs.push([[width, CELL_H], [width + LEAD, CELL_H]]);
+  return { runs, width };
 }
 
-const { runs, width, lead } = layout();
+const { runs, width } = layout();
 
 // One via per distinct run endpoint - shared corners get a single pad.
 const seen = new Set();
@@ -111,8 +140,8 @@ for (const pts of runs) {
   }
 }
 
-const span = width + lead;
-const phase = (x) => ((x + lead) / span) * SWEEP_MS;
+const span = width + LEAD;
+const phase = (x) => ((x + LEAD) / span) * SWEEP_MS;
 
 const plan = runs.map((pts) => {
   const len = lenOf(pts);
@@ -125,9 +154,9 @@ const plan = runs.map((pts) => {
 });
 
 const VB = {
-  x: -PAD - lead,
+  x: -PAD - LEAD,
   y: -PAD,
-  w: width + lead * 2 + PAD * 2,
+  w: width + LEAD * 2 + PAD * 2,
   h: CELL_H + PAD * 2,
 };
 
@@ -151,35 +180,46 @@ function render(t) {
     .join("\n    ");
 
   const viaCss = vias
-    .map(
-      ([x], i) =>
-        `.v${i}{animation:pad 320ms ease-out ${r1(phase(x) + 110)}ms forwards}`
-    )
+    .map(([x], i) => `.v${i}{animation:pad 320ms ease-out ${r1(phase(x) + 110)}ms forwards}`)
     .join("\n    ");
 
   const base = plan.map((s) => `<path d="${s.d}"/>`).join("");
   const power = plan.map((s, i) => `<path class="t${i}" d="${s.d}"/>`).join("");
-  const pulse = plan
-    .map((s, i) => `<path class="u${i}" pathLength="100" d="${s.d}"/>`)
-    .join("");
+  const pulse = plan.map((s, i) => `<path class="u${i}" pathLength="100" d="${s.d}"/>`).join("");
   const pads = vias
     .map(([x, y], i) => `<circle class="v${i}" cx="${x}" cy="${y}" r="${VIA_R}"/>`)
     .join("");
 
-  const glow = t.glow
-    ? `<filter id="glow" x="-30%" y="-70%" width="160%" height="240%">
-      <feGaussianBlur stdDeviation="3" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>`
+  // Halo layers reuse the power classes, so they light in lockstep for free.
+  const haloCss = t.halo
+    ? HALO.map(
+        (h, i) => `.h${i}{stroke:${t.trace};stroke-width:${TRACE_W + h.grow};opacity:${h.opacity}}`
+      ).join("\n    ")
     : "";
-  const glowAttr = t.glow ? ' filter="url(#glow)"' : "";
+  const haloLayers = t.halo
+    ? HALO.map((h, i) => `<g class="l h${i}">${power}</g>`).join("\n  ")
+    : "";
+
+  const guard = RESPECT_REDUCED_MOTION
+    ? `
+    @media (prefers-reduced-motion:reduce){
+      path,circle{animation:none!important}
+      .pwr path{stroke-dashoffset:0!important}
+      .pls{display:none!important}
+      .via circle{opacity:1!important}
+    }`
+    : `
+    /* No prefers-reduced-motion guard, on purpose - see RESPECT_REDUCED_MOTION
+       in the build script. Inside an img element that query reports the OS
+       setting regardless of the host page, so honouring it froze the mark on
+       any machine with Windows animation effects off. */`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" width="${VB.w}" height="${VB.h}" role="img" aria-label="Nikhil Kolli">
   <title>Nikhil Kolli</title>
-  <defs>${glow}</defs>
   <style>
     .l{fill:none;stroke-width:${TRACE_W};stroke-linecap:round;stroke-linejoin:round}
     .base{stroke:${t.base}}
+    ${haloCss}
     .pwr{stroke:${t.trace}}
     .pls{stroke:${t.pulse};stroke-width:${TRACE_W - 3.5};stroke-dasharray:3 120;stroke-dashoffset:3;opacity:.85}
     .via{fill:${t.viaFill};stroke:${t.trace};stroke-width:3.4}
@@ -195,27 +235,42 @@ function render(t) {
     }
     ${powerCss}
     ${pulseCss}
-    ${viaCss}
-    @media (prefers-reduced-motion:reduce){
-      path,circle{animation:none!important}
-      .pwr path{stroke-dashoffset:0!important}
-      .pls{display:none!important}
-      .via circle{opacity:1!important}
-    }
+    ${viaCss}${guard}
   </style>
   <g class="l base">${base}</g>
-  <g class="l pwr"${glowAttr}>${power}</g>
+  ${haloLayers}
+  <g class="l pwr">${power}</g>
   <g class="l pls">${pulse}</g>
   <g class="via">${pads}</g>
 </svg>
 `;
 }
 
+/**
+ * An SVG served as image/svg+xml is parsed as XML, so a bare "<" or "&"
+ * anywhere in the stylesheet is a parse error and the whole mark fails to
+ * render - silently, as a broken-image icon. Writing "<img>" in a CSS comment
+ * did exactly that once. Comparing rendered bytes did not catch it either,
+ * because two identical broken-image icons compare equal.
+ */
+function validate(svg, name) {
+  const style = svg.match(/<style>([\s\S]*?)<\/style>/);
+  if (!style) throw new Error(`${name}: no style block`);
+  const bad = style[1].match(/[<&]/g);
+  if (bad) {
+    const line = style[1].split(/\n/).find((l) => /[<&]/.test(l)).trim();
+    throw new Error(`${name}: ${bad.length} raw XML char(s) in CSS -> ${line}`);
+  }
+}
+
 for (const [name, t] of Object.entries(THEMES)) {
-  writeFileSync(join(here, `circuit-${name}.svg`), render(t));
+  const svg = render(t);
+  validate(svg, `circuit-${name}.svg`);
+  writeFileSync(join(here, `circuit-${name}.svg`), svg);
 }
 
 const total = Math.max(...plan.map((s) => s.delay + s.dur));
 console.log(`viewBox ${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
 console.log(`${plan.length} runs, ${vias.length} vias`);
 console.log(`power-up ${(total / 1000).toFixed(2)}s, then a ${(PULSE_PERIOD / 1000).toFixed(1)}s pulse loop`);
+console.log(`reduced-motion guard: ${RESPECT_REDUCED_MOTION ? "on" : "off"}`);
