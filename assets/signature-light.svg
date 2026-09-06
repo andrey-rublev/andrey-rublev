@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3.1 -6.3 498.4 192.3" width="498.4" height="192.3" role="img" aria-label="Nikhil Kolli">
+  <title>Nikhil Kolli</title>
+  <defs>
+    <linearGradient id="shine" gradientUnits="userSpaceOnUse" x1="-173.1" y1="0" x2="-3.1" y2="0">
+      <stop offset="0" stop-color="#1F2328"/>
+      <stop offset="0.5" stop-color="#5B4BD6"/>
+      <stop offset="1" stop-color="#1F2328"/>
+      <animateTransform attributeName="gradientTransform" type="translate"
+        from="0 0" to="1739.4 0" dur="6.5s"
+        begin="4.6232s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes w{to{stroke-dashoffset:0}}
+    .k0{stroke-dasharray:1623.7 1636.7;stroke-dashoffset:1630.2;animation:w 1709.1ms linear 0ms forwards}
+    .k1{stroke-dasharray:256.3 269.3;stroke-dashoffset:262.8;animation:w 269.8ms linear 1859.1ms forwards}
+    .k2{stroke-dasharray:145 158;stroke-dashoffset:151.5;animation:w 152.6ms linear 2219ms forwards}
+    .k3{stroke-dasharray:784.5 797.5;stroke-dashoffset:791;animation:w 825.8ms linear 2466.6ms forwards}
+    .k4{stroke-dasharray:2.8 15.8;stroke-dashoffset:9.3;animation:w 90ms linear 3492.4ms forwards}
+    .k5{stroke-dasharray:2.8 15.8;stroke-dashoffset:9.3;animation:w 90ms linear 3677.4ms forwards}
+    .k6{stroke-dasharray:2.8 15.8;stroke-dashoffset:9.3;animation:w 90ms linear 3862.4ms forwards}
+    .k7{stroke-dasharray:475.7 488.7;stroke-dashoffset:482.2;animation:w 500.8ms cubic-bezier(.2,.6,.3,1) 4122.4ms forwards}
+    @media (prefers-reduced-motion:reduce){
+      path{animation:none!important;stroke-dashoffset:0!important}
+    }
+  </style>
+  <g transform="skewX(-6)" fill="none" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="url(#shine)">
+      <path class="k0" d="M 24,132 C 33,112 46,62 58,26 C 65,6 38,2 36,24 C 33,50 35,90 45,120 C 53,86 63,52 76,32 C 84,19 93,24 91,46 C 89,72 87,98 89,120 C 94,110 101,101 108,94 C 115,86 120,74 122,64 C 124,84 126,104 128,120 C 136,98 148,56 158,22 C 166,4 138,0 136,22 C 133,44 134,62 137,78 C 147,72 160,62 157,75 C 154,86 144,86 141,92 C 148,104 157,114 167,120 C 175,98 186,56 196,22 C 204,4 176,0 174,22 C 171,46 173,90 180,120 C 186,96 196,64 207,64 C 216,64 214,94 217,120 C 223,106 229,82 231,64 C 233,84 235,104 237,120 C 245,98 256,56 266,22 C 274,4 246,0 244,22 C 241,46 243,90 251,120 C 257,113 264,108 272,105"/>
+      <path class="k1" d="M 300,128 C 310,106 326,58 338,22 C 347,4 316,0 314,22 C 311,50 313,88 318,120"/>
+      <path class="k2" d="M 366,26 C 350,46 336,60 325,70 C 338,74 348,82 342,93 C 337,102 340,110 349,114 C 356,117 364,119 374,120"/>
+      <path class="k3" d="M 374,120 C 380,104 388,66 400,64 C 386,64 382,80 384,92 C 386,108 402,112 408,98 C 414,86 410,68 400,64 C 407,65 412,69 416,74 C 427,58 438,38 448,22 C 456,4 428,0 426,22 C 423,46 425,90 433,120 C 443,98 456,56 466,22 C 474,4 446,0 444,22 C 441,46 443,90 451,120 C 457,106 463,82 465,64 C 467,84 469,104 471,120 C 477,113 485,108 493,104"/>
+      <path class="k4" d="M 120,37 C 120.7,37.7 121.4,38.4 122,39"/>
+      <path class="k5" d="M 229,37 C 229.7,37.7 230.4,38.4 231,39"/>
+      <path class="k6" d="M 465,37 C 465.7,37.7 466.4,38.4 467,39"/>
+    </g>
+    <g stroke="#5B4BD6" stroke-width="4.5" opacity="0.9">
+      <path class="k7" d="M 70,131 C 38,134 48,149 92,158 C 210,182 420,176 496,146"/>
+    </g>
+  </g>
+</svg>

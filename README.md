@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-light.svg" />
-  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/name-dark.svg" alt="Nikhil Kolli" width="560" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/signature-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/signature-light.svg" />
+  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/signature-dark.svg" alt="Nikhil Kolli" width="520" />
 </picture>
 
 <a href="https://nikhilkolli.com"><img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&color=818CF8&center=true&vCenter=true&width=700&height=40&lines=RL%2FML%2FAI%2C+SWE%2C+ECE+%7C+CompE+%40+Purdue+%7C+nikhilkolli.com" alt="RL/ML/AI, SWE, ECE | CompE at Purdue | nikhilkolli.com" /></a>
