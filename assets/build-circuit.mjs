@@ -18,10 +18,11 @@
  *   vias     pads, fading in just behind the power front
  *   viaRing  rings that flash with the ripple as it reaches each pad
  *
- * The ripple is timed off distance from where power enters, not off x, so the
- * wavefront is a circle expanding across the board rather than a vertical bar
- * wiping over it. Every element shares one period and differs only in phase,
- * which is what keeps it a single coherent wave instead of drifting into noise.
+ * The ripple is timed off distance from the mark's bottom-left corner, not off
+ * x, so the wavefront is a circle expanding across the board rather than a
+ * vertical bar wiping over it. Every element shares one period and differs only
+ * in phase, which is what keeps it a single coherent wave instead of drifting
+ * into noise.
  *
  * Two deliberate choices are both about rendering the same on any machine:
  *
@@ -53,7 +54,6 @@ const SPACE = 42;    // word gap
 const PAD = 34;      // margin around the mark
 const TRACE_W = 8;
 const VIA_R = 6;
-const LEAD = 26;     // power rail stub entering and leaving the mark
 
 /** Power-up: the front crosses the whole word in this long. */
 const SWEEP_MS = 1500;
@@ -147,27 +147,10 @@ function layout() {
     x += ADVANCE;
   }
   const width = x - (ADVANCE - CELL_W);
-
-  // Power arrives from off-mark and leaves at the far side, so the sweep has a
-  // visible source. Both leads sit on the baseline so it reads as one rail
-  // running through; entering low and leaving high looked like a stray stub.
-  runs.unshift([[-LEAD, CELL_H], [0, CELL_H]]);
-  runs.push([[width, CELL_H], [width + LEAD, CELL_H]]);
   return { runs, width };
 }
 
 const { runs, width } = layout();
-
-/**
- * The far ends of the two power leads get no via. A pad out there terminates
- * the rail, which is wrong twice over: the rail is meant to continue off the
- * board, and visually it reads as a stray dot floating away from the mark. A
- * plain round cap reads as a trace running off the edge.
- */
-const NO_VIA = new Set([
-  [-LEAD, CELL_H].join(),
-  [width + LEAD, CELL_H].join(),
-]);
 
 // One via per distinct run endpoint - shared corners get a single pad.
 const seen = new Set();
@@ -175,14 +158,13 @@ const vias = [];
 for (const pts of runs) {
   for (const p of [pts[0], pts[pts.length - 1]]) {
     const k = p.join();
-    if (NO_VIA.has(k) || seen.has(k)) continue;
+    if (seen.has(k)) continue;
     seen.add(k);
     vias.push(p);
   }
 }
 
-const span = width + LEAD;
-const phase = (x) => ((x + LEAD) / span) * SWEEP_MS;
+const phase = (x) => (x / width) * SWEEP_MS;
 
 const plan = runs.map((pts) => {
   const len = lenOf(pts);
@@ -197,8 +179,9 @@ const plan = runs.map((pts) => {
 
 const POWER_END = Math.max(...plan.map((s) => s.delay + s.dur));
 
-// The ripple radiates from where power enters the board.
-const ORIGIN = [-LEAD, CELL_H];
+// The ripple radiates from the mark's bottom-left, where the power-up sweep
+// also begins, so the two motions read as coming from the same place.
+const ORIGIN = [0, CELL_H];
 const distFrom = ([x, y]) => Math.hypot(x - ORIGIN[0], y - ORIGIN[1]);
 const MAX_DIST = Math.max(
   ...plan.map((s) => distFrom(s.at)),
@@ -212,9 +195,9 @@ const RISE_PCT = r1(((RIPPLE_FLASH * 0.32) / RIPPLE_PERIOD) * 100);
 const FALL_PCT = r1((RIPPLE_FLASH / RIPPLE_PERIOD) * 100);
 
 const VB = {
-  x: -PAD - LEAD,
+  x: -PAD,
   y: -PAD,
-  w: width + LEAD * 2 + PAD * 2,
+  w: width + PAD * 2,
   h: CELL_H + PAD * 2,
 };
 
