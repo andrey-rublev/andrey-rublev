@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 146" width="430" height="146" role="img" aria-label="RLpokerAI">
+<title>RLpokerAI</title>
+<style>
+  text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+  .t{font-size:15.5px;font-weight:700;fill:#E6EDF3}
+  .d{font-size:12px;fill:#8B949E}
+  .c{font-size:10.5px;fill:#A5B4FC;text-anchor:middle}
+  .m{font-size:11px;fill:#7D8590}
+  .e{text-anchor:end}
+</style>
+<rect x="0.5" y="0.5" width="429" height="145" rx="10" fill="#0D1117" stroke="#30363D"/>
+<rect x="0.5" y="0.5" width="4" height="145" rx="2" fill="#818CF8"/>
+<text x="20" y="33" class="t">RLpokerAI</text>
+<text x="20" y="60" class="d">Reinforcement learning agents for imperfect-</text><text x="20" y="77" class="d">information games.</text>
+<rect x="20" y="106" width="49" height="20" rx="5" fill="#21262D"/><text x="44" y="120" class="c">Python</text><rect x="75" y="106" width="24" height="20" rx="5" fill="#21262D"/><text x="87" y="120" class="c">RL</text>
+<circle cx="326" cy="115" r="4.5" fill="#3572A5"/><text x="335" y="119" class="m">Python</text>
+</svg>

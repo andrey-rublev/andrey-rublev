@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 146" width="430" height="146" role="img" aria-label="Raize">
+<title>Raize</title>
+<style>
+  text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+  .t{font-size:15.5px;font-weight:700;fill:#E6EDF3}
+  .d{font-size:12px;fill:#8B949E}
+  .c{font-size:10.5px;fill:#A5B4FC;text-anchor:middle}
+  .m{font-size:11px;fill:#7D8590}
+  .e{text-anchor:end}
+</style>
+<rect x="0.5" y="0.5" width="429" height="145" rx="10" fill="#0D1117" stroke="#30363D"/>
+<rect x="0.5" y="0.5" width="4" height="145" rx="2" fill="#818CF8"/>
+<text x="20" y="33" class="t">Raize</text>
+<text x="20" y="60" class="d">Reconstruction planning for disaster zones.</text><text x="20" y="77" class="d">Sparse video rebuilt into navigable 3D over</text><text x="20" y="94" class="d">UNOSAT damage data.</text>
+<rect x="20" y="106" width="61" height="20" rx="5" fill="#21262D"/><text x="51" y="120" class="c">Three.js</text><rect x="87" y="106" width="49" height="20" rx="5" fill="#21262D"/><text x="112" y="120" class="c">Gemini</text><rect x="142" y="106" width="55" height="20" rx="5" fill="#21262D"/><text x="170" y="120" class="c">Next.js</text>
+<circle cx="326" cy="115" r="4.5" fill="#3178C6"/><text x="335" y="119" class="m">TypeScript</text>
+</svg>

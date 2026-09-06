@@ -1,0 +1,44 @@
+name: Project cards
+
+# Regenerates assets/cards/ from the GitHub API so the language and star counts
+# on each card stay current, then commits the result.
+# Uses only the Python standard library - nothing to install.
+
+on:
+  schedule:
+    - cron: "20 18 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "assets/build_project_cards.py"
+      - ".github/workflows/project-cards.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Render cards
+        env:
+          # Raises the API rate limit and keeps the request authenticated.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python assets/build_project_cards.py
+
+      - name: Commit and push
+        run: |
+          git config user.name  github-actions
+          git config user.email github-actions@github.com
+          git add -A assets/cards
+          # Star counts rarely move, and an unchanged day must not fail the run.
+          if git commit -m "chore: refresh project cards"; then
+            git push
+          fi

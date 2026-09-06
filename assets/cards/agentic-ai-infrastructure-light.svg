@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 146" width="430" height="146" role="img" aria-label="Agentic AI Infrastructure">
+<title>Agentic AI Infrastructure</title>
+<style>
+  text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+  .t{font-size:15.5px;font-weight:700;fill:#1F2328}
+  .d{font-size:12px;fill:#57606A}
+  .c{font-size:10.5px;fill:#5B4BD6;text-anchor:middle}
+  .m{font-size:11px;fill:#6E7781}
+  .e{text-anchor:end}
+</style>
+<rect x="0.5" y="0.5" width="429" height="145" rx="10" fill="#FFFFFF" stroke="#D0D7DE"/>
+<rect x="0.5" y="0.5" width="4" height="145" rx="2" fill="#5B4BD6"/>
+<text x="20" y="33" class="t">Agentic AI Infrastructure</text>
+<text x="20" y="60" class="d">Multi-LLM model routing, MCP servers, custom</text><text x="20" y="77" class="d">skills and connectors.</text>
+<rect x="20" y="106" width="30" height="20" rx="5" fill="#EFF1F5"/><text x="35" y="120" class="c">MCP</text><rect x="56" y="106" width="49" height="20" rx="5" fill="#EFF1F5"/><text x="80" y="120" class="c">Python</text><rect x="111" y="106" width="74" height="20" rx="5" fill="#EFF1F5"/><text x="148" y="120" class="c">TypeScript</text>
+
+</svg>
