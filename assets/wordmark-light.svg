@@ -11,7 +11,7 @@
 text{font-size:84px;text-anchor:start}
 .sh{font-family:'BShade',sans-serif;fill:#7C70E4}
 .fc{font-family:'BFace',sans-serif;fill:#16181D}
-.sw{font-family:'BFace',sans-serif;fill:#A5B4FC;opacity:0.45}
+.sw{font-family:'BFace',sans-serif;fill:#E9E7E2;opacity:0.8}
 text{animation:rise 620ms cubic-bezier(.2,.85,.3,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 .c0{animation-delay:0ms}.c1{animation-delay:46ms}.c2{animation-delay:92ms}.c3{animation-delay:138ms}.c4{animation-delay:184ms}.c5{animation-delay:230ms}.c6{animation-delay:276ms}.c7{animation-delay:322ms}.c8{animation-delay:368ms}.c9{animation-delay:414ms}.c10{animation-delay:460ms}

@@ -173,11 +173,42 @@ def card(p: dict, t: dict, data: dict) -> str:
 """
 
 
+
+# Buttons have to be separate images, not drawn on the card: an SVG inside an
+# <img> is not interactive, so anything painted into the card is decoration
+# only. These are shared across every project - the labels never change - and
+# each cell links its own copy to its own URL.
+BTN_H = 30
+ICONS = {
+    # simple-icons github mark
+    "repo": "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12",
+    # arrow leaving a box
+    "site": "M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z",
+}
+
+
+def button(kind: str, label: str, t: dict) -> str:
+    icon_w, pad, gap, fs = 13, 12, 7, 12
+    w = round(pad + icon_w + gap + len(label) * 6.9 + pad)
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {BTN_H}" width="{w}" height="{BTN_H}" role="img" aria-label="{label}">
+<title>{label}</title>
+<rect x="0.5" y="0.5" width="{w-1}" height="{BTN_H-1}" rx="8" fill="{t['chip_bg']}" stroke="{t['border']}"/>
+<g transform="translate({pad} {(BTN_H-icon_w)/2}) scale({icon_w/24})"><path fill="{t['chip_fg']}" d="{ICONS[kind]}"/></g>
+<text x="{pad + icon_w + gap}" y="{BTN_H/2 + fs*0.35:.0f}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="{fs}" font-weight="600" fill="{t['chip_fg']}">{label}</text>
+</svg>
+"""
+
 def slug(name: str) -> str:
     return "".join(ch if ch.isalnum() else "-" for ch in name.lower()).strip("-")
 
 
 def main() -> int:
+    for kind, label in (("site", "Live site"), ("repo", "Repository")):
+        for theme_name, t in THEMES.items():
+            svg = button(kind, label, t)
+            ET.fromstring(svg)
+            (OUT / f"btn-{kind}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+
     made = []
     for p in PROJECTS:
         data = live(p["repo"])
@@ -194,38 +225,38 @@ def main() -> int:
     print("README markup:\n")
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
     cells = []
+
+    def btn(kind: str, href: str) -> str:
+        return (f'<a href="{href}">'
+                f'<picture>'
+                f'<source media="(prefers-color-scheme: dark)" srcset="{base}/btn-{kind}-dark.svg" />'
+                f'<source media="(prefers-color-scheme: light)" srcset="{base}/btn-{kind}-light.svg" />'
+                f'<img src="{base}/btn-{kind}-dark.svg" alt="{kind}" height="30" />'
+                f'</picture></a>')
+
     for p, s, _ in made:
         img = (f'<picture>'
                f'<source media="(prefers-color-scheme: dark)" srcset="{base}/{s}-dark.svg" />'
                f'<source media="(prefers-color-scheme: light)" srcset="{base}/{s}-light.svg" />'
                f'<img src="{base}/{s}-dark.svg" alt="{p["name"]}" width="430" />'
                f'</picture>')
-        repo_url = f'https://github.com/{p["repo"]}' if p["repo"] else None
-        primary = p["site"] or repo_url
-        block = f'<a href="{primary}">{img}</a>' if primary else img
-
-        # An image carries one link, so anything with both a site and a repo
-        # needs them spelled out underneath to be reachable at all.
-        links = []
+        # The card itself is not a link. Every destination gets its own button,
+        # so two places to go means two buttons rather than one hidden default.
+        row = []
         if p["site"]:
-            links.append(f'<a href="{p["site"]}">site</a>')
-        if repo_url:
-            links.append(f'<a href="{repo_url}">repo</a>')
-        if len(links) > 1:
-            block += "<br /><sub>" + " &middot; ".join(links) + "</sub>"
-        cells.append(block)
-    # A real HTML table, not a markdown one. A markdown table does not parse
-    # inside a raw <div> block, and every soft line break in there becomes a
-    # stray <br> - both of which happened. Each <tr> stays on one line for the
-    # same reason.
-    print("<table>")
-    for i in range(0, len(cells), 2):
-        row = cells[i:i + 2]
-        tds = "".join(f"<td>{c}</td>" for c in row)
-        if len(row) == 1:
-            tds += "<td></td>"
-        print(f"<tr>{tds}</tr>")
-    print("</table>")
+            row.append(btn("site", p["site"]))
+        if p["repo"]:
+            row.append(btn("repo", f'https://github.com/{p["repo"]}'))
+        cells.append(img + ("<br />" + " ".join(row) if row else ""))
+
+    # No <table>. GitHub's sanitiser strips every style attribute from a README
+    # - only `align` survives - so a table's cell borders and row striping
+    # cannot be turned off, and they draw a visible grid around the cards.
+    # A centred paragraph carries no such chrome. The <br /> between card and
+    # buttons is explicit; a soft line break there would become a stray one.
+    for cell in cells:
+        print(f'<p align="center">{cell}</p>')
+        print()
     return 0
 
 
