@@ -5,37 +5,40 @@
  *   node assets/build-circuit.mjs
  *
  * The letterforms are polylines constrained to 90 and 45 degrees, which is the
- * rule real trace routing works to - no arbitrary angles. Every run terminates
- * in a via, so junctions land where a board would actually put one. That
- * constraint is the whole idea: the mark is legible as a name and correct as a
- * layout, rather than a typeface with a circuit texture laid over it.
+ * rule real trace routing works to - no arbitrary angles. That constraint is
+ * the whole idea: the mark is legible as a name and correct as a layout, rather
+ * than a typeface with a circuit texture laid over it.
  *
- * Layers, drawn in that order:
- *   base     unpowered copper, always visible
- *   halo     wide translucent copies of the powered runs, standing in for a glow
- *   power    the runs lit, revealed left to right by stroke-dashoffset
- *   ripple   brighter copies that flash as a wavefront passes, on a loop
- *   vias     pads, fading in just behind the power front
- *   viaRing  rings that flash with the ripple as it reaches each pad
+ * Three things make it read as a board rather than a diagram, and all three sit
+ * on the letterforms. An earlier attempt put detail *behind* the name instead -
+ * background nets, a ground grid, silkscreen - and that was just clutter.
  *
- * The ripple is timed off distance from the mark's bottom-left corner, not off
- * x, so the wavefront is a circle expanding across the board rather than a
- * vertical bar wiping over it. Every element shares one period and differs only
- * in phase, which is what keeps it a single coherent wave instead of drifting
- * into noise.
+ *  1. The traces are physical. A dark copy offset downward is the shadow they
+ *     cast, a vertical gradient lights them from above, and a thin bright copy
+ *     offset upward is the specular along the top edge. Together the strokes
+ *     read as metal sitting proud of the substrate.
+ *
+ *  2. Pads go where something actually connects. One at every stroke end gave
+ *     51 of them and the mark read as beads on a string. A junction is where
+ *     two runs share an endpoint, or where one ends while another passes
+ *     through - the T-joins, which endpoint-sharing alone misses entirely.
+ *     That is 15 pads, in gold against the violet.
+ *
+ *  3. Real footprints sit inline in the strokes, genuinely splitting the run
+ *     they sit on so the trace is interrupted the way a component interrupts a
+ *     net, rather than being drawn on top of an unbroken line.
  *
  * Two deliberate choices are both about rendering the same on any machine:
  *
- * 1. No SVG filters. The glow used to be an feGaussianBlur over the animated
- *    group, which is exactly the case renderers disagree on - a filtered group
+ *  - No SVG filters. The glow used to be an feGaussianBlur over the animated
+ *    group, which is exactly the case renderers disagree on: a filtered group
  *    whose children animate has to re-run the filter every frame, and support
- *    for that inside an img element is the least consistent thing in this file.
- *    Stacked translucent strokes approximate the falloff with plain geometry
- *    every renderer draws identically.
+ *    for that inside an img element is the least consistent thing here.
+ *    Gradients and offset strokes are plain geometry every renderer agrees on.
  *
- * 2. No SMIL, only CSS. One mechanism, so behaviour does not depend on which of
- *    the two a given renderer implements more completely inside an img element.
- *    Only opacity is animated in the loop - not the SVG `r` geometry property,
+ *  - No SMIL, only CSS, so behaviour does not depend on which of the two a
+ *    given renderer implements more completely inside an img element. Only
+ *    opacity and stroke-dashoffset animate - not the SVG `r` geometry property,
  *    which is a much newer thing for CSS to be allowed to touch.
  */
 import { writeFileSync } from "node:fs";
@@ -53,7 +56,20 @@ const ADVANCE = 72;  // letter pitch
 const SPACE = 42;    // word gap
 const PAD = 34;      // margin around the mark
 const TRACE_W = 8;
-const VIA_R = 6;
+const PAD_R = 7.4;   // junction pad radius
+const DRILL_R = 3;   // via hole
+
+/** How far the copper sits above its shadow, and the specular above that. */
+const LIFT = 2.4;
+const SPEC_RISE = 1.7;
+
+/** Two pads closer than this merge into a blob, so only one is kept. */
+const MIN_PAD_GAP = 20;
+
+/** Gap a component opens in the trace it sits on. */
+const PART_GAP = 22;
+const PART_COUNT = 5;
+const PART_KINDS = ["R", "C", "R", "D", "C"];
 
 /** Power-up: the front crosses the whole word in this long. */
 const SWEEP_MS = 1500;
@@ -61,13 +77,9 @@ const SWEEP_MS = 1500;
 const RUN_SPEED = 0.58;
 
 /* ----------------------------------------------------------------- ripple */
-/** One full cycle. Most of it is quiet; the wave occupies the start. */
 const RIPPLE_PERIOD = 3800;
-/** How long the wavefront takes to cross the whole board. */
 const RIPPLE_TRAVEL = 1100;
-/** How long a single element stays lit as the front passes it. */
 const RIPPLE_FLASH = 820;
-/** Beat between the board coming up and the first ripple. */
 const RIPPLE_GAP = 420;
 
 /**
@@ -77,42 +89,40 @@ const RIPPLE_GAP = 420;
  * through an img element it is read from the OS even when the surrounding page
  * reports otherwise - so honouring it left the mark frozen on any machine with
  * Windows animation effects switched off, which is a common default rather than
- * necessarily a request for stillness. Flip this to true to restore the guard;
- * nothing else needs changing.
+ * necessarily a request for stillness. Flip this to true to restore the guard.
  *
- * What makes that defensible rather than merely convenient: the motion here is
- * a thin line lighting up, then a low-contrast brightness wave with long quiet
- * gaps. There is no large-area movement, parallax, zoom or flashing - the
- * patterns reduced motion exists to suppress.
+ * What makes that defensible rather than merely convenient: the motion is a
+ * thin line lighting up, then a low-contrast brightness wave with long quiet
+ * gaps. No large-area movement, parallax, zoom or flashing.
  */
 const RESPECT_REDUCED_MOTION = false;
 
 const THEMES = {
   dark: {
-    base: "#273040", trace: "#818CF8", viaFill: "#0D1117",
-    // Near-white. A mid periwinkle over a periwinkle trace was measurably
-    // animating and still invisible - the wave has to clear the trace colour
-    // by a lot to read at this stroke width.
-    ripple: "#EEF2FF", rippleHalo: 0.3, halo: true,
+    bg: "#0D1117",
+    cuTop: "#C7D2FE", cuMid: "#818CF8", cuBot: "#4C51BF",
+    shadow: "#080B11", shadowOp: 0.85,
+    spec: "#EEF2FF", specOp: 0.5,
+    goldTop: "#FDE68A", goldMid: "#D9A520", goldBot: "#946C0B",
+    partBody: "#141A26", partEdge: "#A5B4FC",
+    // Partial, not opaque: a solid white wave over flat violet read as a
+    // highlight, but over the copper it just erases the metal underneath.
+    ripple: "#EEF2FF", rippleOp: 0.62, rippleHalo: 0.2,
   },
   light: {
-    base: "#D5DBE3", trace: "#5B4BD6", viaFill: "#FFFFFF",
-    // On white a brighter ripple would read as fading out, so it goes the
-    // other way - a much deeper hue passing over the trace colour.
-    ripple: "#1E1B4B", rippleHalo: 0.14, halo: false,
+    bg: "#FFFFFF",
+    cuTop: "#8B7DEC", cuMid: "#5B4BD6", cuBot: "#332A8F",
+    // A black shadow on white reads as dirt; a cool grey reads as contact.
+    shadow: "#AAB2C0", shadowOp: 0.55,
+    spec: "#FFFFFF", specOp: 0.55,
+    goldTop: "#F5C842", goldMid: "#C08A0E", goldBot: "#7A5606",
+    partBody: "#E8EBF2", partEdge: "#5B4BD6",
+    // On white a brighter ripple would read as fading out, so it goes deeper.
+    ripple: "#1E1B4B", rippleOp: 0.5, rippleHalo: 0.12,
   },
 };
 
-/** Widening stroke, falling opacity - stands in for a blur. */
-const HALO = [
-  { grow: 18, opacity: 0.07 },
-  { grow: 11, opacity: 0.1 },
-  { grow: 5, opacity: 0.14 },
-];
-
-/** How far the ripple's own bloom spreads past the trace. */
 const RIPPLE_HALO_GROW = 16;
-/** The ripple slightly overshoots the trace so the wave has a visible edge. */
 const RIPPLE_GROW = 1.5;
 
 /* -------------------------------------------------------------- glyph set */
@@ -146,24 +156,94 @@ function layout() {
     for (const pts of glyph) runs.push(pts.map(([px, py]) => [px + x, py]));
     x += ADVANCE;
   }
-  const width = x - (ADVANCE - CELL_W);
-  return { runs, width };
+  return { runs, width: x - (ADVANCE - CELL_W) };
 }
 
-const { runs, width } = layout();
+const { runs: rawRuns, width } = layout();
 
-// One via per distinct run endpoint - shared corners get a single pad.
-const seen = new Set();
-const vias = [];
-for (const pts of runs) {
-  for (const p of [pts[0], pts[pts.length - 1]]) {
-    const k = p.join();
-    if (seen.has(k)) continue;
-    seen.add(k);
-    vias.push(p);
+/* -------------------------------------------------------------- junctions */
+const eq = (a, b) => Math.abs(a[0] - b[0]) < 0.01 && Math.abs(a[1] - b[1]) < 0.01;
+
+/** True when p lies strictly inside segment a-b, i.e. a T-join not an endpoint. */
+function interior(p, a, b) {
+  const cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+  if (Math.abs(cross) > 0.01) return false;
+  const dot = (p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1]);
+  const len2 = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2;
+  return dot > 0.01 && dot < len2 - 0.01;
+}
+
+function findJunctions(list) {
+  const seen = new Set();
+  const ends = [];
+  for (const pts of list)
+    for (const p of [pts[0], pts[pts.length - 1]]) {
+      const k = p.join();
+      if (!seen.has(k)) { seen.add(k); ends.push(p); }
+    }
+
+  const hits = [];
+  for (const p of ends) {
+    let e = 0;
+    let through = 0;
+    for (const pts of list) {
+      if (eq(pts[0], p) || eq(pts[pts.length - 1], p)) e++;
+      for (let k = 1; k < pts.length; k++)
+        if (interior(p, pts[k - 1], pts[k])) { through++; break; }
+    }
+    if (e >= 2 || (e >= 1 && through >= 1)) hits.push(p);
   }
+
+  // Drop neighbours too close to sit as separate pads - the K's stem join and
+  // arm join are 15 apart against a 14.8 pad, which renders as one blob.
+  const kept = [];
+  for (const p of hits)
+    if (!kept.some((q) => Math.hypot(q[0] - p[0], q[1] - p[1]) < MIN_PAD_GAP)) kept.push(p);
+  return kept;
 }
 
+const junctions = findJunctions(rawRuns);
+
+/* ------------------------------------------------------------- components */
+/**
+ * Parts go on the long horizontal runs, spread evenly across the name, and
+ * split the run they sit on so the trace is genuinely interrupted rather than
+ * overdrawn. Junctions are found before this runs, so the new endpoints the
+ * split creates are never mistaken for connection points.
+ */
+function placeParts(list) {
+  const eligible = [];
+  list.forEach((pts, i) => {
+    if (pts.length !== 2) return;
+    if (pts[0][1] !== pts[1][1]) return;
+    if (Math.abs(pts[1][0] - pts[0][0]) < PART_GAP + 18) return;
+    eligible.push(i);
+  });
+
+  const chosen = new Map();
+  const n = Math.min(PART_COUNT, eligible.length);
+  for (let k = 0; k < n; k++) {
+    const idx = eligible[Math.round((k * (eligible.length - 1)) / Math.max(1, n - 1))];
+    if (!chosen.has(idx)) chosen.set(idx, PART_KINDS[k % PART_KINDS.length]);
+  }
+
+  const out = [];
+  const parts = [];
+  list.forEach((pts, i) => {
+    if (!chosen.has(i)) { out.push(pts); return; }
+    const [[x0, y0], [x1]] = pts;
+    const mid = (x0 + x1) / 2;
+    const dir = Math.sign(x1 - x0);
+    out.push([[x0, y0], [r1(mid - (PART_GAP / 2) * dir), y0]]);
+    out.push([[r1(mid + (PART_GAP / 2) * dir), y0], [x1, y0]]);
+    parts.push({ x: r1(mid), y: y0, kind: chosen.get(i) });
+  });
+  return { runs: out, parts };
+}
+
+const { runs, parts } = placeParts(rawRuns);
+
+/* ----------------------------------------------------------------- timing */
 const phase = (x) => (x / width) * SWEEP_MS;
 
 const plan = runs.map((pts) => {
@@ -185,21 +265,15 @@ const ORIGIN = [0, CELL_H];
 const distFrom = ([x, y]) => Math.hypot(x - ORIGIN[0], y - ORIGIN[1]);
 const MAX_DIST = Math.max(
   ...plan.map((s) => distFrom(s.at)),
-  ...vias.map((v) => distFrom(v))
+  ...junctions.map((v) => distFrom(v))
 );
 const rippleAt = (pt) =>
   POWER_END + RIPPLE_GAP + (distFrom(pt) / MAX_DIST) * RIPPLE_TRAVEL;
 
-// The flash occupies the front of the period; the rest is the quiet gap.
 const RISE_PCT = r1(((RIPPLE_FLASH * 0.32) / RIPPLE_PERIOD) * 100);
 const FALL_PCT = r1((RIPPLE_FLASH / RIPPLE_PERIOD) * 100);
 
-const VB = {
-  x: -PAD,
-  y: -PAD,
-  w: width + PAD * 2,
-  h: CELL_H + PAD * 2,
-};
+const VB = { x: -PAD, y: -PAD, w: width + PAD * 2, h: CELL_H + PAD * 2 };
 
 /**
  * An SVG served as image/svg+xml is parsed as XML, so a bare "<" or "&"
@@ -219,6 +293,9 @@ function validate(svg, name) {
 }
 
 function render(t) {
+  const paths = plan.map((s, i) => `<path class="t${i}" d="${s.d}"/>`).join("");
+  const ripple = plan.map((s, i) => `<path class="r${i}" d="${s.d}"/>`).join("");
+
   const powerCss = plan
     .map(
       (s, i) =>
@@ -233,41 +310,52 @@ function render(t) {
     .map((s, i) => `.r${i}{animation:rip ${RIPPLE_PERIOD}ms linear ${r1(rippleAt(s.at))}ms infinite}`)
     .join("\n    ");
 
-  const viaCss = vias
+  const padCss = junctions
     .map(([x], i) => `.v${i}{animation:pad 320ms ease-out ${r1(phase(x) + 110)}ms forwards}`)
     .join("\n    ");
-
-  const viaRingCss = vias
-    .map((v, i) => `.g${i}{animation:rip ${RIPPLE_PERIOD}ms linear ${r1(rippleAt(v))}ms infinite}`)
+  const partCss = parts
+    .map((c, i) => `.c${i}{animation:pad 320ms ease-out ${r1(phase(c.x) + 150)}ms forwards}`)
     .join("\n    ");
 
-  const base = plan.map((s) => `<path d="${s.d}"/>`).join("");
-  const power = plan.map((s, i) => `<path class="t${i}" d="${s.d}"/>`).join("");
-  const ripple = plan.map((s, i) => `<path class="r${i}" d="${s.d}"/>`).join("");
-  const pads = vias
-    .map(([x, y], i) => `<circle class="v${i}" cx="${x}" cy="${y}" r="${VIA_R}"/>`)
-    .join("");
-  const rings = vias
-    .map(([x, y], i) => `<circle class="g${i}" cx="${x}" cy="${y}" r="${VIA_R + 2.5}"/>`)
+  // Shadow, drilled gold pad, hole - grouped so one opacity drives all three.
+  const padMarkup = junctions
+    .map(
+      ([x, y], i) =>
+        `<g class="v${i}">` +
+        `<circle cx="${x}" cy="${r1(y + LIFT)}" r="${PAD_R}" fill="${t.shadow}" opacity="${t.shadowOp}"/>` +
+        `<circle cx="${x}" cy="${y}" r="${PAD_R}" fill="url(#au)"/>` +
+        `<circle cx="${x}" cy="${y}" r="${DRILL_R}" fill="${t.bg}" opacity="0.85"/>` +
+        `</g>`
+    )
     .join("");
 
-  // Halo layers reuse the power classes, so they light in lockstep for free.
-  const haloCss = t.halo
-    ? HALO.map(
-        (h, i) => `.h${i}{stroke:${t.trace};stroke-width:${TRACE_W + h.grow};opacity:${h.opacity}}`
-      ).join("\n    ")
-    : "";
-  const haloLayers = t.halo
-    ? HALO.map((h, i) => `<g class="l h${i}">${power}</g>`).join("\n  ")
-    : "";
+  const partBody = (c) => {
+    if (c.kind === "D")
+      return `<rect x="${r1(c.x - 6.5)}" y="${r1(c.y - 5)}" width="13" height="10" rx="1.2" fill="${t.partBody}" stroke="${t.partEdge}" stroke-width="1.1"/>` +
+             `<rect x="${r1(c.x + 3.4)}" y="${r1(c.y - 5)}" width="2.4" height="10" fill="${t.partEdge}"/>`;
+    if (c.kind === "C")
+      return `<rect x="${r1(c.x - 5.4)}" y="${r1(c.y - 6)}" width="10.8" height="12" rx="1.2" fill="${t.partBody}" stroke="${t.partEdge}" stroke-width="1.1"/>`;
+    return `<rect x="${r1(c.x - 7)}" y="${r1(c.y - 5)}" width="14" height="10" rx="1.2" fill="${t.partBody}" stroke="${t.partEdge}" stroke-width="1.2"/>`;
+  };
+
+  const partMarkup = parts
+    .map(
+      (c, i) =>
+        `<g class="c${i}">` +
+        `<rect x="${r1(c.x - 12)}" y="${r1(c.y - 5.6)}" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/>` +
+        `<rect x="${r1(c.x + 5.6)}" y="${r1(c.y - 5.6)}" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/>` +
+        partBody(c) +
+        `</g>`
+    )
+    .join("");
 
   const guard = RESPECT_REDUCED_MOTION
     ? `
     @media (prefers-reduced-motion:reduce){
-      path,circle{animation:none!important}
-      .pwr path{stroke-dashoffset:0!important}
-      .rip,.ring{display:none!important}
-      .via circle{opacity:1!important}
+      path,g{animation:none!important}
+      .sh path,.cu path,.sp path{stroke-dashoffset:0!important}
+      .rip,.riph{display:none!important}
+      .pads g,.parts g{opacity:1!important}
     }`
     : `
     /* No prefers-reduced-motion guard, on purpose - see RESPECT_REDUCED_MOTION
@@ -277,23 +365,29 @@ function render(t) {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VB.x} ${VB.y} ${VB.w} ${VB.h}" width="${VB.w}" height="${VB.h}" role="img" aria-label="Nikhil Kolli">
   <title>Nikhil Kolli</title>
+  <defs>
+    <linearGradient id="cu" gradientUnits="userSpaceOnUse" x1="0" y1="${VB.y}" x2="0" y2="${r1(VB.y + VB.h)}">
+      <stop offset="0" stop-color="${t.cuTop}"/>
+      <stop offset="0.42" stop-color="${t.cuMid}"/>
+      <stop offset="1" stop-color="${t.cuBot}"/>
+    </linearGradient>
+    <linearGradient id="au" gradientUnits="objectBoundingBox" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="${t.goldTop}"/>
+      <stop offset="0.5" stop-color="${t.goldMid}"/>
+      <stop offset="1" stop-color="${t.goldBot}"/>
+    </linearGradient>
+  </defs>
   <style>
-    .l{fill:none;stroke-width:${TRACE_W};stroke-linecap:round;stroke-linejoin:round}
-    .base{stroke:${t.base}}
-    ${haloCss}
-    .pwr{stroke:${t.trace}}
-    .rip{stroke:${t.ripple};stroke-width:${TRACE_W + RIPPLE_GROW}}
-    /* The bloom carries the same .rN classes, so it flashes in lockstep. Group
-       opacity multiplies the animated child opacity, which is how the wave gets
-       a soft spread without a filter. */
+    .l{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .sh{stroke:${t.shadow};stroke-width:${TRACE_W + 1};opacity:${t.shadowOp}}
+    .cu{stroke:url(#cu);stroke-width:${TRACE_W}}
+    .sp{stroke:${t.spec};stroke-width:${r1(TRACE_W * 0.26)};opacity:${t.specOp}}
+    .rip{stroke:${t.ripple};stroke-width:${TRACE_W + RIPPLE_GROW};opacity:${t.rippleOp}}
     .riph{stroke:${t.ripple};stroke-width:${TRACE_W + RIPPLE_HALO_GROW};opacity:${t.rippleHalo}}
     .rip path,.riph path{opacity:0}
-    .via{fill:${t.viaFill};stroke:${t.trace};stroke-width:3.4}
-    /* opacity has to sit on the circles: opacity is not inherited, so hiding
-       the group instead would leave the per-via fade-ins animating nothing. */
-    .via circle{opacity:0}
-    .ring{fill:none;stroke:${t.ripple};stroke-width:2.6}
-    .ring circle{opacity:0}
+    /* opacity has to sit on each group: it is not inherited, so hiding the
+       parent instead would leave the per-pad fade-ins animating nothing. */
+    .pads g,.parts g{opacity:0}
     @keyframes up{to{stroke-dashoffset:0}}
     @keyframes pad{to{opacity:1}}
     @keyframes rip{
@@ -304,16 +398,16 @@ function render(t) {
     }
     ${powerCss}
     ${rippleCss}
-    ${viaCss}
-    ${viaRingCss}${guard}
+    ${padCss}
+    ${partCss}${guard}
   </style>
-  <g class="l base">${base}</g>
-  ${haloLayers}
-  <g class="l pwr">${power}</g>
+  <g class="l sh" transform="translate(0 ${LIFT})">${paths}</g>
+  <g class="l cu">${paths}</g>
+  <g class="l sp" transform="translate(0 -${SPEC_RISE})">${paths}</g>
   <g class="l riph">${ripple}</g>
   <g class="l rip">${ripple}</g>
-  <g class="via">${pads}</g>
-  <g class="ring">${rings}</g>
+  <g class="pads">${padMarkup}</g>
+  <g class="parts">${partMarkup}</g>
 </svg>
 `;
 }
@@ -325,11 +419,6 @@ for (const [name, t] of Object.entries(THEMES)) {
 }
 
 console.log(`viewBox ${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
-console.log(`${plan.length} runs, ${vias.length} vias`);
-console.log(`power-up ${(POWER_END / 1000).toFixed(2)}s`);
-console.log(
-  `ripple every ${(RIPPLE_PERIOD / 1000).toFixed(1)}s: ` +
-    `${RIPPLE_TRAVEL}ms to cross, ${RIPPLE_FLASH}ms lit per element ` +
-    `(${RISE_PCT}% up, ${FALL_PCT}% down, then quiet)`
-);
+console.log(`${runs.length} runs, ${junctions.length} junction pads, ${parts.length} parts`);
+console.log(`power-up ${(POWER_END / 1000).toFixed(2)}s, ripple every ${(RIPPLE_PERIOD / 1000).toFixed(1)}s`);
 console.log(`reduced-motion guard: ${RESPECT_REDUCED_MOTION ? "on" : "off"}`);

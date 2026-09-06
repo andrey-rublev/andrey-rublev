@@ -1,24 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-34 -34 880 138" width="880" height="138" role="img" aria-label="Nikhil Kolli">
   <title>Nikhil Kolli</title>
+  <defs>
+    <linearGradient id="cu" gradientUnits="userSpaceOnUse" x1="0" y1="-34" x2="0" y2="104">
+      <stop offset="0" stop-color="#C7D2FE"/>
+      <stop offset="0.42" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#4C51BF"/>
+    </linearGradient>
+    <linearGradient id="au" gradientUnits="objectBoundingBox" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FDE68A"/>
+      <stop offset="0.5" stop-color="#D9A520"/>
+      <stop offset="1" stop-color="#946C0B"/>
+    </linearGradient>
+  </defs>
   <style>
-    .l{fill:none;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
-    .base{stroke:#273040}
-    .h0{stroke:#818CF8;stroke-width:26;opacity:0.07}
-    .h1{stroke:#818CF8;stroke-width:19;opacity:0.1}
-    .h2{stroke:#818CF8;stroke-width:13;opacity:0.14}
-    .pwr{stroke:#818CF8}
-    .rip{stroke:#EEF2FF;stroke-width:9.5}
-    /* The bloom carries the same .rN classes, so it flashes in lockstep. Group
-       opacity multiplies the animated child opacity, which is how the wave gets
-       a soft spread without a filter. */
-    .riph{stroke:#EEF2FF;stroke-width:24;opacity:0.3}
+    .l{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .sh{stroke:#080B11;stroke-width:9;opacity:0.85}
+    .cu{stroke:url(#cu);stroke-width:8}
+    .sp{stroke:#EEF2FF;stroke-width:2.1;opacity:0.5}
+    .rip{stroke:#EEF2FF;stroke-width:9.5;opacity:0.62}
+    .riph{stroke:#EEF2FF;stroke-width:24;opacity:0.2}
     .rip path,.riph path{opacity:0}
-    .via{fill:#0D1117;stroke:#818CF8;stroke-width:3.4}
-    /* opacity has to sit on the circles: opacity is not inherited, so hiding
-       the group instead would leave the per-via fade-ins animating nothing. */
-    .via circle{opacity:0}
-    .ring{fill:none;stroke:#EEF2FF;stroke-width:2.6}
-    .ring circle{opacity:0}
+    /* opacity has to sit on each group: it is not inherited, so hiding the
+       parent instead would leave the per-pad fade-ins animating nothing. */
+    .pads g,.parts g{opacity:0}
     @keyframes up{to{stroke-dashoffset:0}}
     @keyframes pad{to{opacity:1}}
     @keyframes rip{
@@ -30,177 +34,103 @@
     .t0{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 0ms forwards}
     .t1{stroke-dasharray:70.7;stroke-dashoffset:70.7;animation:up 180ms cubic-bezier(.3,.7,.4,1) 0ms forwards}
     .t2{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 92.4ms forwards}
-    .t3{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 133ms forwards}
-    .t4{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 179.2ms forwards}
-    .t5{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 133ms forwards}
-    .t6{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 266ms forwards}
-    .t7{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 358.4ms forwards}
-    .t8{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 293.7ms forwards}
-    .t9{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 266ms forwards}
-    .t10{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 399ms forwards}
-    .t11{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 491.4ms forwards}
-    .t12{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 399ms forwards}
-    .t13{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 532ms forwards}
-    .t14{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 578.2ms forwards}
+    .t3{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 133ms forwards}
+    .t4{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 199.5ms forwards}
+    .t5{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 179.2ms forwards}
+    .t6{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 133ms forwards}
+    .t7{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 266ms forwards}
+    .t8{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 358.4ms forwards}
+    .t9{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 293.7ms forwards}
+    .t10{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 266ms forwards}
+    .t11{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 399ms forwards}
+    .t12{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 491.4ms forwards}
+    .t13{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 399ms forwards}
+    .t14{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 465.5ms forwards}
     .t15{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 532ms forwards}
-    .t16{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 665ms forwards}
-    .t17{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 665ms forwards}
-    .t18{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 875.6ms forwards}
-    .t19{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 968ms forwards}
-    .t20{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 903.3ms forwards}
-    .t21{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 875.6ms forwards}
-    .t22{stroke-dasharray:204.9;stroke-dashoffset:204.9;animation:up 353.2ms cubic-bezier(.3,.7,.4,1) 1036.3ms forwards}
-    .t23{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1141.6ms forwards}
-    .t24{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1141.6ms forwards}
-    .t25{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1274.6ms forwards}
-    .t26{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1274.6ms forwards}
-    .t27{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1407.6ms forwards}
-    .t28{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1453.8ms forwards}
-    .t29{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1407.6ms forwards}
-    .r0{animation:rip 3800ms linear 2101.1ms infinite}
-    .r1{animation:rip 3800ms linear 2123.3ms infinite}
-    .r2{animation:rip 3800ms linear 2136.2ms infinite}
-    .r3{animation:rip 3800ms linear 2215.3ms infinite}
-    .r4{animation:rip 3800ms linear 2193ms infinite}
-    .r5{animation:rip 3800ms linear 2184.7ms infinite}
-    .r6{animation:rip 3800ms linear 2253.8ms infinite}
-    .r7{animation:rip 3800ms linear 2302.4ms infinite}
-    .r8{animation:rip 3800ms linear 2293.2ms infinite}
-    .r9{animation:rip 3800ms linear 2263.7ms infinite}
-    .r10{animation:rip 3800ms linear 2349.1ms infinite}
-    .r11{animation:rip 3800ms linear 2415.9ms infinite}
-    .r12{animation:rip 3800ms linear 2382.5ms infinite}
-    .r13{animation:rip 3800ms linear 2486.7ms infinite}
-    .r14{animation:rip 3800ms linear 2478.9ms infinite}
-    .r15{animation:rip 3800ms linear 2476.3ms infinite}
-    .r16{animation:rip 3800ms linear 2542ms infinite}
-    .r17{animation:rip 3800ms linear 2573.4ms infinite}
-    .r18{animation:rip 3800ms linear 2695.3ms infinite}
-    .r19{animation:rip 3800ms linear 2741.1ms infinite}
-    .r20{animation:rip 3800ms linear 2737.8ms infinite}
-    .r21{animation:rip 3800ms linear 2705.4ms infinite}
-    .r22{animation:rip 3800ms linear 2824.8ms infinite}
-    .r23{animation:rip 3800ms linear 2889.3ms infinite}
-    .r24{animation:rip 3800ms linear 2921.7ms infinite}
-    .r25{animation:rip 3800ms linear 2986.3ms infinite}
-    .r26{animation:rip 3800ms linear 3018.8ms infinite}
-    .r27{animation:rip 3800ms linear 3120.2ms infinite}
-    .r28{animation:rip 3800ms linear 3117.1ms infinite}
-    .r29{animation:rip 3800ms linear 3116ms infinite}
+    .t16{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 578.2ms forwards}
+    .t17{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 532ms forwards}
+    .t18{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 665ms forwards}
+    .t19{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 665ms forwards}
+    .t20{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 731.5ms forwards}
+    .t21{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 875.6ms forwards}
+    .t22{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 968ms forwards}
+    .t23{stroke-dasharray:49.5;stroke-dashoffset:49.5;animation:up 180ms cubic-bezier(.3,.7,.4,1) 903.3ms forwards}
+    .t24{stroke-dasharray:15;stroke-dashoffset:15;animation:up 180ms cubic-bezier(.3,.7,.4,1) 875.6ms forwards}
+    .t25{stroke-dasharray:204.9;stroke-dashoffset:204.9;animation:up 353.2ms cubic-bezier(.3,.7,.4,1) 1036.3ms forwards}
+    .t26{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1141.6ms forwards}
+    .t27{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1141.6ms forwards}
+    .t28{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1274.6ms forwards}
+    .t29{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1274.6ms forwards}
+    .t30{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1341.1ms forwards}
+    .t31{stroke-dasharray:50;stroke-dashoffset:50;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1407.6ms forwards}
+    .t32{stroke-dasharray:70;stroke-dashoffset:70;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1453.8ms forwards}
+    .t33{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1407.6ms forwards}
+    .t34{stroke-dasharray:14;stroke-dashoffset:14;animation:up 180ms cubic-bezier(.3,.7,.4,1) 1474.1ms forwards}
+    .r0{animation:rip 3800ms linear 2122ms infinite}
+    .r1{animation:rip 3800ms linear 2144.5ms infinite}
+    .r2{animation:rip 3800ms linear 2157.5ms infinite}
+    .r3{animation:rip 3800ms linear 2218.4ms infinite}
+    .r4{animation:rip 3800ms linear 2258.1ms infinite}
+    .r5{animation:rip 3800ms linear 2215ms infinite}
+    .r6{animation:rip 3800ms linear 2206.7ms infinite}
+    .r7{animation:rip 3800ms linear 2276.6ms infinite}
+    .r8{animation:rip 3800ms linear 2325.8ms infinite}
+    .r9{animation:rip 3800ms linear 2316.5ms infinite}
+    .r10{animation:rip 3800ms linear 2286.6ms infinite}
+    .r11{animation:rip 3800ms linear 2373.1ms infinite}
+    .r12{animation:rip 3800ms linear 2440.7ms infinite}
+    .r13{animation:rip 3800ms linear 2382.6ms infinite}
+    .r14{animation:rip 3800ms linear 2431.3ms infinite}
+    .r15{animation:rip 3800ms linear 2512.4ms infinite}
+    .r16{animation:rip 3800ms linear 2504.5ms infinite}
+    .r17{animation:rip 3800ms linear 2501.8ms infinite}
+    .r18{animation:rip 3800ms linear 2568.4ms infinite}
+    .r19{animation:rip 3800ms linear 2575.6ms infinite}
+    .r20{animation:rip 3800ms linear 2624.8ms infinite}
+    .r21{animation:rip 3800ms linear 2723.6ms infinite}
+    .r22{animation:rip 3800ms linear 2770ms infinite}
+    .r23{animation:rip 3800ms linear 2766.7ms infinite}
+    .r24{animation:rip 3800ms linear 2733.8ms infinite}
+    .r25{animation:rip 3800ms linear 2854.7ms infinite}
+    .r26{animation:rip 3800ms linear 2920ms infinite}
+    .r27{animation:rip 3800ms linear 2952.8ms infinite}
+    .r28{animation:rip 3800ms linear 3018.2ms infinite}
+    .r29{animation:rip 3800ms linear 3026.6ms infinite}
+    .r30{animation:rip 3800ms linear 3075.8ms infinite}
+    .r31{animation:rip 3800ms linear 3153.8ms infinite}
+    .r32{animation:rip 3800ms linear 3150.6ms infinite}
+    .r33{animation:rip 3800ms linear 3124.9ms infinite}
+    .r34{animation:rip 3800ms linear 3174.1ms infinite}
     .v0{animation:pad 320ms ease-out 110ms forwards}
-    .v1{animation:pad 320ms ease-out 110ms forwards}
-    .v2{animation:pad 320ms ease-out 202.4ms forwards}
-    .v3{animation:pad 320ms ease-out 202.4ms forwards}
-    .v4{animation:pad 320ms ease-out 202.4ms forwards}
-    .v5{animation:pad 320ms ease-out 243ms forwards}
-    .v6{animation:pad 320ms ease-out 335.4ms forwards}
-    .v7{animation:pad 320ms ease-out 289.2ms forwards}
-    .v8{animation:pad 320ms ease-out 289.2ms forwards}
-    .v9{animation:pad 320ms ease-out 243ms forwards}
-    .v10{animation:pad 320ms ease-out 335.4ms forwards}
-    .v11{animation:pad 320ms ease-out 376ms forwards}
-    .v12{animation:pad 320ms ease-out 376ms forwards}
-    .v13{animation:pad 320ms ease-out 468.4ms forwards}
-    .v14{animation:pad 320ms ease-out 403.7ms forwards}
-    .v15{animation:pad 320ms ease-out 468.4ms forwards}
-    .v16{animation:pad 320ms ease-out 376ms forwards}
-    .v17{animation:pad 320ms ease-out 509ms forwards}
-    .v18{animation:pad 320ms ease-out 509ms forwards}
-    .v19{animation:pad 320ms ease-out 601.4ms forwards}
-    .v20{animation:pad 320ms ease-out 601.4ms forwards}
-    .v21{animation:pad 320ms ease-out 509ms forwards}
-    .v22{animation:pad 320ms ease-out 601.4ms forwards}
-    .v23{animation:pad 320ms ease-out 642ms forwards}
-    .v24{animation:pad 320ms ease-out 734.4ms forwards}
-    .v25{animation:pad 320ms ease-out 688.2ms forwards}
-    .v26{animation:pad 320ms ease-out 688.2ms forwards}
-    .v27{animation:pad 320ms ease-out 642ms forwards}
-    .v28{animation:pad 320ms ease-out 734.4ms forwards}
-    .v29{animation:pad 320ms ease-out 775ms forwards}
-    .v30{animation:pad 320ms ease-out 775ms forwards}
-    .v31{animation:pad 320ms ease-out 867.4ms forwards}
-    .v32{animation:pad 320ms ease-out 985.6ms forwards}
-    .v33{animation:pad 320ms ease-out 985.6ms forwards}
-    .v34{animation:pad 320ms ease-out 1078ms forwards}
-    .v35{animation:pad 320ms ease-out 1013.3ms forwards}
-    .v36{animation:pad 320ms ease-out 1078ms forwards}
-    .v37{animation:pad 320ms ease-out 985.6ms forwards}
-    .v38{animation:pad 320ms ease-out 1146.3ms forwards}
-    .v39{animation:pad 320ms ease-out 1251.6ms forwards}
-    .v40{animation:pad 320ms ease-out 1251.6ms forwards}
-    .v41{animation:pad 320ms ease-out 1344ms forwards}
-    .v42{animation:pad 320ms ease-out 1384.6ms forwards}
-    .v43{animation:pad 320ms ease-out 1384.6ms forwards}
-    .v44{animation:pad 320ms ease-out 1477ms forwards}
-    .v45{animation:pad 320ms ease-out 1517.6ms forwards}
-    .v46{animation:pad 320ms ease-out 1610ms forwards}
-    .v47{animation:pad 320ms ease-out 1563.8ms forwards}
-    .v48{animation:pad 320ms ease-out 1563.8ms forwards}
-    .v49{animation:pad 320ms ease-out 1517.6ms forwards}
-    .v50{animation:pad 320ms ease-out 1610ms forwards}
-    .g0{animation:rip 3800ms linear 2053.8ms infinite}
-    .g1{animation:rip 3800ms linear 2148.3ms infinite}
-    .g2{animation:rip 3800ms linear 2126.5ms infinite}
-    .g3{animation:rip 3800ms linear 2169.9ms infinite}
-    .g4{animation:rip 3800ms linear 2121.3ms infinite}
-    .g5{animation:rip 3800ms linear 2189.4ms infinite}
-    .g6{animation:rip 3800ms linear 2243.7ms infinite}
-    .g7{animation:rip 3800ms linear 2215.3ms infinite}
-    .g8{animation:rip 3800ms linear 2184.7ms infinite}
-    .g9{animation:rip 3800ms linear 2151ms infinite}
-    .g10{animation:rip 3800ms linear 2218.5ms infinite}
-    .g11{animation:rip 3800ms linear 2269.9ms infinite}
-    .g12{animation:rip 3800ms linear 2248.2ms infinite}
-    .g13{animation:rip 3800ms linear 2332.2ms infinite}
-    .g14{animation:rip 3800ms linear 2273.6ms infinite}
-    .g15{animation:rip 3800ms linear 2315.7ms infinite}
-    .g16{animation:rip 3800ms linear 2253.8ms infinite}
-    .g17{animation:rip 3800ms linear 2360.3ms infinite}
-    .g18{animation:rip 3800ms linear 2345.3ms infinite}
-    .g19{animation:rip 3800ms linear 2425.1ms infinite}
-    .g20{animation:rip 3800ms linear 2412.8ms infinite}
-    .g21{animation:rip 3800ms linear 2349.1ms infinite}
-    .g22{animation:rip 3800ms linear 2415.9ms infinite}
-    .g23{animation:rip 3800ms linear 2453.8ms infinite}
-    .g24{animation:rip 3800ms linear 2519.7ms infinite}
-    .g25{animation:rip 3800ms linear 2486.7ms infinite}
-    .g26{animation:rip 3800ms linear 2476.3ms infinite}
-    .g27{animation:rip 3800ms linear 2442.5ms infinite}
-    .g28{animation:rip 3800ms linear 2510ms infinite}
-    .g29{animation:rip 3800ms linear 2548.8ms infinite}
-    .g30{animation:rip 3800ms linear 2539.7ms infinite}
-    .g31{animation:rip 3800ms linear 2607.2ms infinite}
-    .g32{animation:rip 3800ms linear 2700.5ms infinite}
-    .g33{animation:rip 3800ms linear 2693.6ms infinite}
-    .g34{animation:rip 3800ms linear 2767.3ms infinite}
-    .g35{animation:rip 3800ms linear 2715.5ms infinite}
-    .g36{animation:rip 3800ms linear 2761ms infinite}
-    .g37{animation:rip 3800ms linear 2695.3ms infinite}
-    .g38{animation:rip 3800ms linear 2816.9ms infinite}
-    .g39{animation:rip 3800ms linear 2893.2ms infinite}
-    .g40{animation:rip 3800ms linear 2887.9ms infinite}
-    .g41{animation:rip 3800ms linear 2955.4ms infinite}
-    .g42{animation:rip 3800ms linear 2989.9ms infinite}
-    .g43{animation:rip 3800ms linear 2985.1ms infinite}
-    .g44{animation:rip 3800ms linear 3052.6ms infinite}
-    .g45{animation:rip 3800ms linear 3086.6ms infinite}
-    .g46{animation:rip 3800ms linear 3153.8ms infinite}
-    .g47{animation:rip 3800ms linear 3120.2ms infinite}
-    .g48{animation:rip 3800ms linear 3116ms infinite}
-    .g49{animation:rip 3800ms linear 3082.3ms infinite}
-    .g50{animation:rip 3800ms linear 3149.8ms infinite}
+    .v1{animation:pad 320ms ease-out 202.4ms forwards}
+    .v2{animation:pad 320ms ease-out 289.2ms forwards}
+    .v3{animation:pad 320ms ease-out 289.2ms forwards}
+    .v4{animation:pad 320ms ease-out 403.7ms forwards}
+    .v5{animation:pad 320ms ease-out 509ms forwards}
+    .v6{animation:pad 320ms ease-out 601.4ms forwards}
+    .v7{animation:pad 320ms ease-out 688.2ms forwards}
+    .v8{animation:pad 320ms ease-out 688.2ms forwards}
+    .v9{animation:pad 320ms ease-out 775ms forwards}
+    .v10{animation:pad 320ms ease-out 1013.3ms forwards}
+    .v11{animation:pad 320ms ease-out 1251.6ms forwards}
+    .v12{animation:pad 320ms ease-out 1384.6ms forwards}
+    .v13{animation:pad 320ms ease-out 1563.8ms forwards}
+    .v14{animation:pad 320ms ease-out 1563.8ms forwards}
+    .c0{animation:pad 320ms ease-out 329.2ms forwards}
+    .c1{animation:pad 320ms ease-out 595.2ms forwards}
+    .c2{animation:pad 320ms ease-out 861.2ms forwards}
+    .c3{animation:pad 320ms ease-out 1470.8ms forwards}
+    .c4{animation:pad 320ms ease-out 1603.8ms forwards}
     /* No prefers-reduced-motion guard, on purpose - see RESPECT_REDUCED_MOTION
        in the build script. Inside an img element that query reports the OS
        setting regardless of the host page, so honouring it froze the mark on
        any machine with Windows animation effects off. */
   </style>
-  <g class="l base"><path d="M 0,70 L 0,0"/><path d="M 0,0 L 50,50"/><path d="M 50,0 L 50,70"/><path d="M 72,0 L 122,0"/><path d="M 97,0 L 97,70"/><path d="M 72,70 L 122,70"/><path d="M 144,0 L 144,70"/><path d="M 194,0 L 159,35"/><path d="M 159,35 L 194,70"/><path d="M 144,35 L 159,35"/><path d="M 216,0 L 216,70"/><path d="M 266,0 L 266,70"/><path d="M 216,35 L 266,35"/><path d="M 288,0 L 338,0"/><path d="M 313,0 L 313,70"/><path d="M 288,70 L 338,70"/><path d="M 360,0 L 360,70"/><path d="M 360,70 L 410,70"/><path d="M 474,0 L 474,70"/><path d="M 524,0 L 489,35"/><path d="M 489,35 L 524,70"/><path d="M 474,35 L 489,35"/><path d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path d="M 618,0 L 618,70"/><path d="M 618,70 L 668,70"/><path d="M 690,0 L 690,70"/><path d="M 690,70 L 740,70"/><path d="M 762,0 L 812,0"/><path d="M 787,0 L 787,70"/><path d="M 762,70 L 812,70"/></g>
-  <g class="l h0"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 122,0"/><path class="t4" d="M 97,0 L 97,70"/><path class="t5" d="M 72,70 L 122,70"/><path class="t6" d="M 144,0 L 144,70"/><path class="t7" d="M 194,0 L 159,35"/><path class="t8" d="M 159,35 L 194,70"/><path class="t9" d="M 144,35 L 159,35"/><path class="t10" d="M 216,0 L 216,70"/><path class="t11" d="M 266,0 L 266,70"/><path class="t12" d="M 216,35 L 266,35"/><path class="t13" d="M 288,0 L 338,0"/><path class="t14" d="M 313,0 L 313,70"/><path class="t15" d="M 288,70 L 338,70"/><path class="t16" d="M 360,0 L 360,70"/><path class="t17" d="M 360,70 L 410,70"/><path class="t18" d="M 474,0 L 474,70"/><path class="t19" d="M 524,0 L 489,35"/><path class="t20" d="M 489,35 L 524,70"/><path class="t21" d="M 474,35 L 489,35"/><path class="t22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t23" d="M 618,0 L 618,70"/><path class="t24" d="M 618,70 L 668,70"/><path class="t25" d="M 690,0 L 690,70"/><path class="t26" d="M 690,70 L 740,70"/><path class="t27" d="M 762,0 L 812,0"/><path class="t28" d="M 787,0 L 787,70"/><path class="t29" d="M 762,70 L 812,70"/></g>
-  <g class="l h1"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 122,0"/><path class="t4" d="M 97,0 L 97,70"/><path class="t5" d="M 72,70 L 122,70"/><path class="t6" d="M 144,0 L 144,70"/><path class="t7" d="M 194,0 L 159,35"/><path class="t8" d="M 159,35 L 194,70"/><path class="t9" d="M 144,35 L 159,35"/><path class="t10" d="M 216,0 L 216,70"/><path class="t11" d="M 266,0 L 266,70"/><path class="t12" d="M 216,35 L 266,35"/><path class="t13" d="M 288,0 L 338,0"/><path class="t14" d="M 313,0 L 313,70"/><path class="t15" d="M 288,70 L 338,70"/><path class="t16" d="M 360,0 L 360,70"/><path class="t17" d="M 360,70 L 410,70"/><path class="t18" d="M 474,0 L 474,70"/><path class="t19" d="M 524,0 L 489,35"/><path class="t20" d="M 489,35 L 524,70"/><path class="t21" d="M 474,35 L 489,35"/><path class="t22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t23" d="M 618,0 L 618,70"/><path class="t24" d="M 618,70 L 668,70"/><path class="t25" d="M 690,0 L 690,70"/><path class="t26" d="M 690,70 L 740,70"/><path class="t27" d="M 762,0 L 812,0"/><path class="t28" d="M 787,0 L 787,70"/><path class="t29" d="M 762,70 L 812,70"/></g>
-  <g class="l h2"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 122,0"/><path class="t4" d="M 97,0 L 97,70"/><path class="t5" d="M 72,70 L 122,70"/><path class="t6" d="M 144,0 L 144,70"/><path class="t7" d="M 194,0 L 159,35"/><path class="t8" d="M 159,35 L 194,70"/><path class="t9" d="M 144,35 L 159,35"/><path class="t10" d="M 216,0 L 216,70"/><path class="t11" d="M 266,0 L 266,70"/><path class="t12" d="M 216,35 L 266,35"/><path class="t13" d="M 288,0 L 338,0"/><path class="t14" d="M 313,0 L 313,70"/><path class="t15" d="M 288,70 L 338,70"/><path class="t16" d="M 360,0 L 360,70"/><path class="t17" d="M 360,70 L 410,70"/><path class="t18" d="M 474,0 L 474,70"/><path class="t19" d="M 524,0 L 489,35"/><path class="t20" d="M 489,35 L 524,70"/><path class="t21" d="M 474,35 L 489,35"/><path class="t22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t23" d="M 618,0 L 618,70"/><path class="t24" d="M 618,70 L 668,70"/><path class="t25" d="M 690,0 L 690,70"/><path class="t26" d="M 690,70 L 740,70"/><path class="t27" d="M 762,0 L 812,0"/><path class="t28" d="M 787,0 L 787,70"/><path class="t29" d="M 762,70 L 812,70"/></g>
-  <g class="l pwr"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 122,0"/><path class="t4" d="M 97,0 L 97,70"/><path class="t5" d="M 72,70 L 122,70"/><path class="t6" d="M 144,0 L 144,70"/><path class="t7" d="M 194,0 L 159,35"/><path class="t8" d="M 159,35 L 194,70"/><path class="t9" d="M 144,35 L 159,35"/><path class="t10" d="M 216,0 L 216,70"/><path class="t11" d="M 266,0 L 266,70"/><path class="t12" d="M 216,35 L 266,35"/><path class="t13" d="M 288,0 L 338,0"/><path class="t14" d="M 313,0 L 313,70"/><path class="t15" d="M 288,70 L 338,70"/><path class="t16" d="M 360,0 L 360,70"/><path class="t17" d="M 360,70 L 410,70"/><path class="t18" d="M 474,0 L 474,70"/><path class="t19" d="M 524,0 L 489,35"/><path class="t20" d="M 489,35 L 524,70"/><path class="t21" d="M 474,35 L 489,35"/><path class="t22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t23" d="M 618,0 L 618,70"/><path class="t24" d="M 618,70 L 668,70"/><path class="t25" d="M 690,0 L 690,70"/><path class="t26" d="M 690,70 L 740,70"/><path class="t27" d="M 762,0 L 812,0"/><path class="t28" d="M 787,0 L 787,70"/><path class="t29" d="M 762,70 L 812,70"/></g>
-  <g class="l riph"><path class="r0" d="M 0,70 L 0,0"/><path class="r1" d="M 0,0 L 50,50"/><path class="r2" d="M 50,0 L 50,70"/><path class="r3" d="M 72,0 L 122,0"/><path class="r4" d="M 97,0 L 97,70"/><path class="r5" d="M 72,70 L 122,70"/><path class="r6" d="M 144,0 L 144,70"/><path class="r7" d="M 194,0 L 159,35"/><path class="r8" d="M 159,35 L 194,70"/><path class="r9" d="M 144,35 L 159,35"/><path class="r10" d="M 216,0 L 216,70"/><path class="r11" d="M 266,0 L 266,70"/><path class="r12" d="M 216,35 L 266,35"/><path class="r13" d="M 288,0 L 338,0"/><path class="r14" d="M 313,0 L 313,70"/><path class="r15" d="M 288,70 L 338,70"/><path class="r16" d="M 360,0 L 360,70"/><path class="r17" d="M 360,70 L 410,70"/><path class="r18" d="M 474,0 L 474,70"/><path class="r19" d="M 524,0 L 489,35"/><path class="r20" d="M 489,35 L 524,70"/><path class="r21" d="M 474,35 L 489,35"/><path class="r22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r23" d="M 618,0 L 618,70"/><path class="r24" d="M 618,70 L 668,70"/><path class="r25" d="M 690,0 L 690,70"/><path class="r26" d="M 690,70 L 740,70"/><path class="r27" d="M 762,0 L 812,0"/><path class="r28" d="M 787,0 L 787,70"/><path class="r29" d="M 762,70 L 812,70"/></g>
-  <g class="l rip"><path class="r0" d="M 0,70 L 0,0"/><path class="r1" d="M 0,0 L 50,50"/><path class="r2" d="M 50,0 L 50,70"/><path class="r3" d="M 72,0 L 122,0"/><path class="r4" d="M 97,0 L 97,70"/><path class="r5" d="M 72,70 L 122,70"/><path class="r6" d="M 144,0 L 144,70"/><path class="r7" d="M 194,0 L 159,35"/><path class="r8" d="M 159,35 L 194,70"/><path class="r9" d="M 144,35 L 159,35"/><path class="r10" d="M 216,0 L 216,70"/><path class="r11" d="M 266,0 L 266,70"/><path class="r12" d="M 216,35 L 266,35"/><path class="r13" d="M 288,0 L 338,0"/><path class="r14" d="M 313,0 L 313,70"/><path class="r15" d="M 288,70 L 338,70"/><path class="r16" d="M 360,0 L 360,70"/><path class="r17" d="M 360,70 L 410,70"/><path class="r18" d="M 474,0 L 474,70"/><path class="r19" d="M 524,0 L 489,35"/><path class="r20" d="M 489,35 L 524,70"/><path class="r21" d="M 474,35 L 489,35"/><path class="r22" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r23" d="M 618,0 L 618,70"/><path class="r24" d="M 618,70 L 668,70"/><path class="r25" d="M 690,0 L 690,70"/><path class="r26" d="M 690,70 L 740,70"/><path class="r27" d="M 762,0 L 812,0"/><path class="r28" d="M 787,0 L 787,70"/><path class="r29" d="M 762,70 L 812,70"/></g>
-  <g class="via"><circle class="v0" cx="0" cy="70" r="6"/><circle class="v1" cx="0" cy="0" r="6"/><circle class="v2" cx="50" cy="50" r="6"/><circle class="v3" cx="50" cy="0" r="6"/><circle class="v4" cx="50" cy="70" r="6"/><circle class="v5" cx="72" cy="0" r="6"/><circle class="v6" cx="122" cy="0" r="6"/><circle class="v7" cx="97" cy="0" r="6"/><circle class="v8" cx="97" cy="70" r="6"/><circle class="v9" cx="72" cy="70" r="6"/><circle class="v10" cx="122" cy="70" r="6"/><circle class="v11" cx="144" cy="0" r="6"/><circle class="v12" cx="144" cy="70" r="6"/><circle class="v13" cx="194" cy="0" r="6"/><circle class="v14" cx="159" cy="35" r="6"/><circle class="v15" cx="194" cy="70" r="6"/><circle class="v16" cx="144" cy="35" r="6"/><circle class="v17" cx="216" cy="0" r="6"/><circle class="v18" cx="216" cy="70" r="6"/><circle class="v19" cx="266" cy="0" r="6"/><circle class="v20" cx="266" cy="70" r="6"/><circle class="v21" cx="216" cy="35" r="6"/><circle class="v22" cx="266" cy="35" r="6"/><circle class="v23" cx="288" cy="0" r="6"/><circle class="v24" cx="338" cy="0" r="6"/><circle class="v25" cx="313" cy="0" r="6"/><circle class="v26" cx="313" cy="70" r="6"/><circle class="v27" cx="288" cy="70" r="6"/><circle class="v28" cx="338" cy="70" r="6"/><circle class="v29" cx="360" cy="0" r="6"/><circle class="v30" cx="360" cy="70" r="6"/><circle class="v31" cx="410" cy="70" r="6"/><circle class="v32" cx="474" cy="0" r="6"/><circle class="v33" cx="474" cy="70" r="6"/><circle class="v34" cx="524" cy="0" r="6"/><circle class="v35" cx="489" cy="35" r="6"/><circle class="v36" cx="524" cy="70" r="6"/><circle class="v37" cx="474" cy="35" r="6"/><circle class="v38" cx="561" cy="0" r="6"/><circle class="v39" cx="618" cy="0" r="6"/><circle class="v40" cx="618" cy="70" r="6"/><circle class="v41" cx="668" cy="70" r="6"/><circle class="v42" cx="690" cy="0" r="6"/><circle class="v43" cx="690" cy="70" r="6"/><circle class="v44" cx="740" cy="70" r="6"/><circle class="v45" cx="762" cy="0" r="6"/><circle class="v46" cx="812" cy="0" r="6"/><circle class="v47" cx="787" cy="0" r="6"/><circle class="v48" cx="787" cy="70" r="6"/><circle class="v49" cx="762" cy="70" r="6"/><circle class="v50" cx="812" cy="70" r="6"/></g>
-  <g class="ring"><circle class="g0" cx="0" cy="70" r="8.5"/><circle class="g1" cx="0" cy="0" r="8.5"/><circle class="g2" cx="50" cy="50" r="8.5"/><circle class="g3" cx="50" cy="0" r="8.5"/><circle class="g4" cx="50" cy="70" r="8.5"/><circle class="g5" cx="72" cy="0" r="8.5"/><circle class="g6" cx="122" cy="0" r="8.5"/><circle class="g7" cx="97" cy="0" r="8.5"/><circle class="g8" cx="97" cy="70" r="8.5"/><circle class="g9" cx="72" cy="70" r="8.5"/><circle class="g10" cx="122" cy="70" r="8.5"/><circle class="g11" cx="144" cy="0" r="8.5"/><circle class="g12" cx="144" cy="70" r="8.5"/><circle class="g13" cx="194" cy="0" r="8.5"/><circle class="g14" cx="159" cy="35" r="8.5"/><circle class="g15" cx="194" cy="70" r="8.5"/><circle class="g16" cx="144" cy="35" r="8.5"/><circle class="g17" cx="216" cy="0" r="8.5"/><circle class="g18" cx="216" cy="70" r="8.5"/><circle class="g19" cx="266" cy="0" r="8.5"/><circle class="g20" cx="266" cy="70" r="8.5"/><circle class="g21" cx="216" cy="35" r="8.5"/><circle class="g22" cx="266" cy="35" r="8.5"/><circle class="g23" cx="288" cy="0" r="8.5"/><circle class="g24" cx="338" cy="0" r="8.5"/><circle class="g25" cx="313" cy="0" r="8.5"/><circle class="g26" cx="313" cy="70" r="8.5"/><circle class="g27" cx="288" cy="70" r="8.5"/><circle class="g28" cx="338" cy="70" r="8.5"/><circle class="g29" cx="360" cy="0" r="8.5"/><circle class="g30" cx="360" cy="70" r="8.5"/><circle class="g31" cx="410" cy="70" r="8.5"/><circle class="g32" cx="474" cy="0" r="8.5"/><circle class="g33" cx="474" cy="70" r="8.5"/><circle class="g34" cx="524" cy="0" r="8.5"/><circle class="g35" cx="489" cy="35" r="8.5"/><circle class="g36" cx="524" cy="70" r="8.5"/><circle class="g37" cx="474" cy="35" r="8.5"/><circle class="g38" cx="561" cy="0" r="8.5"/><circle class="g39" cx="618" cy="0" r="8.5"/><circle class="g40" cx="618" cy="70" r="8.5"/><circle class="g41" cx="668" cy="70" r="8.5"/><circle class="g42" cx="690" cy="0" r="8.5"/><circle class="g43" cx="690" cy="70" r="8.5"/><circle class="g44" cx="740" cy="70" r="8.5"/><circle class="g45" cx="762" cy="0" r="8.5"/><circle class="g46" cx="812" cy="0" r="8.5"/><circle class="g47" cx="787" cy="0" r="8.5"/><circle class="g48" cx="787" cy="70" r="8.5"/><circle class="g49" cx="762" cy="70" r="8.5"/><circle class="g50" cx="812" cy="70" r="8.5"/></g>
+  <g class="l sh" transform="translate(0 2.4)"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 86,0"/><path class="t4" d="M 108,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 230,35"/><path class="t14" d="M 252,35 L 266,35"/><path class="t15" d="M 288,0 L 338,0"/><path class="t16" d="M 313,0 L 313,70"/><path class="t17" d="M 288,70 L 338,70"/><path class="t18" d="M 360,0 L 360,70"/><path class="t19" d="M 360,70 L 374,70"/><path class="t20" d="M 396,70 L 410,70"/><path class="t21" d="M 474,0 L 474,70"/><path class="t22" d="M 524,0 L 489,35"/><path class="t23" d="M 489,35 L 524,70"/><path class="t24" d="M 474,35 L 489,35"/><path class="t25" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t26" d="M 618,0 L 618,70"/><path class="t27" d="M 618,70 L 668,70"/><path class="t28" d="M 690,0 L 690,70"/><path class="t29" d="M 690,70 L 704,70"/><path class="t30" d="M 726,70 L 740,70"/><path class="t31" d="M 762,0 L 812,0"/><path class="t32" d="M 787,0 L 787,70"/><path class="t33" d="M 762,70 L 776,70"/><path class="t34" d="M 798,70 L 812,70"/></g>
+  <g class="l cu"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 86,0"/><path class="t4" d="M 108,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 230,35"/><path class="t14" d="M 252,35 L 266,35"/><path class="t15" d="M 288,0 L 338,0"/><path class="t16" d="M 313,0 L 313,70"/><path class="t17" d="M 288,70 L 338,70"/><path class="t18" d="M 360,0 L 360,70"/><path class="t19" d="M 360,70 L 374,70"/><path class="t20" d="M 396,70 L 410,70"/><path class="t21" d="M 474,0 L 474,70"/><path class="t22" d="M 524,0 L 489,35"/><path class="t23" d="M 489,35 L 524,70"/><path class="t24" d="M 474,35 L 489,35"/><path class="t25" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t26" d="M 618,0 L 618,70"/><path class="t27" d="M 618,70 L 668,70"/><path class="t28" d="M 690,0 L 690,70"/><path class="t29" d="M 690,70 L 704,70"/><path class="t30" d="M 726,70 L 740,70"/><path class="t31" d="M 762,0 L 812,0"/><path class="t32" d="M 787,0 L 787,70"/><path class="t33" d="M 762,70 L 776,70"/><path class="t34" d="M 798,70 L 812,70"/></g>
+  <g class="l sp" transform="translate(0 -1.7)"><path class="t0" d="M 0,70 L 0,0"/><path class="t1" d="M 0,0 L 50,50"/><path class="t2" d="M 50,0 L 50,70"/><path class="t3" d="M 72,0 L 86,0"/><path class="t4" d="M 108,0 L 122,0"/><path class="t5" d="M 97,0 L 97,70"/><path class="t6" d="M 72,70 L 122,70"/><path class="t7" d="M 144,0 L 144,70"/><path class="t8" d="M 194,0 L 159,35"/><path class="t9" d="M 159,35 L 194,70"/><path class="t10" d="M 144,35 L 159,35"/><path class="t11" d="M 216,0 L 216,70"/><path class="t12" d="M 266,0 L 266,70"/><path class="t13" d="M 216,35 L 230,35"/><path class="t14" d="M 252,35 L 266,35"/><path class="t15" d="M 288,0 L 338,0"/><path class="t16" d="M 313,0 L 313,70"/><path class="t17" d="M 288,70 L 338,70"/><path class="t18" d="M 360,0 L 360,70"/><path class="t19" d="M 360,70 L 374,70"/><path class="t20" d="M 396,70 L 410,70"/><path class="t21" d="M 474,0 L 474,70"/><path class="t22" d="M 524,0 L 489,35"/><path class="t23" d="M 489,35 L 524,70"/><path class="t24" d="M 474,35 L 489,35"/><path class="t25" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="t26" d="M 618,0 L 618,70"/><path class="t27" d="M 618,70 L 668,70"/><path class="t28" d="M 690,0 L 690,70"/><path class="t29" d="M 690,70 L 704,70"/><path class="t30" d="M 726,70 L 740,70"/><path class="t31" d="M 762,0 L 812,0"/><path class="t32" d="M 787,0 L 787,70"/><path class="t33" d="M 762,70 L 776,70"/><path class="t34" d="M 798,70 L 812,70"/></g>
+  <g class="l riph"><path class="r0" d="M 0,70 L 0,0"/><path class="r1" d="M 0,0 L 50,50"/><path class="r2" d="M 50,0 L 50,70"/><path class="r3" d="M 72,0 L 86,0"/><path class="r4" d="M 108,0 L 122,0"/><path class="r5" d="M 97,0 L 97,70"/><path class="r6" d="M 72,70 L 122,70"/><path class="r7" d="M 144,0 L 144,70"/><path class="r8" d="M 194,0 L 159,35"/><path class="r9" d="M 159,35 L 194,70"/><path class="r10" d="M 144,35 L 159,35"/><path class="r11" d="M 216,0 L 216,70"/><path class="r12" d="M 266,0 L 266,70"/><path class="r13" d="M 216,35 L 230,35"/><path class="r14" d="M 252,35 L 266,35"/><path class="r15" d="M 288,0 L 338,0"/><path class="r16" d="M 313,0 L 313,70"/><path class="r17" d="M 288,70 L 338,70"/><path class="r18" d="M 360,0 L 360,70"/><path class="r19" d="M 360,70 L 374,70"/><path class="r20" d="M 396,70 L 410,70"/><path class="r21" d="M 474,0 L 474,70"/><path class="r22" d="M 524,0 L 489,35"/><path class="r23" d="M 489,35 L 524,70"/><path class="r24" d="M 474,35 L 489,35"/><path class="r25" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r26" d="M 618,0 L 618,70"/><path class="r27" d="M 618,70 L 668,70"/><path class="r28" d="M 690,0 L 690,70"/><path class="r29" d="M 690,70 L 704,70"/><path class="r30" d="M 726,70 L 740,70"/><path class="r31" d="M 762,0 L 812,0"/><path class="r32" d="M 787,0 L 787,70"/><path class="r33" d="M 762,70 L 776,70"/><path class="r34" d="M 798,70 L 812,70"/></g>
+  <g class="l rip"><path class="r0" d="M 0,70 L 0,0"/><path class="r1" d="M 0,0 L 50,50"/><path class="r2" d="M 50,0 L 50,70"/><path class="r3" d="M 72,0 L 86,0"/><path class="r4" d="M 108,0 L 122,0"/><path class="r5" d="M 97,0 L 97,70"/><path class="r6" d="M 72,70 L 122,70"/><path class="r7" d="M 144,0 L 144,70"/><path class="r8" d="M 194,0 L 159,35"/><path class="r9" d="M 159,35 L 194,70"/><path class="r10" d="M 144,35 L 159,35"/><path class="r11" d="M 216,0 L 216,70"/><path class="r12" d="M 266,0 L 266,70"/><path class="r13" d="M 216,35 L 230,35"/><path class="r14" d="M 252,35 L 266,35"/><path class="r15" d="M 288,0 L 338,0"/><path class="r16" d="M 313,0 L 313,70"/><path class="r17" d="M 288,70 L 338,70"/><path class="r18" d="M 360,0 L 360,70"/><path class="r19" d="M 360,70 L 374,70"/><path class="r20" d="M 396,70 L 410,70"/><path class="r21" d="M 474,0 L 474,70"/><path class="r22" d="M 524,0 L 489,35"/><path class="r23" d="M 489,35 L 524,70"/><path class="r24" d="M 474,35 L 489,35"/><path class="r25" d="M 561,0 L 581,0 L 596,15 L 596,55 L 581,70 L 561,70 L 546,55 L 546,15 L 561,0"/><path class="r26" d="M 618,0 L 618,70"/><path class="r27" d="M 618,70 L 668,70"/><path class="r28" d="M 690,0 L 690,70"/><path class="r29" d="M 690,70 L 704,70"/><path class="r30" d="M 726,70 L 740,70"/><path class="r31" d="M 762,0 L 812,0"/><path class="r32" d="M 787,0 L 787,70"/><path class="r33" d="M 762,70 L 776,70"/><path class="r34" d="M 798,70 L 812,70"/></g>
+  <g class="pads"><g class="v0"><circle cx="0" cy="2.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="0" cy="0" r="7.4" fill="url(#au)"/><circle cx="0" cy="0" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v1"><circle cx="50" cy="52.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="50" cy="50" r="7.4" fill="url(#au)"/><circle cx="50" cy="50" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v2"><circle cx="97" cy="2.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="97" cy="0" r="7.4" fill="url(#au)"/><circle cx="97" cy="0" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v3"><circle cx="97" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="97" cy="70" r="7.4" fill="url(#au)"/><circle cx="97" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v4"><circle cx="159" cy="37.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="159" cy="35" r="7.4" fill="url(#au)"/><circle cx="159" cy="35" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v5"><circle cx="216" cy="37.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="216" cy="35" r="7.4" fill="url(#au)"/><circle cx="216" cy="35" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v6"><circle cx="266" cy="37.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="266" cy="35" r="7.4" fill="url(#au)"/><circle cx="266" cy="35" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v7"><circle cx="313" cy="2.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="313" cy="0" r="7.4" fill="url(#au)"/><circle cx="313" cy="0" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v8"><circle cx="313" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="313" cy="70" r="7.4" fill="url(#au)"/><circle cx="313" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v9"><circle cx="360" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="360" cy="70" r="7.4" fill="url(#au)"/><circle cx="360" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v10"><circle cx="489" cy="37.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="489" cy="35" r="7.4" fill="url(#au)"/><circle cx="489" cy="35" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v11"><circle cx="618" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="618" cy="70" r="7.4" fill="url(#au)"/><circle cx="618" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v12"><circle cx="690" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="690" cy="70" r="7.4" fill="url(#au)"/><circle cx="690" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v13"><circle cx="787" cy="2.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="787" cy="0" r="7.4" fill="url(#au)"/><circle cx="787" cy="0" r="3" fill="#0D1117" opacity="0.85"/></g><g class="v14"><circle cx="787" cy="72.4" r="7.4" fill="#080B11" opacity="0.85"/><circle cx="787" cy="70" r="7.4" fill="url(#au)"/><circle cx="787" cy="70" r="3" fill="#0D1117" opacity="0.85"/></g></g>
+  <g class="parts"><g class="c0"><rect x="85" y="-5.6" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="102.6" y="-5.6" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="90" y="-5" width="14" height="10" rx="1.2" fill="#141A26" stroke="#A5B4FC" stroke-width="1.2"/></g><g class="c1"><rect x="229" y="29.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="246.6" y="29.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="235.6" y="29" width="10.8" height="12" rx="1.2" fill="#141A26" stroke="#A5B4FC" stroke-width="1.1"/></g><g class="c2"><rect x="373" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="390.6" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="378" y="65" width="14" height="10" rx="1.2" fill="#141A26" stroke="#A5B4FC" stroke-width="1.2"/></g><g class="c3"><rect x="703" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="720.6" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="708.5" y="65" width="13" height="10" rx="1.2" fill="#141A26" stroke="#A5B4FC" stroke-width="1.1"/><rect x="718.4" y="65" width="2.4" height="10" fill="#A5B4FC"/></g><g class="c4"><rect x="775" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="792.6" y="64.4" width="6.4" height="11.2" rx="1.3" fill="url(#au)"/><rect x="781.6" y="64" width="10.8" height="12" rx="1.2" fill="#141A26" stroke="#A5B4FC" stroke-width="1.1"/></g></g>
 </svg>
