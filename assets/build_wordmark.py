@@ -58,7 +58,11 @@ SWEEP_PERIOD = 4800
 SWEEP_BAND = 150
 
 THEMES = {
-    "dark": {"shade": "#6259E8", "face": "#F0F3F8", "sweep": "#FFFFFF", "sweep_op": 0.5},
+    # The sweep must clear the face colour, not merely be "bright". A white
+    # sweep over a near-white face was invisible on dark - the animation ran
+    # correctly and nothing moved on screen. On a light face the highlight has
+    # to be a tint, since nothing reads brighter than white.
+    "dark": {"shade": "#6259E8", "face": "#F0F3F8", "sweep": "#7C6BF0", "sweep_op": 0.62},
     # On white the face has to be the dark element or it disappears.
     "light": {"shade": "#7C70E4", "face": "#16181D", "sweep": "#A5B4FC", "sweep_op": 0.45},
 }

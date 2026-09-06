@@ -51,47 +51,46 @@ LANG_DOT = {
     "Java": "#B07219", "Dart": "#00B4AB", "C": "#555555", "HTML": "#E34C26",
 }
 
-# repo is "owner/name" when there is a public one to read numbers from.
+# `site` is a live URL, `repo` is "owner/name". A project can have either,
+# both, or neither - the card links to whichever exists and a small line under
+# it exposes both when there are two, since an image can only carry one link.
 PROJECTS = [
     {"name": "nikhilkolli.com", "repo": "andrey-rublev/NK-Portfolio-Poker",
-     "url": "https://nikhilkolli.com",
+     "site": "https://nikhilkolli.com",
      "blurb": "My portfolio, dealt as a poker table.",
      "stack": ["TypeScript", "React"]},
-    {"name": "Quantum-Classical ML", "repo": "andrey-rublev/QML",
-     "url": "https://github.com/andrey-rublev/QML",
+    {"name": "Quantum-Classical ML", "repo": "andrey-rublev/QML", "site": None,
      "blurb": "Variational circuits classifying ciphers at 96.59% and decrypting at 99.85%, on a 4M+ sample dataset.",
      "stack": ["PennyLane", "PyTorch"]},
-    {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation",
-     "url": "https://github.com/andrey-rublev/quantum-error-mitigation",
+    {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
      "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
      "stack": ["PennyLane", "JAX"]},
-    {"name": "Agentic AI Infrastructure", "repo": None, "url": None,
+    {"name": "Agentic AI Infrastructure", "repo": None, "site": None,
      "blurb": "Multi-LLM model routing, MCP servers, custom skills and connectors.",
      "stack": ["MCP", "Python", "TypeScript"]},
-    {"name": "Vigil", "repo": "seno3/vigil",
-     "url": "https://github.com/seno3/vigil",
+    {"name": "Vigil", "repo": "seno3/vigil", "site": None,
      "blurb": "Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.",
      "stack": ["Next.js", "Supabase", "Mapbox"]},
     {"name": "Raize", "repo": "JuliusZhou124/raize",
-     "url": "https://raize-psi.vercel.app",
+     "site": "https://raize-psi.vercel.app",
      "blurb": "Reconstruction planning for disaster zones. Sparse video rebuilt into navigable 3D over UNOSAT damage data.",
      "stack": ["Three.js", "Gemini", "Next.js"]},
-    {"name": "project-kryptos", "repo": "andrey-rublev/project-kryptos",
-     "url": "https://github.com/andrey-rublev/project-kryptos",
+    {"name": "project-kryptos", "repo": "andrey-rublev/project-kryptos", "site": None,
      "blurb": "Identifies and decodes Caesar, Vigenere, skip and columnar ciphers from ciphertext alone, with no key.",
      "stack": ["Python"]},
-    {"name": "RealTalk", "repo": None, "url": None,
+    {"name": "RealTalk", "repo": None, "site": None,
      "blurb": "AI hiring assistant that reviews resumes and runs interviews.",
      "stack": ["React", "FastAPI", "AWS"]},
-    {"name": "Gradus", "repo": None, "url": None,
+    {"name": "Gradus", "repo": None, "site": None,
      "blurb": "Academic tracking app, shipped to 176 countries.",
      "stack": ["Flutter", "Dart"]},
-    {"name": "RLpokerAI", "repo": "andrey-rublev/RLpokerAI",
-     "url": "https://github.com/andrey-rublev/RLpokerAI",
-     "blurb": "Reinforcement learning agents for imperfect-information games.",
+    {"name": "RLpokerAI", "repo": "andrey-rublev/RLpokerAI", "site": None,
+     "blurb": "Reinforcement learning agents for imperfect-information poker.",
      "stack": ["Python", "RL"]},
-    {"name": "Networking", "repo": "andrey-rublev/Networking",
-     "url": "https://github.com/andrey-rublev/Networking",
+    {"name": "SAP-AI", "repo": "andrey-rublev/SAP-AI", "site": None,
+     "blurb": "Reinforcement learning agent that plays Super Auto Pets.",
+     "stack": ["Python", "RL"]},
+    {"name": "Networking", "repo": "andrey-rublev/Networking", "site": None,
      "blurb": "Java socket programming and game projects.",
      "stack": ["Java"]},
 ]
@@ -201,7 +200,20 @@ def main() -> int:
                f'<source media="(prefers-color-scheme: light)" srcset="{base}/{s}-light.svg" />'
                f'<img src="{base}/{s}-dark.svg" alt="{p["name"]}" width="430" />'
                f'</picture>')
-        cells.append(f'<a href="{p["url"]}">{img}</a>' if p["url"] else img)
+        repo_url = f'https://github.com/{p["repo"]}' if p["repo"] else None
+        primary = p["site"] or repo_url
+        block = f'<a href="{primary}">{img}</a>' if primary else img
+
+        # An image carries one link, so anything with both a site and a repo
+        # needs them spelled out underneath to be reachable at all.
+        links = []
+        if p["site"]:
+            links.append(f'<a href="{p["site"]}">site</a>')
+        if repo_url:
+            links.append(f'<a href="{repo_url}">repo</a>')
+        if len(links) > 1:
+            block += "<br /><sub>" + " &middot; ".join(links) + "</sub>"
+        cells.append(block)
     # A real HTML table, not a markdown one. A markdown table does not parse
     # inside a raw <div> block, and every soft line break in there becomes a
     # stray <br> - both of which happened. Each <tr> stays on one line for the
