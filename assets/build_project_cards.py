@@ -30,8 +30,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "cards"
 OUT.mkdir(exist_ok=True)
 
-W, H = 430, 146
-WRAP = 46
+W, H = 400, 150     # box width; artwork is inset by GAP each side
+GAP = 7
+WRAP = 42
+BTN_BAR_H = 36
 
 THEMES = {
     "dark": {
@@ -131,12 +133,12 @@ def live(repo: str | None) -> dict:
 def card(p: dict, t: dict, data: dict) -> str:
     lines = textwrap.wrap(p["blurb"], width=WRAP)[:3]
     body = "".join(
-        f'<text x="20" y="{60 + i * 17}" class="d">{esc(l)}</text>'
+        f'<text x="{GAP+20}" y="{60 + i * 17}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
     )
 
     # Stack chips, laid out left to right on an approximate advance width.
-    chips, x = [], 20.0
+    chips, x = [], GAP + 20.0
     for s in p["stack"]:
         w = 11 + len(s) * 6.3
         chips.append(
@@ -148,10 +150,10 @@ def card(p: dict, t: dict, data: dict) -> str:
     meta = ""
     lang = data.get("language")
     if lang:
-        meta += f'<circle cx="{W-104}" cy="{H-31}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
-        meta += f'<text x="{W-95}" y="{H-27}" class="m">{esc(lang)}</text>'
+        meta += f'<circle cx="{W-GAP-104}" cy="{H-31}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
+        meta += f'<text x="{W-GAP-95}" y="{H-27}" class="m">{esc(lang)}</text>'
     if data.get("stars"):
-        meta += f'<text x="{W-20}" y="{H-27}" class="m e">&#9733; {data["stars"]}</text>'
+        meta += f'<text x="{W-GAP-20}" y="{H-27}" class="m e">&#9733; {data["stars"]}</text>'
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-label="{esc(p['name'])}">
 <title>{esc(p['name'])}</title>
@@ -163,9 +165,9 @@ def card(p: dict, t: dict, data: dict) -> str:
   .m{{font-size:11px;fill:{t['meta']}}}
   .e{{text-anchor:end}}
 </style>
-<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="10" fill="{t['bg']}" stroke="{t['border']}"/>
-<rect x="0.5" y="0.5" width="4" height="{H-1}" rx="2" fill="{t['accent']}"/>
-<text x="20" y="33" class="t">{esc(p['name'])}</text>
+<rect x="{GAP+0.5}" y="0.5" width="{W-GAP*2-1}" height="{H-1}" rx="10" fill="{t['bg']}" stroke="{t['border']}"/>
+<rect x="{GAP+0.5}" y="0.5" width="4" height="{H-1}" rx="2" fill="{t['accent']}"/>
+<text x="{GAP+20}" y="33" class="t">{esc(p['name'])}</text>
 {body}
 {"".join(chips)}
 {meta}
@@ -187,16 +189,35 @@ ICONS = {
 }
 
 
-def button(kind: str, label: str, t: dict) -> str:
-    icon_w, pad, gap, fs = 13, 12, 7, 12
+def button(kind: str, label: str, t: dict, box: int) -> str:
+    """A pill centred in a fixed-width transparent box.
+
+    The box width is what does the aligning. Two 200-wide strips sit exactly
+    under a 400-wide card, and a lone button gets the full 400 - so the button
+    row lines up with the cards above it using nothing but image widths, since
+    GitHub strips any CSS that could have done it.
+    """
+    icon_w, pad, gap, fs = 13, 13, 7, 12
     w = round(pad + icon_w + gap + len(label) * 6.9 + pad)
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {BTN_H}" width="{w}" height="{BTN_H}" role="img" aria-label="{label}">
+    x = (box - w) / 2
+    y = (BTN_BAR_H - 30) / 2
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {BTN_BAR_H}" width="{box}" height="{BTN_BAR_H}" role="img" aria-label="{label}">
 <title>{label}</title>
-<rect x="0.5" y="0.5" width="{w-1}" height="{BTN_H-1}" rx="8" fill="{t['chip_bg']}" stroke="{t['border']}"/>
-<g transform="translate({pad} {(BTN_H-icon_w)/2}) scale({icon_w/24})"><path fill="{t['chip_fg']}" d="{ICONS[kind]}"/></g>
-<text x="{pad + icon_w + gap}" y="{BTN_H/2 + fs*0.35:.0f}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="{fs}" font-weight="600" fill="{t['chip_fg']}">{label}</text>
+<g transform="translate({x:.1f} {y:.1f})">
+<rect x="0.5" y="0.5" width="{w-1}" height="29" rx="8" fill="{t['chip_bg']}" stroke="{t['border']}"/>
+<g transform="translate({pad} {(30-icon_w)/2:.1f}) scale({icon_w/24})"><path fill="{t['chip_fg']}" d="{ICONS[kind]}"/></g>
+<text x="{pad + icon_w + gap}" y="{15 + fs*0.35:.0f}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="{fs}" font-weight="600" fill="{t['chip_fg']}">{label}</text>
+</g>
 </svg>
 """
+
+
+def spacer(box: int) -> str:
+    """Keeps a button-less project occupying its column so the row stays square."""
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {BTN_BAR_H}" '
+            f'width="{box}" height="{BTN_BAR_H}" role="presentation"><title> </title>'
+            f'<rect width="{box}" height="{BTN_BAR_H}" fill="none"/></svg>')
+
 
 def slug(name: str) -> str:
     return "".join(ch if ch.isalnum() else "-" for ch in name.lower()).strip("-")
@@ -204,10 +225,13 @@ def slug(name: str) -> str:
 
 def main() -> int:
     for kind, label in (("site", "Live site"), ("repo", "Repository")):
-        for theme_name, t in THEMES.items():
-            svg = button(kind, label, t)
-            ET.fromstring(svg)
-            (OUT / f"btn-{kind}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+        for box in (W // 2, W):          # half a card when paired, full when alone
+            for theme_name, t in THEMES.items():
+                svg = button(kind, label, t, box)
+                ET.fromstring(svg)
+                (OUT / f"btn-{kind}-{box}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+    for box in (W // 2, W):
+        (OUT / f"btn-none-{box}.svg").write_text(spacer(box), encoding="utf-8")
 
     made = []
     for p in PROJECTS:
@@ -224,39 +248,45 @@ def main() -> int:
     print(f"\n{len(made) * 2} cards written to assets/cards/\n")
     print("README markup:\n")
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
-    cells = []
+    HALF = W // 2
 
-    def btn(kind: str, href: str) -> str:
-        return (f'<a href="{href}">'
-                f'<picture>'
-                f'<source media="(prefers-color-scheme: dark)" srcset="{base}/btn-{kind}-dark.svg" />'
-                f'<source media="(prefers-color-scheme: light)" srcset="{base}/btn-{kind}-light.svg" />'
-                f'<img src="{base}/btn-{kind}-dark.svg" alt="{kind}" height="30" />'
-                f'</picture></a>')
-
-    for p, s, _ in made:
+    def pic(stem: str, width: int, alt: str, href: str | None) -> str:
         img = (f'<picture>'
-               f'<source media="(prefers-color-scheme: dark)" srcset="{base}/{s}-dark.svg" />'
-               f'<source media="(prefers-color-scheme: light)" srcset="{base}/{s}-light.svg" />'
-               f'<img src="{base}/{s}-dark.svg" alt="{p["name"]}" width="430" />'
+               f'<source media="(prefers-color-scheme: dark)" srcset="{base}/{stem}-dark.svg" />'
+               f'<source media="(prefers-color-scheme: light)" srcset="{base}/{stem}-light.svg" />'
+               f'<img src="{base}/{stem}-dark.svg" alt="{alt}" width="{width}" />'
                f'</picture>')
-        # The card itself is not a link. Every destination gets its own button,
-        # so two places to go means two buttons rather than one hidden default.
-        row = []
-        if p["site"]:
-            row.append(btn("site", p["site"]))
-        if p["repo"]:
-            row.append(btn("repo", f'https://github.com/{p["repo"]}'))
-        cells.append(img + ("<br />" + " ".join(row) if row else ""))
+        return f'<a href="{href}">{img}</a>' if href else img
 
-    # No <table>. GitHub's sanitiser strips every style attribute from a README
-    # - only `align` survives - so a table's cell borders and row striping
-    # cannot be turned off, and they draw a visible grid around the cards.
-    # A centred paragraph carries no such chrome. The <br /> between card and
-    # buttons is explicit; a soft line break there would become a stray one.
-    for cell in cells:
-        print(f'<p align="center">{cell}</p>')
+    cards, bars = [], []
+    for p, s, _ in made:
+        cards.append(pic(s, W, p["name"], None))
+
+        dests = []
+        if p["site"]:
+            dests.append(("site", p["site"]))
+        if p["repo"]:
+            dests.append(("repo", f'https://github.com/{p["repo"]}'))
+
+        if not dests:
+            # Still occupies the column, so the row below stays aligned.
+            bars.append(f'<img src="{base}/btn-none-{W}.svg" width="{W}" alt="" />')
+        else:
+            box = HALF if len(dests) == 2 else W
+            bars.append("".join(
+                pic(f"btn-{kind}-{box}", box, kind, href) for kind, href in dests))
+
+    # Two per row, no table: GitHub strips every style attribute, so a table's
+    # cell borders cannot be turned off and they ring each card. Inline images
+    # wrap on their own, and the button strips are sized to match the cards
+    # above them - alignment done purely with image widths. No whitespace
+    # between tags, since an inline gap would break that alignment.
+    for i in range(0, len(cards), 2):
+        row_cards = "".join(cards[i:i + 2])
+        row_bars = "".join(bars[i:i + 2])
+        print(f'<p align="center">{row_cards}<br />{row_bars}</p>')
         print()
+
     return 0
 
 
