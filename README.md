@@ -14,11 +14,15 @@
   The 1px image at the end of this line is the counter, not decoration.
 
   komarev has no API, only an SVG with the number baked in, and it dedupes by
-  connecting IP. Rendering the badge from a server-side fetch therefore collapses
-  every visitor into a handful of Cloudflare egress IPs and the count stops moving
-  - which is exactly how this froze before. So the visitor's own browser still
-  loads komarev directly, and the Worker reads the number back out of it to draw
-  the pill, which is what makes the two badges match.
+  connecting IP. It never sees a visitor either way - GitHub's camo proxy fetches
+  every README image - but camo is a large, rotating fleet, so a direct embed
+  still arrives as many distinct addresses and keeps counting. Put the Worker in
+  that path and the same views all arrive from the handful of Cloudflare egress
+  addresses it exits from, get deduped, and the number stops moving. That is how
+  this sat frozen at 2,869 looking perfectly healthy.
+
+  So komarev stays embedded directly, and the Worker only reads the number back
+  out of it to draw the pill - which is what makes the two badges match.
 -->
 <a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/github" alt="GitHub profile views" height="26" /></a> <a href="#"><img src="https://nk-visits-badge.nikhilkolli1.workers.dev/" alt="Portfolio views" height="26" /></a><img src="https://komarev.com/ghpvc/?username=andrey-rublev" alt="" width="1" />
 

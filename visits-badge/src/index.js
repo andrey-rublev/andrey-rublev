@@ -271,11 +271,12 @@ function summarize(errors) {
  * the count is read back out of it and redrawn in this button set.
  *
  * This route reads the count; it does not produce it. komarev dedupes by
- * connecting IP, so these fetches all arrive from a handful of Cloudflare
- * egress addresses and increment nothing - an earlier version assumed the
+ * connecting IP, and these fetches all leave from a handful of Cloudflare
+ * egress addresses, so they increment nothing - an earlier version assumed the
  * opposite and the badge sat frozen for weeks. The counting is done by a 1px
- * komarev image in the README, loaded by the visitor's own browser. Keep it
- * there: delete it and this number stops moving with no other symptom.
+ * komarev image embedded directly in the README, which GitHub's camo proxy
+ * fetches from a fleet wide enough to escape the dedup. Keep it there: delete
+ * it and this number stops moving with no other symptom.
  */
 async function githubViews() {
   const res = await fetch(GHPVC_URL, { headers: { Accept: "image/svg+xml" } });

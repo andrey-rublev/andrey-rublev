@@ -99,18 +99,22 @@ curl -s 'https://komarev.com/ghpvc/?username=andrey-rublev' | grep -o '>[0-9,]*<
 # >2,881</text>
 ```
 
-So a badge rendered entirely from a server-side fetch collapses every visitor
-into the handful of Cloudflare egress addresses this Worker exits from, and the
-number stops moving. That is not hypothetical — it is how the badge sat frozen
-at 2,869 while looking perfectly healthy.
+komarev never sees a visitor either way — GitHub's camo proxy fetches every
+README image — but camo is a large, rotating fleet, so a direct embed still
+arrives as many distinct addresses and keeps counting. Put this Worker in that
+path and the same views all arrive from the handful of Cloudflare egress
+addresses it exits from, get deduped, and the number stops. That is not
+hypothetical: it is how the badge sat frozen at 2,869 while looking perfectly
+healthy, and the failure is silent — a frozen counter and a working one render
+identically.
 
-The counting is therefore left with the visitor's browser: the README embeds
-komarev directly at `width="1"`, and this route only reads what that produces.
-Delete the pixel and the badge freezes again, with no other symptom.
+The counting is therefore left to the direct embed. The README carries komarev
+at `width="1"`, and this route only reads what that produces. Delete the pixel
+and the badge freezes again, with no other symptom.
 
-Forwarding the real IP is not available as a fix. komarev ignores
-`X-Forwarded-For`, and GitHub's camo proxy has already anonymised the visitor
-before the request reaches here, so there is no address left to forward.
+Forwarding the real IP is not available as a fix: komarev ignores
+`X-Forwarded-For`, and camo has already anonymised the visitor before the
+request reaches here, so there is no address left to forward.
 
 ## Reliability
 
