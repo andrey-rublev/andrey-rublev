@@ -83,6 +83,35 @@ curl 'https://nk-visits-badge.<subdomain>.workers.dev/?debug=1'
 All three metrics come back every time, so the badge can be reconciled against
 the dashboard without redeploying. `?days=N` overrides the window under debug.
 
+## `/github` — why the README also carries a 1px komarev image
+
+The GitHub profile counter is a different problem from the portfolio one: there
+is no analytics API behind it, only [komarev](https://komarev.com/ghpvc/)'s SVG
+with the number baked in. `/github` fetches that, reads the number out and
+redraws it in the same button set, so the two badges match.
+
+**That route reads the count, it does not produce it.** komarev increments per
+request but dedupes by connecting IP:
+
+```bash
+curl -s 'https://komarev.com/ghpvc/?username=andrey-rublev' | grep -o '>[0-9,]*</text>' | tail -1
+# >2,881</text>   ... and again immediately:
+# >2,881</text>
+```
+
+So a badge rendered entirely from a server-side fetch collapses every visitor
+into the handful of Cloudflare egress addresses this Worker exits from, and the
+number stops moving. That is not hypothetical — it is how the badge sat frozen
+at 2,869 while looking perfectly healthy.
+
+The counting is therefore left with the visitor's browser: the README embeds
+komarev directly at `width="1"`, and this route only reads what that produces.
+Delete the pixel and the badge freezes again, with no other symptom.
+
+Forwarding the real IP is not available as a fix. komarev ignores
+`X-Forwarded-For`, and GitHub's camo proxy has already anonymised the visitor
+before the request reaches here, so there is no address left to forward.
+
 ## Reliability
 
 Answering from the API on every cache miss made the badge intermittently render

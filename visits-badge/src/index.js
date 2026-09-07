@@ -268,8 +268,14 @@ function summarize(errors) {
 
 /**
  * The profile counter has no API - only an SVG whose number is baked in - so
- * the count is read back out of it and redrawn in this button set. Fetched
- * fresh every time: it increments per render, which is the behaviour to keep.
+ * the count is read back out of it and redrawn in this button set.
+ *
+ * This route reads the count; it does not produce it. komarev dedupes by
+ * connecting IP, so these fetches all arrive from a handful of Cloudflare
+ * egress addresses and increment nothing - an earlier version assumed the
+ * opposite and the badge sat frozen for weeks. The counting is done by a 1px
+ * komarev image in the README, loaded by the visitor's own browser. Keep it
+ * there: delete it and this number stops moving with no other symptom.
  */
 async function githubViews() {
   const res = await fetch(GHPVC_URL, { headers: { Accept: "image/svg+xml" } });
