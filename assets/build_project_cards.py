@@ -19,7 +19,7 @@ its viewBox, each wrapped in its own <a>. Emitted adjacent with no whitespace
 between the tags they butt together into one seamless card carrying two links.
 
 The cut runs between the two buttons rather than down the middle, so each button
-lands inside the image that links to it - 321px of card for the site, a 59px
+lands inside the image that links to it: most of the card for the site, a narrow
 strip on the right for the repo.
 
 The cut also has to be vertical, and that is what fixes the buttons side by side
@@ -48,20 +48,26 @@ HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "cards"
 OUT.mkdir(exist_ok=True)
 
-# 380 is not arbitrary: GitHub's README column measures 791px, so two cards
-# plus their gaps have to fit inside that or they wrap to one per row.
-W, H = 380, 150     # box width; artwork is inset by GAP each side
+# 412 is measured, not chosen. GitHub's README column caps at 846px (identical
+# at 1440 and 1920 viewports) but is 831px at a 1280-wide window, and two cards
+# that overflow the column wrap to one per row instead of shrinking - inline
+# images each fit on their own. 831 is therefore the ceiling that matters, and
+# 2x412 = 824 clears it while still filling the width. Below ~1150 the column
+# drops to ~703 and the grid goes single-column, which is the right fallback.
+W, H = 412, 134     # box width; artwork is inset by GAP each side
 GAP = 5
-WRAP = 42
+WRAP = 46           # scaled with the card: 42 chars looked right at 380
 
-CHIP_Y = 110        # stack chips and the language/star line share this row
+TITLE_Y = 31
+BLURB_Y, BLURB_LEAD = 54, 16
+CHIP_Y = 98         # stack chips and the language/star line share this row
 
 # The buttons sit on the card rather than under it, so they cost no height.
 # They are icon-only because that is what fits: the longest title, "Quantum
 # Error Mitigation", measures 190px and ends at x=215, leaving 140px of title
 # row. Two labelled pills come to ~138 and would all but touch it.
 BTN_W, BTN_H, BTN_GAP = 30, 26, 8
-BTN_Y = 14                  # centred on the title's cap height
+BTN_Y = 12                  # centred on the title's cap height
 BTN_RIGHT = W - GAP - 20    # the right margin the language/star line uses
 
 THEMES = {
@@ -201,7 +207,7 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
     """The whole 380-wide card, in card coordinates. Both halves share it."""
     lines = textwrap.wrap(p["blurb"], width=WRAP)[:3]
     body = "".join(
-        f'<text x="{GAP+20}" y="{60 + i * 17}" class="d">{esc(l)}</text>'
+        f'<text x="{GAP+20}" y="{BLURB_Y + i * BLURB_LEAD}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
     )
 
@@ -235,7 +241,7 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
         f'<defs><clipPath id="card"><rect x="{GAP+0.5}" y="0.5" width="{W-GAP*2-1}" height="{H-1}" rx="10"/></clipPath></defs>'
         f'<rect x="{GAP+0.5}" y="0.5" width="{W-GAP*2-1}" height="{H-1}" rx="10" fill="{t["bg"]}" stroke="{t["border"]}"/>'
         f'<rect x="{GAP+0.5}" y="0.5" width="4" height="{H-1}" fill="{t["accent"]}" clip-path="url(#card)"/>'
-        f'<text x="{GAP+20}" y="33" class="t">{esc(p["name"])}</text>'
+        f'<text x="{GAP+20}" y="{TITLE_Y}" class="t">{esc(p["name"])}</text>'
         + body + "".join(chips) + meta + buttons
     )
 
