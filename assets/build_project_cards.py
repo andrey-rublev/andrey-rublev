@@ -14,15 +14,18 @@ How two buttons sit on one card
 An SVG inside an <img> is not interactive, so a button painted into the card is
 decoration: the click has to come from the <a> wrapping the image, and one image
 can carry exactly one link. A card with both a site and a repo is therefore
-written out as two 190-wide images, each a window onto the same 380-wide artwork
-through its viewBox, each wrapped in its own <a>. Emitted adjacent with no
-whitespace between the tags they butt together into one seamless card carrying
-two links, and the button drawn in each half is the destination that half goes
-to.
+written out as two images, each a window onto the same 380-wide artwork through
+its viewBox, each wrapped in its own <a>. Emitted adjacent with no whitespace
+between the tags they butt together into one seamless card carrying two links.
 
-The seam has to be vertical. Images on consecutive lines are held apart by the
-line box - which is the very gap this layout exists to remove - so the card
-cannot instead be sliced into a body and a button row.
+The cut runs between the two buttons rather than down the middle, so each button
+lands inside the image that links to it - 321px of card for the site, a 59px
+strip on the right for the repo.
+
+The cut also has to be vertical, and that is what fixes the buttons side by side
+on the title row. Images on consecutive lines are held apart by the line box, so
+there is no horizontal cut available - which rules out stacking the two buttons
+one above the other, or giving them a row of their own under the card.
 
 Two things worth knowing before editing:
 
@@ -47,15 +50,19 @@ OUT.mkdir(exist_ok=True)
 
 # 380 is not arbitrary: GitHub's README column measures 791px, so two cards
 # plus their gaps have to fit inside that or they wrap to one per row.
-W, H = 380, 188     # box width; artwork is inset by GAP each side
+W, H = 380, 150     # box width; artwork is inset by GAP each side
 GAP = 5
 WRAP = 42
-HALF = W // 2
 
-CHIP_Y = 106        # stack chips and the language/star line share this row
-DIV_Y = 140         # hairline above the buttons
-BTN_Y = 150
-BTN_H = 30
+CHIP_Y = 110        # stack chips and the language/star line share this row
+
+# The buttons sit on the card rather than under it, so they cost no height.
+# They are icon-only because that is what fits: the longest title, "Quantum
+# Error Mitigation", measures 190px and ends at x=215, leaving 140px of title
+# row. Two labelled pills come to ~138 and would all but touch it.
+BTN_W, BTN_H, BTN_GAP = 30, 26, 8
+BTN_Y = 14                  # centred on the title's cap height
+BTN_RIGHT = W - GAP - 20    # the right margin the language/star line uses
 
 THEMES = {
     "dark": {
@@ -159,25 +166,34 @@ def live(repo: str | None) -> dict:
         return {}
 
 
-def pill(kind: str, t: dict, cx: float) -> str:
-    """One button, centred on cx in card coordinates.
+def button_xs(n: int) -> list:
+    """Left edges of a right-aligned run of n buttons, in card coordinates."""
+    run = n * BTN_W + (n - 1) * BTN_GAP
+    return [BTN_RIGHT - run + i * (BTN_W + BTN_GAP) for i in range(n)]
+
+
+def split_x() -> int:
+    """Where a two-destination card is cut, midway between its two buttons."""
+    a, b = button_xs(2)
+    return round((a + BTN_W + b) / 2)
+
+
+def icon_button(kind: str, t: dict, x: float) -> str:
+    """One button at x on the title row.
 
     The live site is the primary action and takes the solid accent fill; the
-    repo is secondary and stays outlined. A card with only one destination
-    centres its single button across the whole width.
+    repo is secondary and stays outlined. No label fits here, so the anchor's
+    alt text carries the destination.
     """
-    label = LABEL[kind]
-    icon_w, pad, gap, fs = 13, 13, 7, 12
-    w = round(pad + icon_w + gap + len(label) * 6.9 + pad)
     solid = kind == "site"
     fill = t["accent"] if solid else t["chip_bg"]
     ink = t["bg"] if solid else t["chip_fg"]
     stroke = "none" if solid else t["border"]
-    return (f'<g transform="translate({cx - w / 2:.1f} {BTN_Y})">'
-            f'<rect x="0.5" y="0.5" width="{w - 1}" height="{BTN_H - 1}" rx="8" fill="{fill}" stroke="{stroke}"/>'
-            f'<g transform="translate({pad} {(BTN_H - icon_w) / 2:.1f}) scale({icon_w / 24})">'
+    s = 14
+    return (f'<g transform="translate({x} {BTN_Y})">'
+            f'<rect x="0.5" y="0.5" width="{BTN_W - 1}" height="{BTN_H - 1}" rx="7" fill="{fill}" stroke="{stroke}"/>'
+            f'<g transform="translate({(BTN_W - s) / 2} {(BTN_H - s) / 2}) scale({s / 24})">'
             f'<path fill="{ink}" d="{ICONS[kind]}"/></g>'
-            f'<text x="{pad + icon_w + gap}" y="{BTN_H / 2 + fs * 0.35:.0f}" class="b" fill="{ink}">{label}</text>'
             f'</g>')
 
 
@@ -207,15 +223,11 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
     if data.get("stars"):
         meta += f'<text x="{W-GAP-20}" y="{CHIP_Y+13}" class="m e">&#9733; {data["stars"]}</text>'
 
-    foot = ""
-    if dests:
-        foot = (f'<line x1="{GAP+16}" y1="{DIV_Y}" x2="{W-GAP-16}" y2="{DIV_Y}" '
-                f'stroke="{t["border"]}"/>')
-        # Two buttons each centre on their own half, so each falls entirely
-        # inside the image that links to it.
-        centres = ([(GAP + W / 2) / 2, (W / 2 + W - GAP) / 2] if len(dests) == 2
-                   else [W / 2])
-        foot += "".join(pill(kind, t, cx) for (kind, _), cx in zip(dests, centres))
+    # Right-aligned on the title row, in the same order as `dests` - site then
+    # repo - so the cut below lands between them and each button ends up inside
+    # the image that links to it.
+    buttons = "".join(icon_button(kind, t, x)
+                      for (kind, _), x in zip(dests, button_xs(len(dests))))
 
     # The accent bar is clipped to the card, not merely stacked on it: a square
     # bar over a 10px-rounded corner leaves a purple nub poking out at each end.
@@ -224,7 +236,7 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
         f'<rect x="{GAP+0.5}" y="0.5" width="{W-GAP*2-1}" height="{H-1}" rx="10" fill="{t["bg"]}" stroke="{t["border"]}"/>'
         f'<rect x="{GAP+0.5}" y="0.5" width="4" height="{H-1}" fill="{t["accent"]}" clip-path="url(#card)"/>'
         f'<text x="{GAP+20}" y="33" class="t">{esc(p["name"])}</text>'
-        + body + "".join(chips) + meta + foot
+        + body + "".join(chips) + meta + buttons
     )
 
 
@@ -239,7 +251,6 @@ def card(inner: str, t: dict, label: str, x0: int, vw: int) -> str:
   .c{{font-size:10.5px;fill:{t['chip_fg']};text-anchor:middle}}
   .m{{font-size:11px;fill:{t['meta']}}}
   .e{{text-anchor:end}}
-  .b{{font-size:12px;font-weight:600}}
 </style>
 {inner}
 </svg>
@@ -268,8 +279,10 @@ def main() -> int:
         for theme_name, t in THEMES.items():
             inner = art(p, t, data, dests)
             if len(dests) == 2:
-                for tag, x0, (kind, _) in (("l", 0, dests[0]), ("r", HALF, dests[1])):
-                    svg = card(inner, t, f'{p["name"]} {LABEL[kind]}', x0, HALF)
+                cut = split_x()
+                for tag, x0, vw, (kind, _) in (("l", 0, cut, dests[0]),
+                                               ("r", cut, W - cut, dests[1])):
+                    svg = card(inner, t, f'{p["name"]} {LABEL[kind]}', x0, vw)
                     ET.fromstring(svg)  # a stray < or & is a silent broken image
                     (OUT / f"{s}-{tag}-{theme_name}.svg").write_text(svg, encoding="utf-8")
             else:
@@ -292,14 +305,17 @@ def main() -> int:
                f'<source media="(prefers-color-scheme: light)" srcset="{base}/{stem}-light.svg" />'
                f'<img src="{base}/{stem}-dark.svg" alt="{esc(alt)}" width="{width}" />'
                f'</picture>')
-        return f'<a href="{href}">{img}</a>' if href else img
+        # The buttons are icon-only, so the hover tooltip is the only place the
+        # destination is spelled out for a sighted reader.
+        return f'<a href="{href}" title="{esc(alt)}">{img}</a>' if href else img
 
     cells = []
     for p, s, _, dests in made:
         if len(dests) == 2:
+            cut = split_x()
             cells.append(
-                pic(f"{s}-l", HALF, f'{p["name"]} live site', dests[0][1])
-                + pic(f"{s}-r", HALF, f'{p["name"]} repository', dests[1][1]))
+                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1])
+                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1]))
         elif dests:
             cells.append(pic(s, W, p["name"], dests[0][1]))
         else:
