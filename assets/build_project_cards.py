@@ -6,7 +6,7 @@ Renders one card per project into assets/cards/, dark and light.
 Live metrics (language, stars, forks) come from the GitHub API for the projects
 that have a public repo. The blurb and the stack chips stay hand-written here,
 because the curated copy in this README is better than the repo descriptions and
-several projects - Agentic AI, RealTalk, Gradus - have no repo to read from at
+several projects - RealTalk, Gradus - have no repo to read from at
 all. So the card is a merge: your words, live numbers.
 
 How two buttons sit on one card
@@ -101,9 +101,9 @@ PROJECTS = [
     {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
      "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
      "stack": ["PennyLane", "JAX"]},
-    {"name": "Agentic AI Infrastructure", "repo": None, "site": None,
-     "blurb": "Multi-LLM model routing, MCP servers, custom skills and connectors.",
-     "stack": ["MCP", "Python", "TypeScript"]},
+    {"name": "GeoGuessr AI", "repo": "andrey-rublev/geoguessr-AI", "site": None,
+     "blurb": "Self-trained geolocation model that plays OpenGuessr from screen pixels alone, then finds the spot on the map and drops the pin.",
+     "stack": ["PyTorch", "CLIP"]},
     {"name": "Vigil", "repo": "seno3/vigil", "site": None,
      "blurb": "Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.",
      "stack": ["Next.js", "Supabase", "Mapbox"]},
