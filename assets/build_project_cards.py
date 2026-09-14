@@ -35,6 +35,7 @@ Two things worth knowing before editing:
     encoding declaration that survives every way it can be served, and the
     em-dashes in these blurbs came back as mojibake without this.
 """
+import hashlib
 import json
 import math
 import os
@@ -349,6 +350,16 @@ def main() -> int:
     print("README markup:\n")
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
 
+    def url(stem: str, theme: str) -> str:
+        # File names outlive their contents: a layout change rewrites a card in
+        # place, and a phone that had cached the old one kept drawing it - a
+        # 36px-tall repo button spliced onto a 142px-tall card. So every URL
+        # carries a hash of its file, and new contents are a new cache key.
+        # Line endings are normalised so a Windows build hashes like CI's.
+        name = f"{stem}-{theme}.svg"
+        digest = hashlib.sha1((OUT / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:8]
+        return f"{base}/{name}?v={digest}"
+
     def pic(stem: str, width: int, alt: str, href: str | None = None,
             narrow: str | None = None, share: float = 100) -> str:
         # The first matching <source> wins, so the narrow ones go first, each
@@ -357,9 +368,9 @@ def main() -> int:
                     narrow, th, f' width="{share:g}%"') for th in THEMES] if narrow else []
         sources += [(f"(prefers-color-scheme: {th})", stem, th, "") for th in THEMES]
         img = ('<picture>'
-               + "".join(f'<source media="{q}" srcset="{base}/{st}-{th}.svg"{wa} />'
+               + "".join(f'<source media="{q}" srcset="{url(st, th)}"{wa} />'
                          for q, st, th, wa in sources)
-               + f'<img src="{base}/{stem}-dark.svg" alt="{esc(alt)}" width="{width}" />'
+               + f'<img src="{url(stem, "dark")}" alt="{esc(alt)}" width="{width}" />'
                '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
