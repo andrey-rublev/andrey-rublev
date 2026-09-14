@@ -71,10 +71,17 @@ BLURB_Y, BLURB_LEAD = 54, 16
 #
 # The column is narrower than 412 in two measured ranges: below a ~509px
 # viewport, and from 768 to ~796, where GitHub's profile sidebar appears and
-# takes the width back. Both bounds carry ~30px of margin for a scrollbar,
+# takes the width back. Both bounds carry 16px of margin for a scrollbar,
 # which narrows the column without changing the viewport the query sees.
-MW, MWRAP, MLINES = 340, 38, 4
-NARROW = ["(max-width: 539px)", "(min-width: 768px) and (max-width: 823px)"]
+# Keep the margin small: past the point where 412 fits again, the narrow
+# artwork still loads but the repo button fits beside the card, not under it.
+#
+# Narrow cards stack one per line, so nothing needs them to match heights:
+# each is as tall as its own blurb. MPAD is clear space under the card,
+# because two cards in one <p> sit a bare line-gap apart on a phone while
+# consecutive <p>s get a paragraph margin, and the difference showed.
+MW, MWRAP, MLINES, MPAD = 340, 38, 4, 8
+NARROW = ["(max-width: 524px)", "(min-width: 768px) and (max-width: 812px)"]
 PILL_W, PILL_H = 59, 36   # the repo half keeps its 59px width attribute
 
 # The buttons sit on the card rather than under it, so they cost no height.
@@ -224,13 +231,19 @@ def icon_button(kind: str, t: dict, x: float, y: float = BTN_Y) -> str:
 
 
 def art(p: dict, t: dict, data: dict, dests: list,
-        W: int = W, wrap: int = WRAP, max_lines: int = LINES) -> str:
-    """The whole card, in card coordinates. Both halves of a split card share it."""
-    H, CHIP_Y = chip_y(max_lines) + 36, chip_y(max_lines)
+        W: int = W, wrap: int = WRAP, max_lines: int = LINES,
+        fit: bool = False) -> tuple:
+    """The whole card and its height, in card coordinates.
+
+    Both halves of a split card share it. Wide cards reserve max_lines so a row
+    of two lines up; `fit` sizes the card to its own blurb instead.
+    """
     lines = textwrap.wrap(p["blurb"], width=wrap)
     if len(lines) > max_lines:
         print(f"    {p['name']}: blurb cut at {max_lines} lines, {wrap} chars", file=sys.stderr)
     lines = lines[:max_lines]
+    CHIP_Y = chip_y(len(lines) if fit else max_lines)
+    H = CHIP_Y + 36
     body = "".join(
         f'<text x="{GAP+20}" y="{BLURB_Y + i * BLURB_LEAD}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
@@ -268,7 +281,7 @@ def art(p: dict, t: dict, data: dict, dests: list,
         f'<rect x="{GAP+0.5}" y="0.5" width="4" height="{H-1}" fill="{t["accent"]}" clip-path="url(#card)"/>'
         f'<text x="{GAP+20}" y="{TITLE_Y}" class="t">{esc(p["name"])}</text>'
         + body + "".join(chips) + meta + buttons
-    )
+    ), H
 
 
 def pill(t: dict) -> str:
@@ -313,7 +326,7 @@ def main() -> int:
             dests.append(("repo", f'https://github.com/{p["repo"]}'))
 
         for theme_name, t in THEMES.items():
-            inner = art(p, t, data, dests)
+            inner, _ = art(p, t, data, dests)
             if len(dests) == 2:
                 cut = split_x()
                 for tag, x0, vw, (kind, _) in (("l", 0, cut, dests[0]),
@@ -328,9 +341,9 @@ def main() -> int:
 
             # Narrow artwork is always one whole card. A split card keeps its
             # site button on it, and its repo half becomes the standalone pill.
-            narrow = [(f"{s}-m", card(art(p, t, data, dests[:1] if len(dests) == 2 else dests,
-                                          MW, MWRAP, MLINES),
-                                      t, p["name"], 0, MW, chip_y(MLINES) + 36))]
+            m, mh = art(p, t, data, dests[:1] if len(dests) == 2 else dests,
+                        MW, MWRAP, MLINES, fit=True)
+            narrow = [(f"{s}-m", card(m, t, p["name"], 0, MW, mh + MPAD))]
             if len(dests) == 2:
                 narrow.append((f"{s}-rm", card(pill(t), t, f'{p["name"]} {LABEL["repo"]}',
                                                0, PILL_W, PILL_H)))
