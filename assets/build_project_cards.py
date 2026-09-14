@@ -36,6 +36,7 @@ Two things worth knowing before editing:
     em-dashes in these blurbs came back as mojibake without this.
 """
 import json
+import math
 import os
 import pathlib
 import sys
@@ -62,27 +63,27 @@ LINES = 3
 TITLE_Y = 31
 BLURB_Y, BLURB_LEAD = 54, 16
 
-# Narrow screens get their own artwork. Below a 412px column the split cards
-# fall apart: each <img> shrinks to the column on its own, so the wide half
-# fills the line and the repo strip wraps underneath it. Every card also
-# shrinks to ~70% there, and 12px body text becomes 8px. So each <picture>
-# swaps in a 340-wide card (text lands near 1:1 on a phone) and a split card's
-# repo half becomes a standalone button under it.
+# Narrow screens get their own artwork, same design at 340 wide. Below a 412px
+# column the pixel widths fail: each <img> shrinks to the column on its own, so
+# a split card's wide half fills the line and its repo strip wraps underneath.
+# Every card also shrinks to ~70%, and 12px body text becomes 8px.
 #
-# The column is narrower than 412 in two measured ranges: below a ~509px
-# viewport, and from 768 to ~796, where GitHub's profile sidebar appears and
-# takes the width back. Both bounds carry 16px of margin for a scrollbar,
-# which narrows the column without changing the viewport the query sees.
-# Keep the margin small: past the point where 412 fits again, the narrow
-# artwork still loads but the repo button fits beside the card, not under it.
+# So each <picture> gets narrow sources, and those carry a percentage width.
+# <source width> replaces the <img>'s own width when that source is chosen, so
+# desktop keeps its pixels while on a phone the two halves of a split card take
+# fixed shares of the column and scale together, buttons and all. The shares are
+# floored to 0.01%: a total a hair over 100% would wrap the strip again, while
+# a hair under leaves a seam far below a pixel.
 #
-# Narrow cards stack one per line, so nothing needs them to match heights:
-# each is as tall as its own blurb. MPAD is clear space under the card,
-# because two cards in one <p> sit a bare line-gap apart on a phone while
-# consecutive <p>s get a paragraph margin, and the difference showed.
+# The column is narrower than 412 below a ~509px viewport, and from 768 to ~796
+# where GitHub's profile sidebar appears. Overshooting those bounds is harmless
+# - the narrow card just fills the column - so both carry margin for scrollbars.
+#
+# Narrow cards stack one per line, so each is only as tall as its own blurb.
+# MPAD is clear space under the card: two cards in one <p> sit a bare line-gap
+# apart on a phone while consecutive <p>s get a paragraph margin.
 MW, MWRAP, MLINES, MPAD = 340, 38, 4, 8
-NARROW = ["(max-width: 524px)", "(min-width: 768px) and (max-width: 812px)"]
-PILL_W, PILL_H = 59, 36   # the repo half keeps its 59px width attribute
+NARROW = ["(max-width: 539px)", "(min-width: 768px) and (max-width: 823px)"]
 
 # The buttons sit on the card rather than under it, so they cost no height.
 # They are icon-only because that is what fits: the longest title, "Quantum
@@ -205,9 +206,9 @@ def button_xs(n: int, w: int = W) -> list:
     return [right - run + i * (BTN_W + BTN_GAP) for i in range(n)]
 
 
-def split_x() -> int:
+def split_x(w: int = W) -> int:
     """Where a two-destination card is cut, midway between its two buttons."""
-    a, b = button_xs(2)
+    a, b = button_xs(2, w)
     return round((a + BTN_W + b) / 2)
 
 
@@ -284,11 +285,6 @@ def art(p: dict, t: dict, data: dict, dests: list,
     ), H
 
 
-def pill(t: dict) -> str:
-    """A split card's repo half on a narrow screen: the repo button on its own."""
-    return icon_button("repo", t, (PILL_W - BTN_W) / 2, (PILL_H - BTN_H) / 2)
-
-
 def card(inner: str, t: dict, label: str, x0: int, vw: int, H: int = H) -> str:
     """Wrap the artwork in an SVG whose viewBox windows it down to one slice."""
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {vw} {H}" width="{vw}" height="{H}" role="img" aria-label="{esc(label)}">
@@ -325,31 +321,24 @@ def main() -> int:
         if p["repo"]:
             dests.append(("repo", f'https://github.com/{p["repo"]}'))
 
-        for theme_name, t in THEMES.items():
-            inner, _ = art(p, t, data, dests)
-            if len(dests) == 2:
-                cut = split_x()
-                for tag, x0, vw, (kind, _) in (("l", 0, cut, dests[0]),
-                                               ("r", cut, W - cut, dests[1])):
-                    svg = card(inner, t, f'{p["name"]} {LABEL[kind]}', x0, vw)
-                    ET.fromstring(svg)  # a stray < or & is a silent broken image
-                    (OUT / f"{s}-{tag}-{theme_name}.svg").write_text(svg, encoding="utf-8")
-            else:
-                svg = card(inner, t, p["name"], 0, W)
-                ET.fromstring(svg)
-                (OUT / f"{s}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+        def write(stem: str, svg: str) -> None:
+            ET.fromstring(svg)  # a stray < or & is a silent broken image
+            (OUT / f"{stem}.svg").write_text(svg, encoding="utf-8")
 
-            # Narrow artwork is always one whole card. A split card keeps its
-            # site button on it, and its repo half becomes the standalone pill.
-            m, mh = art(p, t, data, dests[:1] if len(dests) == 2 else dests,
-                        MW, MWRAP, MLINES, fit=True)
-            narrow = [(f"{s}-m", card(m, t, p["name"], 0, MW, mh + MPAD))]
-            if len(dests) == 2:
-                narrow.append((f"{s}-rm", card(pill(t), t, f'{p["name"]} {LABEL["repo"]}',
-                                               0, PILL_W, PILL_H)))
-            for stem, svg in narrow:
-                ET.fromstring(svg)
-                (OUT / f"{stem}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+        for theme_name, t in THEMES.items():
+            # Wide, then narrow ("m"); a narrow file sits beside its wide one.
+            wide, narrow = art(p, t, data, dests), art(p, t, data, dests, MW, MWRAP, MLINES, fit=True)
+            for sfx, w, inner, h in (("", W, wide[0], wide[1]),
+                                     ("m", MW, narrow[0], narrow[1] + MPAD)):
+                if len(dests) == 2:
+                    cut = split_x(w)
+                    for tag, x0, vw, (kind, _) in (("l", 0, cut, dests[0]),
+                                                   ("r", cut, w - cut, dests[1])):
+                        write(f"{s}-{tag}{sfx}-{theme_name}",
+                              card(inner, t, f'{p["name"]} {LABEL[kind]}', x0, vw, h))
+                else:
+                    write(f"{s}{'-' + sfx if sfx else ''}-{theme_name}",
+                          card(inner, t, p["name"], 0, w, h))
 
         made.append((p, s, data, dests))
         bits = [k for k in ("language", "stars") if data.get(k)]
@@ -361,29 +350,31 @@ def main() -> int:
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
 
     def pic(stem: str, width: int, alt: str, href: str | None = None,
-            narrow: str | None = None) -> str:
-        # The first matching <source> wins, so the narrow ones go first. The
-        # width attribute stays the wide one: on a phone it only caps the image,
-        # and the height follows whichever artwork actually loaded.
-        sources = [(", ".join(f"{q} and (prefers-color-scheme: {th})" for q in NARROW), narrow, th)
-                   for th in THEMES] if narrow else []
-        sources += [(f"(prefers-color-scheme: {th})", stem, th) for th in THEMES]
+            narrow: str | None = None, share: float = 100) -> str:
+        # The first matching <source> wins, so the narrow ones go first, each
+        # carrying its share of the column. The height follows the artwork.
+        sources = [(", ".join(f"{q} and (prefers-color-scheme: {th})" for q in NARROW),
+                    narrow, th, f' width="{share:g}%"') for th in THEMES] if narrow else []
+        sources += [(f"(prefers-color-scheme: {th})", stem, th, "") for th in THEMES]
         img = ('<picture>'
-               + "".join(f'<source media="{q}" srcset="{base}/{st}-{th}.svg" />'
-                         for q, st, th in sources)
+               + "".join(f'<source media="{q}" srcset="{base}/{st}-{th}.svg"{wa} />'
+                         for q, st, th, wa in sources)
                + f'<img src="{base}/{stem}-dark.svg" alt="{esc(alt)}" width="{width}" />'
                '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
         return f'<a href="{href}" title="{esc(alt)}">{img}</a>' if href else img
 
+    def share(px: int) -> float:
+        return math.floor(px / MW * 10000) / 100
+
     cells = []
     for p, s, _, dests in made:
         if len(dests) == 2:
-            cut = split_x()
+            cut, mcut = split_x(), split_x(MW)
             cells.append(
-                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1], f"{s}-m")
-                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1], f"{s}-rm"))
+                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1], f"{s}-lm", share(mcut))
+                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1], f"{s}-rm", share(MW - mcut)))
         elif dests:
             cells.append(pic(s, W, p["name"], dests[0][1], f"{s}-m"))
         else:
