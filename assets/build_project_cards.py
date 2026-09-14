@@ -57,10 +57,25 @@ OUT.mkdir(exist_ok=True)
 W, H = 412, 134     # box width; artwork is inset by GAP each side
 GAP = 5
 WRAP = 46           # scaled with the card: 42 chars looked right at 380
+LINES = 3
 
 TITLE_Y = 31
 BLURB_Y, BLURB_LEAD = 54, 16
-CHIP_Y = 98         # stack chips and the language/star line share this row
+
+# Narrow screens get their own artwork. Below a 412px column the split cards
+# fall apart: each <img> shrinks to the column on its own, so the wide half
+# fills the line and the repo strip wraps underneath it. Every card also
+# shrinks to ~70% there, and 12px body text becomes 8px. So each <picture>
+# swaps in a 340-wide card (text lands near 1:1 on a phone) and a split card's
+# repo half becomes a standalone button under it.
+#
+# The column is narrower than 412 in two measured ranges: below a ~509px
+# viewport, and from 768 to ~796, where GitHub's profile sidebar appears and
+# takes the width back. Both bounds carry ~30px of margin for a scrollbar,
+# which narrows the column without changing the viewport the query sees.
+MW, MWRAP, MLINES = 340, 38, 4
+NARROW = ["(max-width: 539px)", "(min-width: 768px) and (max-width: 823px)"]
+PILL_W, PILL_H = 59, 36   # the repo half keeps its 59px width attribute
 
 # The buttons sit on the card rather than under it, so they cost no height.
 # They are icon-only because that is what fits: the longest title, "Quantum
@@ -68,7 +83,6 @@ CHIP_Y = 98         # stack chips and the language/star line share this row
 # row. Two labelled pills come to ~138 and would all but touch it.
 BTN_W, BTN_H, BTN_GAP = 30, 26, 8
 BTN_Y = 12                  # centred on the title's cap height
-BTN_RIGHT = W - GAP - 20    # the right margin the language/star line uses
 
 THEMES = {
     "dark": {
@@ -172,10 +186,16 @@ def live(repo: str | None) -> dict:
         return {}
 
 
-def button_xs(n: int) -> list:
+def chip_y(lines: int) -> int:
+    """Stack chips and the language/star line share this row, under the blurb."""
+    return BLURB_Y + (lines - 1) * BLURB_LEAD + 12
+
+
+def button_xs(n: int, w: int = W) -> list:
     """Left edges of a right-aligned run of n buttons, in card coordinates."""
     run = n * BTN_W + (n - 1) * BTN_GAP
-    return [BTN_RIGHT - run + i * (BTN_W + BTN_GAP) for i in range(n)]
+    right = w - GAP - 20    # the right margin the language/star line uses
+    return [right - run + i * (BTN_W + BTN_GAP) for i in range(n)]
 
 
 def split_x() -> int:
@@ -184,8 +204,8 @@ def split_x() -> int:
     return round((a + BTN_W + b) / 2)
 
 
-def icon_button(kind: str, t: dict, x: float) -> str:
-    """One button at x on the title row.
+def icon_button(kind: str, t: dict, x: float, y: float = BTN_Y) -> str:
+    """One button at x, on the title row unless told otherwise.
 
     The live site is the primary action and takes the solid accent fill; the
     repo is secondary and stays outlined. No label fits here, so the anchor's
@@ -196,16 +216,21 @@ def icon_button(kind: str, t: dict, x: float) -> str:
     ink = t["bg"] if solid else t["chip_fg"]
     stroke = "none" if solid else t["border"]
     s = 14
-    return (f'<g transform="translate({x} {BTN_Y})">'
+    return (f'<g transform="translate({x} {y})">'
             f'<rect x="0.5" y="0.5" width="{BTN_W - 1}" height="{BTN_H - 1}" rx="7" fill="{fill}" stroke="{stroke}"/>'
             f'<g transform="translate({(BTN_W - s) / 2} {(BTN_H - s) / 2}) scale({s / 24})">'
             f'<path fill="{ink}" d="{ICONS[kind]}"/></g>'
             f'</g>')
 
 
-def art(p: dict, t: dict, data: dict, dests: list) -> str:
-    """The whole 380-wide card, in card coordinates. Both halves share it."""
-    lines = textwrap.wrap(p["blurb"], width=WRAP)[:3]
+def art(p: dict, t: dict, data: dict, dests: list,
+        W: int = W, wrap: int = WRAP, max_lines: int = LINES) -> str:
+    """The whole card, in card coordinates. Both halves of a split card share it."""
+    H, CHIP_Y = chip_y(max_lines) + 36, chip_y(max_lines)
+    lines = textwrap.wrap(p["blurb"], width=wrap)
+    if len(lines) > max_lines:
+        print(f"    {p['name']}: blurb cut at {max_lines} lines, {wrap} chars", file=sys.stderr)
+    lines = lines[:max_lines]
     body = "".join(
         f'<text x="{GAP+20}" y="{BLURB_Y + i * BLURB_LEAD}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
@@ -233,7 +258,7 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
     # repo - so the cut below lands between them and each button ends up inside
     # the image that links to it.
     buttons = "".join(icon_button(kind, t, x)
-                      for (kind, _), x in zip(dests, button_xs(len(dests))))
+                      for (kind, _), x in zip(dests, button_xs(len(dests), W)))
 
     # The accent bar is clipped to the card, not merely stacked on it: a square
     # bar over a 10px-rounded corner leaves a purple nub poking out at each end.
@@ -246,7 +271,12 @@ def art(p: dict, t: dict, data: dict, dests: list) -> str:
     )
 
 
-def card(inner: str, t: dict, label: str, x0: int, vw: int) -> str:
+def pill(t: dict) -> str:
+    """A split card's repo half on a narrow screen: the repo button on its own."""
+    return icon_button("repo", t, (PILL_W - BTN_W) / 2, (PILL_H - BTN_H) / 2)
+
+
+def card(inner: str, t: dict, label: str, x0: int, vw: int, H: int = H) -> str:
     """Wrap the artwork in an SVG whose viewBox windows it down to one slice."""
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {vw} {H}" width="{vw}" height="{H}" role="img" aria-label="{esc(label)}">
 <title>{esc(label)}</title>
@@ -296,6 +326,18 @@ def main() -> int:
                 ET.fromstring(svg)
                 (OUT / f"{s}-{theme_name}.svg").write_text(svg, encoding="utf-8")
 
+            # Narrow artwork is always one whole card. A split card keeps its
+            # site button on it, and its repo half becomes the standalone pill.
+            narrow = [(f"{s}-m", card(art(p, t, data, dests[:1] if len(dests) == 2 else dests,
+                                          MW, MWRAP, MLINES),
+                                      t, p["name"], 0, MW, chip_y(MLINES) + 36))]
+            if len(dests) == 2:
+                narrow.append((f"{s}-rm", card(pill(t), t, f'{p["name"]} {LABEL["repo"]}',
+                                               0, PILL_W, PILL_H)))
+            for stem, svg in narrow:
+                ET.fromstring(svg)
+                (OUT / f"{stem}-{theme_name}.svg").write_text(svg, encoding="utf-8")
+
         made.append((p, s, data, dests))
         bits = [k for k in ("language", "stars") if data.get(k)]
         print(f"  {p['name']:<26} {len(dests)} link  "
@@ -305,12 +347,19 @@ def main() -> int:
     print("README markup:\n")
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
 
-    def pic(stem: str, width: int, alt: str, href: str | None = None) -> str:
-        img = (f'<picture>'
-               f'<source media="(prefers-color-scheme: dark)" srcset="{base}/{stem}-dark.svg" />'
-               f'<source media="(prefers-color-scheme: light)" srcset="{base}/{stem}-light.svg" />'
-               f'<img src="{base}/{stem}-dark.svg" alt="{esc(alt)}" width="{width}" />'
-               f'</picture>')
+    def pic(stem: str, width: int, alt: str, href: str | None = None,
+            narrow: str | None = None) -> str:
+        # The first matching <source> wins, so the narrow ones go first. The
+        # width attribute stays the wide one: on a phone it only caps the image,
+        # and the height follows whichever artwork actually loaded.
+        sources = [(", ".join(f"{q} and (prefers-color-scheme: {th})" for q in NARROW), narrow, th)
+                   for th in THEMES] if narrow else []
+        sources += [(f"(prefers-color-scheme: {th})", stem, th) for th in THEMES]
+        img = ('<picture>'
+               + "".join(f'<source media="{q}" srcset="{base}/{st}-{th}.svg" />'
+                         for q, st, th in sources)
+               + f'<img src="{base}/{stem}-dark.svg" alt="{esc(alt)}" width="{width}" />'
+               '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
         return f'<a href="{href}" title="{esc(alt)}">{img}</a>' if href else img
@@ -320,12 +369,12 @@ def main() -> int:
         if len(dests) == 2:
             cut = split_x()
             cells.append(
-                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1])
-                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1]))
+                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1], f"{s}-m")
+                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1], f"{s}-rm"))
         elif dests:
-            cells.append(pic(s, W, p["name"], dests[0][1]))
+            cells.append(pic(s, W, p["name"], dests[0][1], f"{s}-m"))
         else:
-            cells.append(pic(s, W, p["name"]))
+            cells.append(pic(s, W, p["name"], narrow=f"{s}-m"))
 
     # Two per row, no table: GitHub strips every style attribute, so a table's
     # cell borders cannot be turned off and they ring each card. No whitespace
