@@ -286,21 +286,54 @@ def art(p: dict, t: dict, data: dict, dests: list,
     ), H
 
 
+FONT = "text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}"
+
+
+def svg_doc(label: str, x0: int, vw: int, H: int, rules: list, body: str) -> str:
+    """An SVG whose viewBox windows the artwork down to one slice."""
+    css = "".join(f"  {r}\n" for r in rules)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {vw} {H}" width="{vw}" height="{H}" role="img" aria-label="{esc(label)}">\n'
+            f"<title>{esc(label)}</title>\n<style>\n{css}</style>\n{body}\n</svg>\n")
+
+
 def card(inner: str, t: dict, label: str, x0: int, vw: int, H: int = H) -> str:
-    """Wrap the artwork in an SVG whose viewBox windows it down to one slice."""
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {vw} {H}" width="{vw}" height="{H}" role="img" aria-label="{esc(label)}">
-<title>{esc(label)}</title>
-<style>
-  text{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}}
-  .t{{font-size:15.5px;font-weight:700;fill:{t['title']}}}
-  .d{{font-size:12px;fill:{t['body']}}}
-  .c{{font-size:10.5px;fill:{t['chip_fg']};text-anchor:middle}}
-  .m{{font-size:11px;fill:{t['meta']}}}
-  .e{{text-anchor:end}}
-</style>
-{inner}
-</svg>
-"""
+    """A card in one theme."""
+    return svg_doc(label, x0, vw, H, [
+        FONT,
+        f".t{{font-size:15.5px;font-weight:700;fill:{t['title']}}}",
+        f".d{{font-size:12px;fill:{t['body']}}}",
+        f".c{{font-size:10.5px;fill:{t['chip_fg']};text-anchor:middle}}",
+        f".m{{font-size:11px;fill:{t['meta']}}}",
+        ".e{text-anchor:end}",
+    ], inner)
+
+
+def adaptive_card(layers: dict, label: str, x0: int, vw: int, H: int) -> str:
+    """A card carrying every theme, which picks its own from prefers-color-scheme.
+
+    Narrow sources cannot say which theme they are for. For anyone who has set
+    a GitHub theme explicitly, GitHub's themed-picture script rewrites every
+    <source> whose media mentions prefers-color-scheme: the chosen theme's get
+    "(prefers-color-scheme: light),(prefers-color-scheme: dark)", always true,
+    and any width condition alongside is thrown away. The narrow dark card then
+    won on desktop too and stretched a phone layout across the column. So the
+    narrow <source> tests width alone, and the theme is chosen in here - which
+    follows the device's appearance rather than the GitHub setting, the one
+    case where the two can disagree.
+    """
+    rules = [FONT, ".t{font-size:15.5px;font-weight:700}", ".d{font-size:12px}",
+             ".c{font-size:10.5px;text-anchor:middle}", ".m{font-size:11px}", ".e{text-anchor:end}"]
+    for name, t in THEMES.items():
+        rules.append(f".{name} .t{{fill:{t['title']}}} .{name} .d{{fill:{t['body']}}} "
+                     f".{name} .c{{fill:{t['chip_fg']}}} .{name} .m{{fill:{t['meta']}}}")
+    rules += [".light{display:none}",
+              "@media (prefers-color-scheme: light){.dark{display:none}.light{display:inline}}"]
+    # Each layer brings its own clip path; the ids have to stay unique.
+    body = "".join(f'<g class="{name}">'
+                   + layers[name].replace('id="card"', f'id="card-{name}"')
+                                 .replace("url(#card)", f"url(#card-{name})")
+                   + "</g>" for name in THEMES)
+    return svg_doc(label, x0, vw, H, rules, body)
 
 
 def slug(name: str) -> str:
@@ -326,20 +359,27 @@ def main() -> int:
             ET.fromstring(svg)  # a stray < or & is a silent broken image
             (OUT / f"{stem}.svg").write_text(svg, encoding="utf-8")
 
+        def slices(w: int) -> list:
+            """(file tag, x0, width, label) for each image a card of width w becomes."""
+            if len(dests) != 2:
+                return [("", 0, w, p["name"])]
+            cut = split_x(w)
+            return [("-l", 0, cut, f'{p["name"]} {LABEL[dests[0][0]]}'),
+                    ("-r", cut, w - cut, f'{p["name"]} {LABEL[dests[1][0]]}')]
+
+        # Wide cards: a file per theme, chosen by the <picture>.
         for theme_name, t in THEMES.items():
-            # Wide, then narrow ("m"); a narrow file sits beside its wide one.
-            wide, narrow = art(p, t, data, dests), art(p, t, data, dests, MW, MWRAP, MLINES, fit=True)
-            for sfx, w, inner, h in (("", W, wide[0], wide[1]),
-                                     ("m", MW, narrow[0], narrow[1] + MPAD)):
-                if len(dests) == 2:
-                    cut = split_x(w)
-                    for tag, x0, vw, (kind, _) in (("l", 0, cut, dests[0]),
-                                                   ("r", cut, w - cut, dests[1])):
-                        write(f"{s}-{tag}{sfx}-{theme_name}",
-                              card(inner, t, f'{p["name"]} {LABEL[kind]}', x0, vw, h))
-                else:
-                    write(f"{s}{'-' + sfx if sfx else ''}-{theme_name}",
-                          card(inner, t, p["name"], 0, w, h))
+            inner, h = art(p, t, data, dests)
+            for tag, x0, vw, label in slices(W):
+                write(f"{s}{tag}-{theme_name}", card(inner, t, label, x0, vw, h))
+
+        # Narrow cards ("m"): one file carrying both themes - see adaptive_card.
+        layers = {name: art(p, t, data, dests, MW, MWRAP, MLINES, fit=True)
+                  for name, t in THEMES.items()}
+        h = layers["dark"][1] + MPAD
+        for tag, x0, vw, label in slices(MW):
+            write(f"{s}{tag or '-'}m",
+                  adaptive_card({n: a for n, (a, _) in layers.items()}, label, x0, vw, h))
 
         made.append((p, s, data, dests))
         bits = [k for k in ("language", "stars") if data.get(k)]
@@ -350,27 +390,27 @@ def main() -> int:
     print("README markup:\n")
     base = "https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards"
 
-    def url(stem: str, theme: str) -> str:
+    def url(stem: str) -> str:
         # File names outlive their contents: a layout change rewrites a card in
         # place, and a phone that had cached the old one kept drawing it - a
         # 36px-tall repo button spliced onto a 142px-tall card. So every URL
         # carries a hash of its file, and new contents are a new cache key.
         # Line endings are normalised so a Windows build hashes like CI's.
-        name = f"{stem}-{theme}.svg"
+        name = f"{stem}.svg"
         digest = hashlib.sha1((OUT / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:8]
         return f"{base}/{name}?v={digest}"
 
     def pic(stem: str, width: int, alt: str, href: str | None = None,
             narrow: str | None = None, share: float = 100) -> str:
-        # The first matching <source> wins, so the narrow ones go first, each
-        # carrying its share of the column. The height follows the artwork.
-        sources = [(", ".join(f"{q} and (prefers-color-scheme: {th})" for q in NARROW),
-                    narrow, th, f' width="{share:g}%"') for th in THEMES] if narrow else []
-        sources += [(f"(prefers-color-scheme: {th})", stem, th, "") for th in THEMES]
+        # The first matching <source> wins, so the narrow one goes first,
+        # carrying its share of the column; the height follows the artwork. Its
+        # media must never mention prefers-color-scheme - see adaptive_card.
+        sources = [(", ".join(NARROW), narrow, f' width="{share:g}%"')] if narrow else []
+        sources += [(f"(prefers-color-scheme: {th})", f"{stem}-{th}", "") for th in THEMES]
         img = ('<picture>'
-               + "".join(f'<source media="{q}" srcset="{url(st, th)}"{wa} />'
-                         for q, st, th, wa in sources)
-               + f'<img src="{url(stem, "dark")}" alt="{esc(alt)}" width="{width}" />'
+               + "".join(f'<source media="{q}" srcset="{url(st)}"{wa} />'
+                         for q, st, wa in sources)
+               + f'<img src="{url(stem + "-dark")}" alt="{esc(alt)}" width="{width}" />'
                '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
