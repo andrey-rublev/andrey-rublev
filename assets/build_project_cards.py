@@ -97,13 +97,13 @@ BTN_Y = 12                  # centred on the title's cap height
 THEMES = {
     "dark": {
         "bg": "#0D1117", "border": "#262C36", "edge": "#3D4450", "accent": "#818CF8",
-        "glow": 0.13, "rule": 0.9,
+        "glow": 0.13, "rule": 0.9, "emblem": 0.42,
         "title": "#E6EDF3", "body": "#8B949E",
         "chip_bg": "#21262D", "chip_fg": "#A5B4FC", "meta": "#7D8590",
     },
     "light": {
         "bg": "#FFFFFF", "border": "#D0D7DE", "edge": "#D0D7DE", "accent": "#5B4BD6",
-        "glow": 0.07, "rule": 0.8,
+        "glow": 0.07, "rule": 0.8, "emblem": 0.5,
         "title": "#1F2328", "body": "#57606A",
         "chip_bg": "#EFF1F5", "chip_fg": "#5B4BD6", "meta": "#6E7781",
     },
@@ -164,6 +164,123 @@ ICONS = {
     # arrow leaving a box
     "site": "M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM5 5h5V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5h-2v5H5V5z",
 }
+
+
+def _wheel() -> str:
+    """Cipher wheel: an outer ring of letter cells over an inner one turned half
+    a cell - the shift that is the whole of a Caesar cipher."""
+    def spokes(r0, r1, n, turn):
+        return "".join(
+            f"M{32 + r0 * math.cos(a):.2f} {32 + r0 * math.sin(a):.2f}"
+            f"L{32 + r1 * math.cos(a):.2f} {32 + r1 * math.sin(a):.2f}"
+            for a in (2 * math.pi * (k + turn) / n for k in range(n)))
+    return ('<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="16"/><circle cx="32" cy="32" r="4"/>'
+            f'<path d="{spokes(16, 25, 16, 0)}"/><path d="{spokes(4, 16, 8, 0.5)}" opacity=".6"/>'
+            '<path d="M32 6.5l-3.2-5h6.4z" fill="{c}" stroke="none"/>')
+
+
+def _chip_stripes() -> str:
+    return "".join(
+        f'<path d="M{32 + 19.5 * math.cos(a):.2f} {32 + 19.5 * math.sin(a):.2f}'
+        f'L{32 + 24.5 * math.cos(a):.2f} {32 + 24.5 * math.sin(a):.2f}" stroke-width="4.5"/>'
+        for a in (math.pi * k / 4 for k in range(8)))
+
+
+# One line-art emblem per project, drawn in a 64x64 box. {c} is the ink and
+# {bg} the card, for shapes that have to hide what is behind them.
+EMBLEMS = {
+    # The portfolio is a poker table: two cards, a spade showing.
+    "nikhilkolli.com": (
+        '<rect x="12" y="14" width="28" height="38" rx="3.5" transform="rotate(-14 26 33)"/>'
+        '<g transform="rotate(10 38 31)"><rect x="24" y="12" width="28" height="38" rx="3.5" fill="{bg}"/>'
+        '<path d="M38 22c-4.5 4.5-8 7.2-8 10.6a3.4 3.4 0 0 0 6 2.2L35 39h6l-1-4.2a3.4 3.4 0 0 0 6-2.2'
+        'c0-3.4-3.5-6.1-8-10.6z" fill="{c}" stroke="none"/></g>'),
+    # A circuit: Hadamard, CNOT, a rotation and a measurement.
+    "Quantum-Classical ML": (
+        '<path d="M5 18H59M5 32H59M5 46H59"/>'
+        '<rect x="11" y="11" width="14" height="14" rx="2" fill="{bg}"/><path d="M15.5 14.5v7M20.5 14.5v7M15.5 18h5"/>'
+        '<path d="M35 18V37"/><circle cx="35" cy="18" r="2.6" fill="{c}"/>'
+        '<circle cx="35" cy="32" r="5" fill="{bg}"/><path d="M35 27v10M30 32h10"/>'
+        '<rect x="11" y="39" width="14" height="14" rx="2" fill="{bg}"/><path d="M14 47c1.7-3.2 3.3-3.2 5 0s3.3 3.2 5 0"/>'
+        '<rect x="43" y="38" width="15" height="16" rx="2" fill="{bg}"/>'
+        '<path d="M46 49.5a4.5 4.5 0 0 1 9 0M50.5 49.5l3-5"/>'),
+    # Zero-noise extrapolation: three noisy runs, the quadratic through them,
+    # and the zero-noise value where it meets the axis.
+    "Quantum Error Mitigation": (
+        '<path d="M10 7V55H59"/>'
+        '<path d="M10 42Q32.5 38.8 55 14.9" stroke-dasharray="3 3"/>'
+        '<circle cx="24" cy="38" r="2.6" fill="{c}"/><circle cx="38" cy="30" r="2.6" fill="{c}"/>'
+        '<circle cx="52" cy="18" r="2.6" fill="{c}"/>'
+        '<circle cx="10" cy="42" r="4" fill="{bg}"/><circle cx="10" cy="42" r="1.4" fill="{c}"/>'),
+    # A globe, and the pin it drops.
+    "GeoGuessr AI": (
+        '<circle cx="27" cy="37" r="20"/><ellipse cx="27" cy="37" rx="9" ry="20"/>'
+        '<path d="M7 37h40M10 27h34M10 47h34"/>'
+        '<path d="M46 5a9 9 0 0 0-9 9c0 6.8 9 16 9 16s9-9.2 9-16a9 9 0 0 0-9-9z" fill="{bg}"/>'
+        '<circle cx="46" cy="14" r="3"/>'),
+    # A report pinned to the map, and the radius it goes out to.
+    "Vigil": (
+        '<ellipse cx="32" cy="50" rx="27" ry="9" stroke-dasharray="2.5 3.5"/>'
+        '<ellipse cx="32" cy="50" rx="16" ry="5.5"/>'
+        '<path d="M32 16a11 11 0 0 0-11 11c0 9.5 11 21 11 21s11-11.5 11-21a11 11 0 0 0-11-11z" fill="{bg}"/>'
+        '<circle cx="32" cy="27" r="4"/>'),
+    # A building rebuilt as a mesh, vertices and all.
+    "Raize": (
+        '<path d="M32 8L54 20L32 32L10 20Z"/><path d="M10 20V42L32 54L54 42V20M32 32V54"/>'
+        '<path d="M21 14L43 26M43 14L21 26M10 31L32 43L54 31M21 26V48M43 26V48" opacity=".55"/>'
+        + "".join(f'<circle cx="{x}" cy="{y}" r="1.8" fill="{{c}}" stroke="none"/>'
+                  for x, y in ((32, 8), (54, 20), (32, 32), (10, 20), (10, 42), (32, 54), (54, 42)))),
+    "project-kryptos": _wheel(),
+    # An interview: a question, and an answer being typed.
+    "RealTalk": (
+        '<path d="M8 10h30a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H20l-7 6v-6H8a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z"/>'
+        '<path d="M11 19h24M11 26h15"/>'
+        '<path d="M26 28h30a5 5 0 0 1 5 5v13a5 5 0 0 1-5 5h-5v6l-7-6H26a5 5 0 0 1-5-5V33a5 5 0 0 1 5-5z" fill="{bg}"/>'
+        '<circle cx="33" cy="40" r="2.2" fill="{c}" stroke="none"/><circle cx="41" cy="40" r="2.2" fill="{c}" stroke="none"/>'
+        '<circle cx="49" cy="40" r="2.2" fill="{c}" stroke="none"/>'),
+    "Gradus": (
+        '<path d="M16 27v11c0 4 7 7.5 16 7.5s16-3.5 16-7.5V27"/>'
+        '<path d="M32 10L60 22L32 34L4 22Z" fill="{bg}"/>'
+        '<path d="M32 22L52 27V42"/><path d="M50 42h4l1.5 8h-7z" fill="{c}"/>'
+        '<circle cx="32" cy="22" r="1.8" fill="{c}" stroke="none"/>'),
+    "RLpokerAI": (
+        '<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="15"/>' + _chip_stripes()
+        + '<path d="M32 23.5l6.5 8.5-6.5 8.5-6.5-8.5z" fill="{c}" stroke="none"/>'),
+    "SAP-AI": (
+        '<path d="M32 33c-7.5 0-14.5 7.5-14.5 13.5 0 4 3 6.5 7 6.5 3.2 0 4.8-1.6 7.5-1.6s4.3 1.6 7.5 1.6'
+        'c4 0 7-2.5 7-6.5 0-6-7-13.5-14.5-13.5z"/>'
+        '<ellipse cx="15" cy="30" rx="4.6" ry="6.2" transform="rotate(-22 15 30)"/>'
+        '<ellipse cx="25" cy="16" rx="5" ry="6.6" transform="rotate(-8 25 16)"/>'
+        '<ellipse cx="39" cy="16" rx="5" ry="6.6" transform="rotate(8 39 16)"/>'
+        '<ellipse cx="49" cy="30" rx="4.6" ry="6.2" transform="rotate(22 49 30)"/>'),
+    # Sockets: a small network, one packet in flight.
+    "Networking": (
+        '<path d="M14 16L36 11M14 16L30 34M36 11L30 34M36 11L53 26M30 34L53 26M30 34L13 51M30 34L47 51M53 26L47 51"/>'
+        + "".join(f'<circle cx="{x}" cy="{y}" r="4.2" fill="{{bg}}"/>'
+                  for x, y in ((14, 16), (36, 11), (53, 26), (13, 51), (47, 51)))
+        + '<circle cx="30" cy="34" r="5.5" fill="{c}" stroke="none"/>'
+        '<circle cx="41.5" cy="30" r="1.8" fill="{c}" stroke="none"/>'),
+}
+
+
+def mix(a: str, b: str, t: float) -> str:
+    """a blended toward b by t."""
+    pa, pb = (int(a[i:i + 2], 16) for i in (1, 3, 5)), (int(b[i:i + 2], 16) for i in (1, 3, 5))
+    return "#" + "".join(f"{round(x + (y - x) * t):02X}" for x, y in zip(pa, pb))
+
+
+def emblem(name: str, t: dict, right: float, top: float, bottom: float, cap: float) -> str:
+    """The project's emblem, right-aligned in the space between the buttons and
+    the chip row - or nothing, on a phone card too short to hold it."""
+    size = min(cap, bottom - top)
+    if name not in EMBLEMS or size < 30:
+        return ""
+    s = size / 64
+    ink = mix(t["accent"], t["bg"], t["emblem"])
+    art = EMBLEMS[name].replace("{c}", ink).replace("{bg}", t["bg"])
+    return (f'<g transform="translate({right - size:g} {top + (bottom - top - size) / 2:g}) scale({s:.4f})" '
+            f'fill="none" stroke="{ink}" stroke-width="{1.5 / s:.2f}" stroke-linecap="round" stroke-linejoin="round">'
+            f"{art}</g>")
 
 
 def esc(s: str) -> str:
@@ -277,6 +394,7 @@ def art(p: dict, t: dict, data: dict, dests: list,
     # the image that links to it.
     buttons = "".join(icon_button(kind, t, x)
                       for (kind, _), x in zip(dests, button_xs(len(dests), W)))
+    mark = emblem(p["name"], t, W - GAP - 20, BTN_Y + BTN_H + 6, CHIP_Y - 6, 44 if fit else 48)
 
     # The surface: a faint accent glow from the top-left corner, a hairline of
     # accent along the top edge that fades out to the right, and a border lit
@@ -303,7 +421,7 @@ def art(p: dict, t: dict, data: dict, dests: list,
         f'<rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" rx="10" fill="none" stroke="url(#edge)"/>'
         f'<path d="M{x0 + 10} 0.5H{fade}" stroke="url(#rule)"/>'
         f'<text x="{GAP+20}" y="{TITLE_Y}" class="t">{esc(p["name"])}</text>'
-        + body + "".join(chips) + meta + buttons
+        + body + mark + "".join(chips) + meta + buttons
     ), H
 
 

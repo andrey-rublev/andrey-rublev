@@ -40,9 +40,16 @@ COL_GAP, ROW_GAP = 8, 8
 MW = 340                                      # phone artwork width
 
 THEMES = {
-    "dark": {"bg": "#161B22", "border": "#262C36", "icon": "#A5B4FC", "label": "#C9D1D9"},
-    "light": {"bg": "#F6F8FA", "border": "#D0D7DE", "icon": "#5B4BD6", "label": "#24292F"},
+    "dark": {"bg": "#161B22", "border": "#262C36", "icon": "#A5B4FC", "label": "#C9D1D9",
+             "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF", "glow": "#818CF8"},
+    "light": {"bg": "#F6F8FA", "border": "#D0D7DE", "icon": "#5B4BD6", "label": "#24292F",
+              "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5", "glow": "#A5B4FC"},
 }
+
+# Each row of chips sits on a bus, as parts sit on the board in the banner: a
+# trace runs behind the row and out past both ends to a via, and now and then a
+# pulse crosses it - seen only in the gaps, so it seems to pass under the chips.
+BUS_PERIOD, BUS_SPEED, BUS_DASH = 9.0, 240, 16
 
 ICONS = {
     "python": "M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.77l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.17l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05-.05-1.23.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.24-.01h.16l.06.01h8.16v-.83H6.18l-.01-2.75-.02-.37.05-.34.11-.31.17-.28.25-.26.31-.23.38-.2.44-.18.51-.15.58-.12.64-.1.71-.06.77-.04.84-.02 1.27.05zm-6.3 1.98l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09zm13.09 3.95l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.24.02-.16-.01h-8.22v.82h5.84l.01 2.76.02.36-.05.34-.11.31-.17.29-.25.25-.31.24-.38.2-.44.17-.51.15-.58.13-.64.09-.71.07-.77.04-.84.01-1.27-.04-1.07-.14-.9-.2-.73-.25-.59-.3-.45-.33-.34-.34-.25-.34-.16-.33-.1-.3-.04-.25-.02-.2.01-.13v-5.34l.05-.64.13-.54.21-.46.26-.38.3-.32.33-.24.35-.2.35-.14.33-.1.3-.06.26-.04.21-.02.13-.01h5.84l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.33.33.23.41.08.41-.08.33-.23.23-.33.08-.41-.08-.41-.23-.33-.33-.23-.41-.08-.41.08z",
@@ -136,9 +143,28 @@ def chips(widths: list, pos: list) -> str:
     return "".join(out)
 
 
+def buses(widths: list, rows: list, pos: list, ext: float) -> tuple:
+    """A trace under each row, its vias, and its pulse. Returns markup and CSS."""
+    out, css = [], []
+    for r, (a, b) in enumerate(rows):
+        x0, x1 = pos[a][0] - ext, pos[b - 1][0] + widths[b - 1] + ext
+        y, n = pos[a][1] + CH / 2, x1 - x0
+        d = f"M{x0:.2f} {y}H{x1:.2f}"
+        q = n / BUS_SPEED / BUS_PERIOD * 100
+        delay = 1.2 + r * 1.6
+        css.append(f"@keyframes s{r}{{0%{{stroke-dashoffset:{BUS_DASH + 4}}}{q:.2f}%,100%{{stroke-dashoffset:{-(n + 4):.1f}}}}}")
+        anim = f"s{r} {BUS_PERIOD}s cubic-bezier(.4,0,.6,1) {delay:.2f}s infinite both"
+        out.append(f'<path class="bus" d="{d}"/>'
+                   + "".join(f'<path class="{c}" d="{d}" style="stroke-dasharray:{BUS_DASH} {n + 40:.0f};animation:{anim}"/>'
+                             for c in ("glo", "pul"))
+                   + f'<circle class="via" cx="{x0:.2f}" cy="{y}" r="3"/><circle class="via" cx="{x1:.2f}" cy="{y}" r="3"/>')
+    return "".join(out), "".join(css)
+
+
 def colours(t: dict) -> str:
     """A theme as custom properties, so the chips are drawn once whatever the theme."""
-    return f"svg{{--bg:{t['bg']};--bd:{t['border']};--ic:{t['icon']};--lb:{t['label']}}}"
+    return (f"svg{{--bg:{t['bg']};--bd:{t['border']};--ic:{t['icon']};--lb:{t['label']};"
+            f"--tr:{t['trace']};--via:{t['via']};--pu:{t['pulse']};--gl:{t['glow']}}}")
 
 
 def doc(w: float, h: float, css: str, body: str) -> str:
@@ -152,23 +178,32 @@ def main() -> int:
     adv = advances(font, "M")[0]
     base = (f"@font-face{{font-family:'JBMono';src:url(data:font/woff2;base64,{b64(font)}) format('woff2');font-display:block}}\n"
             f".lb{{font-family:'JBMono',ui-monospace,monospace;font-size:{FS}px;font-weight:500;fill:var(--lb)}}\n"
-            ".chip{fill:var(--bg);stroke:var(--bd)}.ic{fill:var(--ic);stroke:var(--ic)}\n")
+            ".chip{fill:var(--bg);stroke:var(--bd)}.ic{fill:var(--ic);stroke:var(--ic)}\n"
+            ".bus{fill:none;stroke:var(--tr);stroke-width:1.5}.via{fill:none;stroke:var(--via);stroke-width:1.5}\n"
+            ".glo{fill:none;stroke:var(--gl);stroke-opacity:.35;stroke-width:6;stroke-linecap:round}\n"
+            ".pul{fill:none;stroke:var(--pu);stroke-width:1.7;stroke-linecap:round}\n"
+            "@media (prefers-reduced-motion: reduce){.glo,.pul{display:none}}\n")
     widths = [chip_width(label, adv) for label, _ in STACK]
 
     out = {}
+    ext = 22
     rows = rows_balanced(widths, 2)
     w = max(sum(widths[a:b]) + COL_GAP * (b - a - 1) for a, b in rows)
-    w = int(w) + 2
+    w = int(w + 2 * ext) + 6
     h = len(rows) * CH + (len(rows) - 1) * ROW_GAP
-    body = chips(widths, layout(widths, rows, w))
+    pos = layout(widths, rows, w)
+    wires, wire_css = buses(widths, rows, pos, ext)
+    body = wires + chips(widths, pos)
     for name, t in THEMES.items():
-        out[f"stack-{name}.svg"] = doc(w, h, base + colours(t) + "\n", body)
+        out[f"stack-{name}.svg"] = doc(w, h, base + colours(t) + "\n" + wire_css + "\n", body)
 
-    rows = rows_greedy(widths, MW)
+    rows = rows_greedy(widths, MW - 2 * 18)
     h = len(rows) * CH + (len(rows) - 1) * ROW_GAP
-    body = chips(widths, layout(widths, rows, MW))
+    pos = layout(widths, rows, MW)
+    wires, wire_css = buses(widths, rows, pos, 14)
+    body = wires + chips(widths, pos)
     css = (base + colours(THEMES["dark"]) + "\n"
-           + f"@media (prefers-color-scheme: light){{{colours(THEMES['light'])}}}\n")
+           + f"@media (prefers-color-scheme: light){{{colours(THEMES['light'])}}}\n" + wire_css + "\n")
     out["stack-m.svg"] = doc(MW, h, css, body)
 
     for name, svg in out.items():

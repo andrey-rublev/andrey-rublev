@@ -1,11 +1,18 @@
 """
-Builds the header banner: the "NIKHIL KOLLI" wordmark over a typed tagline.
+Builds the header banner: the name on an IC package, wired into a circuit board.
 
     python assets/build_hero.py
 
+The README is drawn as a board - this is a computer engineer's profile - and
+the banner is where that starts. "NIKHIL KOLLI" is the label on a chip, the
+tagline is its part marking, typed out once the chip powers up, and traces fan
+out from the pins across a perfboard to vias and off the edge of the board.
+Every few seconds a pulse of light runs along a trace into the chip, and the
+pin it lands on flashes.
+
 Writes hero-dark.svg and hero-light.svg for wide screens, and hero-m.svg for
-phones - the same banner redrawn at 340 wide with the tagline broken onto three
-lines, so it stays readable when the column is 300px across instead of 846.
+phones - the same board redrawn at 340 wide with the marking on three lines,
+so it stays readable when the column is 300px across instead of 846.
 
 Why the fonts are embedded rather than named
 --------------------------------------------
@@ -15,11 +22,6 @@ its own resolves to whatever the viewer happens to have installed - which for
 almost everyone is nothing, and the mark silently falls back to a serif. The
 font must travel inside the file, as a base64 data URI in an @font-face block.
 
-The tagline used to come from readme-typing-svg, which does the same thing on
-someone else's server. Drawing it here means it shares the banner, cannot go
-down with that service, and can break onto three lines on a phone instead of
-shrinking to 8px.
-
 Why two fonts for the name
 --------------------------
 The Bungee family is built to be layered. Bungee Shade carries the 3D
@@ -27,13 +29,24 @@ extrusion, Bungee carries the solid face. Stacked in two colours and drawn at
 identical coordinates, they give real two-tone depth; Bungee Shade alone is a
 single flat colour.
 
-How the typing works
+How the motion works
 --------------------
-Each line sits under a clip band that slides right in steps(n) - one step per
-character, which is exact because JetBrains Mono advances every glyph the same
-width. The caret rides the same steps. A band's resting position is fully
-open, and only the animation starts it closed, so anything that does not run
-the animation still shows the whole line.
+Traces are polylines of straight runs and 45-degree bends, so their lengths
+are exact and every dash pattern can be computed rather than guessed. A trace
+draws itself in by sliding a dash the length of the path; a pulse is a short
+dash sliding from the far end to the pin over a fixed period, staggered so a
+few are in flight at once.
+
+The marking types under a clip band that slides right in steps(n) - one step
+per character, exact because JetBrains Mono advances every glyph the same
+width. Every resting state is the finished picture - traces drawn, band open,
+pulses parked past the end of their trace - so anything that does not run the
+animation still shows the whole board.
+
+Reduced motion keeps what only appears (the fade-ins, the typing) and drops
+what travels: the letters rising, the traces drawing, the pulses. Chrome
+reports Windows' "Animation effects" switch to images as reduced motion, so
+this is what a lot of desktop viewers get.
 
 A trap worth recording
 ----------------------
@@ -47,6 +60,7 @@ Regenerating the subsets needs `fonttools` and `brotli` plus network access;
 rebuilding the SVGs from the committed subsets needs neither.
 """
 import base64
+import math
 import pathlib
 import re
 import sys
@@ -66,46 +80,32 @@ SHADE = ("Bungee_Shade", "Bungee+Shade", NAME)
 FACE = ("Bungee", "Bungee", NAME)
 MONO = ("JetBrains_Mono_600", "JetBrains+Mono:wght@600", SEP.join(TAGLINE))
 
-# Wide banner: fills the README column, which tops out at 846px.
-W, H = 846, 196
-NAME_SIZE = 60
-NAME_Y = 94         # baseline
-TAG_SIZE = 18
-TAG_Y = 146
-
-# Phone banner: drawn at 340 and scaled to the column.
-MW, MH = 340, 190
-M_NAME_SIZE = 30
-M_NAME_Y = 62
-M_TAG_SIZE = 14
-M_TAG_Y, M_TAG_LEAD = 104, 22
-
-RISE_MS = 620
-RISE_STAGGER = 46
-SWEEP_PERIOD = 4800
-SWEEP_BAND = 150
-TYPE_DELAY = 1.05   # s - after the last letter of the name has landed
-TYPE_CPS = 24       # characters per second
-BLINK = 1.06        # s
+# Timeline, in seconds from load.
+CHIP_IN = 0.35
+NAME_IN = 0.55
+RISE_MS, RISE_STAGGER = 620, 46
+TYPE_AT = 1.45
+TYPE_CPS = 26
+PULSES_AT = 2.4
+PERIOD = 8.0        # each trace fires once per period
+SPEED = 170         # px/s along a trace
 
 THEMES = {
     "dark": {
-        "bg0": "#111827", "bg1": "#0D1117", "border": "#262C36",
-        "dots": "#E6EDF3", "dots_op": 0.10, "glow": "#6366F1", "glow_op": 0.36,
-        "marks": "#3D444D",
-        # The sweep is the face colour inverted, which clears the face by the
-        # widest margin there is - an earlier white-on-near-white sweep was
-        # running correctly and completely invisible, at 1.05:1.
-        "shade": "#6259E8", "face": "#F0F3F8", "sweep": "#0F0C07", "sweep_op": 0.8,
-        "tag": "#A5B4FC", "sep": "#484F58", "caret": "#818CF8",
+        "sub0": "#0F1422", "sub1": "#0D1117", "border": "#262C36",
+        "dots": "#E6EDF3", "dots-op": ".07", "halo": "#6366F1", "halo-op": ".26",
+        "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF", "glow": "#818CF8",
+        "chip0": "#1B2134", "chip1": "#111624", "chipbd": "#333C5A", "chiphi": "#56618C",
+        "pin": "#4A5475", "pin1": "#3A4466", "hot": "#C7D2FE",
+        "shade": "#6259E8", "face": "#F0F3F8", "tag": "#A5B4FC", "sep": "#4B5470", "caret": "#818CF8",
     },
     "light": {
-        "bg0": "#F3F4FF", "bg1": "#FFFFFF", "border": "#D0D7DE",
-        "dots": "#1F2328", "dots_op": 0.10, "glow": "#818CF8", "glow_op": 0.26,
-        "marks": "#C4CBD3",
-        # On white the face has to be the dark element or it disappears.
-        "shade": "#7C70E4", "face": "#16181D", "sweep": "#E9E7E2", "sweep_op": 0.8,
-        "tag": "#4F46E5", "sep": "#AFB8C1", "caret": "#5B4BD6",
+        "sub0": "#F3F4FE", "sub1": "#FFFFFF", "border": "#D0D7DE",
+        "dots": "#1F2328", "dots-op": ".09", "halo": "#818CF8", "halo-op": ".20",
+        "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5", "glow": "#A5B4FC",
+        "chip0": "#FFFFFF", "chip1": "#F1F2F9", "chipbd": "#C3C9E2", "chiphi": "#FFFFFF",
+        "pin": "#A9B0D0", "pin1": "#D5D9F3", "hot": "#4F46E5",
+        "shade": "#7C70E4", "face": "#16181D", "tag": "#4F46E5", "sep": "#AFB8C1", "caret": "#5B4BD6",
     },
 }
 
@@ -211,8 +211,12 @@ class Fonts:
                 f"@font-face{{font-family:'JBMono';src:url(data:font/woff2;base64,{b64(self.mono)}) format('woff2');font-display:block}}\n")
 
 
-def wordmark(f: Fonts, cx: float, baseline: float, size: float, clip: str) -> str:
-    """The name as three stacked runs - shade, face, sweep - centred on its ink."""
+def esc(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def wordmark(f: Fonts, cx: float, baseline: float, size: float) -> str:
+    """The name as two stacked runs - shade under face - centred on its ink."""
     left = cx - (f.name_ink[0] + f.name_ink[1]) / 2 * size
     letters, x = [], left
     for ch, adv in zip(NAME, f.name_adv):
@@ -224,137 +228,223 @@ def wordmark(f: Fonts, cx: float, baseline: float, size: float, clip: str) -> st
         return "".join(f'<text class="{cls} c{i}" x="{x}" y="{baseline}">{ch}</text>'
                        for i, (ch, x) in enumerate(letters))
 
-    return (f'<g font-size="{size}">'
-            f"{run('sh')}{run('fc')}"
-            f'<g clip-path="url(#{clip})">{run("sw")}</g></g>')
+    return f'<g font-size="{size}">{run("sh")}{run("fc")}</g>'
 
 
-def typed(lines: list, f: Fonts, cx: float, y0: float, lead: float, size: float,
-          ids: str) -> tuple:
+def typed(lines: list, f: Fonts, cx: float, y0: float, lead: float, size: float) -> tuple:
     """Lines of mono text that type themselves out, one after another.
 
-    `lines` is a list of runs: [(text, class), ...] per line. Returns the
-    markup and the CSS that drives it.
+    `lines` holds a list of (text, class) runs per line. Returns markup and CSS.
     """
     cw = f.mono_adv * size
     out, css = [], []
-    t = TYPE_DELAY
+    t = TYPE_AT
     for i, runs in enumerate(lines):
         text = "".join(s for s, _ in runs)
         n, width = len(text), len(text) * cw
         x0 = round(cx - width / 2, 2)
         y = y0 + i * lead
         dur = round(n / TYPE_CPS, 3)
-        last = i == len(lines) - 1
-
         spans = "".join(f'<tspan class="{c}">{esc(s)}</tspan>' for s, c in runs)
-        band = f"{ids}b{i}"
         out.append(
-            f'<clipPath id="{band}"><rect class="{band}" x="{x0 - width:.2f}" y="{y - size * 1.1:.2f}" '
+            f'<clipPath id="b{i}"><rect class="b{i}" x="{x0 - width:.2f}" y="{y - size * 1.1:.2f}" '
             f'width="{width:.2f}" height="{size * 1.5:.2f}"/></clipPath>'
-            f'<text class="mono" x="{x0}" y="{y}" font-size="{size}" clip-path="url(#{band})">{spans}</text>'
-        )
-        # The band rests fully open; only the animation starts it shut.
-        css.append(f".{band}{{transform:translateX({width:.2f}px);animation:{band} {dur}s steps({n},end) {t:.3f}s both}}"
-                   f"@keyframes {band}{{from{{transform:translateX(0)}}}}")
-
-        # Carets: each one appears with its line, and only the last one stays
-        # to blink. The block sits on the mono cap height. The first waits at
-        # the start of its line, already showing; later ones hide until theirs.
-        caret = f"{ids}k{i}"
-        rect = (f'<rect class="caret {caret}" x="{x0:.2f}" y="{y - size * 0.78:.2f}" '
-                f'width="{cw * 0.62:.2f}" height="{size * 0.92:.2f}" rx="1"/>')
-        anims = [f"{band} {dur}s steps({n},end) {t:.3f}s both"]
-        if i:
-            anims.append(f"pre 1ms step-end {t:.3f}s backwards")
-        if last:
-            # The blink lives on a wrapper so reduced motion can stop it alone.
-            blink = f"{ids}bl"
-            rect = f'<g class="blink {blink}">{rect}</g>'
-            css.append(f".{blink}{{animation:blink {BLINK}s step-end {t + dur:.3f}s infinite}}")
-        else:
-            anims.append(f"post 1ms step-end {t + dur + 0.25:.3f}s forwards")
-        out.append(rect)
-        # Resting state: at the end of its line.
-        css.append(f".{caret}{{transform:translateX({width:.2f}px);animation:{', '.join(anims)}}}")
-        t += dur + 0.35
+            f'<text class="mono" x="{x0}" y="{y}" font-size="{size}" clip-path="url(#b{i})">{spans}</text>'
+            f'<rect class="caret k{i}" x="{x0:.2f}" y="{y - size * 0.78:.2f}" '
+            f'width="{cw * 0.62:.2f}" height="{size * 0.92:.2f}" rx="1"/>')
+        # The band rests fully open; only the animation starts it shut. The
+        # caret rides the same steps and shows only while its line types.
+        steps = f"{dur}s steps({n},end) {t:.3f}s both"
+        css.append(f".b{i}{{transform:translateX({width:.2f}px);animation:b{i} {steps}}}"
+                   f"@keyframes b{i}{{from{{transform:translateX(0)}}}}"
+                   f".k{i}{{transform:translateX({width:.2f}px);opacity:0;"
+                   f"animation:b{i} {steps},on {dur + 0.3:.3f}s step-end {t:.3f}s}}")
+        t += dur + 0.3
     return "".join(out), "".join(css)
 
 
-def esc(s: str) -> str:
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+# ---------------------------------------------------------------- the board
+
+class Board:
+    """Chip geometry plus the traces wired to its pins."""
+
+    def __init__(self, w, h, chip, pitch, pins, pin, side_pins, side_pin, chamfer, pulse):
+        self.w, self.h = w, h
+        self.cx, self.cy, self.cw, self.ch = chip
+        self.pitch, self.pins, self.pin = pitch, pins, pin
+        self.side_pins, self.side_pin = side_pins, side_pin
+        self.c, self.pulse = chamfer, pulse
+        self.top = self.cy - pin[1]                 # y of a top pin's tip
+        self.bottom = self.cy + self.ch + pin[1]
+        self.left = self.cx - side_pin[0]
+        self.right = self.cx + self.cw + side_pin[0]
+        self.traces = []                            # (points via-first, has_via)
+
+    def off(self, hdir=0, vdir=0):
+        """A coordinate just past the board's edge."""
+        if hdir:
+            return -12 if hdir < 0 else self.w + 12
+        return -12 if vdir < 0 else self.h + 12
+
+    def bus(self, pins, vdir, hdir, gap, step, ends):
+        """Parallel traces leaving one edge, turning together through 45 degrees.
+
+        `pins` runs outermost first: the outermost turns closest to the chip,
+        so each inner trace passes clear over the ones outside it. An end of
+        None runs the trace off the board.
+        """
+        tip, c = (self.top if vdir < 0 else self.bottom), self.c
+        for k, (x, end) in enumerate(zip(pins, ends)):
+            y = tip + vdir * (gap + k * step)
+            ex = end if end is not None else self.off(hdir=hdir)
+            self.traces.append(([(ex, y), (x + hdir * c, y), (x, y - vdir * c), (x, tip)], end is not None))
+
+    def stub(self, x, vdir, end):
+        tip = self.top if vdir < 0 else self.bottom
+        ey = end if end is not None else self.off(vdir=vdir)
+        self.traces.append(([(x, ey), (x, tip)], end is not None))
+
+    def side(self, y, hdir, end):
+        tip = self.left if hdir < 0 else self.right
+        ex = end if end is not None else self.off(hdir=hdir)
+        self.traces.append(([(ex, y), (tip, y)], end is not None))
+
+    def pin_rects(self):
+        (pw, ph), (sw, sh) = self.pin, self.side_pin
+        for x in self.pins:
+            yield (x - pw / 2, self.top, pw, ph)
+            yield (x - pw / 2, self.cy + self.ch, pw, ph)
+        for y in self.side_pins:
+            yield (self.left, y - sh / 2, sw, sh)
+            yield (self.cx + self.cw, y - sh / 2, sw, sh)
+
+    def pin_at(self, point):
+        """The pin rect a trace lands on."""
+        x, y = point
+        for r in self.pin_rects():
+            rx, ry, rw, rh = r
+            if rx - 0.1 <= x <= rx + rw + 0.1 and ry - 0.1 <= y <= ry + rh + 0.1:
+                return r
+        raise ValueError(f"no pin at {point}")
 
 
-def backdrop(w: float, h: float, ids: str, name_y: float) -> str:
-    """Panel, dot grid fading out from the centre, a glow behind the name, and
-    crop marks in the corners."""
-    m, tick = 14, 9
-    corners = "".join(
-        f'<path class="marks" d="M{x} {y + dy * tick}V{y}H{x + dx * tick}"/>'
-        for x, y, dx, dy in ((m, m, 1, 1), (w - m, m, -1, 1), (m, h - m, 1, -1), (w - m, h - m, -1, -1))
-    )
+def length(pts) -> float:
+    return sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+
+
+def path(pts) -> str:
+    return "M" + "L".join(f"{x:g} {y:g}" for x, y in pts)
+
+
+def board_markup(b: Board, holes: bool) -> tuple:
+    """Everything but the lettering: substrate, traces, pulses and the chip."""
+    w, h = b.w, b.h
+    css = []
+    traces, vias, pulses, hots = [], [], [], []
+    for i, (pts, via) in enumerate(b.traces):
+        d, n = path(pts), length(pts)
+        # Draw-in: a dash the length of the trace slides in from the pin end.
+        lag = 0.05 + 0.025 * i
+        traces.append(f'<path class="tr" d="{d}" style="stroke-dasharray:{n + 1:.1f} {n + 1:.1f};'
+                      f'animation:d{i} .9s cubic-bezier(.3,.7,.2,1) {lag:.3f}s both"/>')
+        css.append(f"@keyframes d{i}{{from{{stroke-dashoffset:{-(n + 1):.1f}}}}}")
+        if via:
+            vx, vy = pts[0]
+            vias.append(f'<circle class="via" cx="{vx:g}" cy="{vy:g}" r="{3.4 if w > 400 else 2.8}" '
+                        f'style="animation-delay:{lag + 0.55:.3f}s"/>')
+
+        # Pulse: a short dash from the far end to the pin, once per period.
+        # Delays step round the board by the golden ratio, so they never bunch.
+        delay = PULSES_AT + (i * 0.6180339887 % 1) * PERIOD
+        q = min(n / SPEED / PERIOD * 100, 40)
+        D = b.pulse
+        css.append(f"@keyframes p{i}{{0%{{stroke-dashoffset:{D + 4}}}{q:.2f}%,100%{{stroke-dashoffset:{-(n + 4):.1f}}}}}"
+                   f"@keyframes h{i}{{0%,{max(q - 1, 0):.2f}%{{opacity:0}}{q:.2f}%{{opacity:1}}{q + 6:.2f}%,100%{{opacity:0}}}}")
+        anim = f"p{i} {PERIOD}s cubic-bezier(.5,0,.6,1) {delay:.3f}s infinite both"
+        for cls in ("pg", "pc"):
+            pulses.append(f'<path class="{cls}" d="{d}" style="stroke-dasharray:{D} {n + D + 20:.1f};animation:{anim}"/>')
+        rx, ry, rw, rh = b.pin_at(pts[-1])
+        hots.append(f'<rect class="hot" x="{rx:g}" y="{ry:g}" width="{rw:g}" height="{rh:g}" rx="1" '
+                    f'style="animation:h{i} {PERIOD}s linear {delay:.3f}s infinite both"/>')
+
+    pins = "".join(f'<rect class="pin" x="{x:g}" y="{y:g}" width="{pw:g}" height="{ph:g}" rx="1"/>'
+                   for x, y, pw, ph in b.pin_rects())
+    x, y, cw, ch = b.cx, b.cy, b.cw, b.ch
+    r = 10 if w > 400 else 8
+    dot = (x + 16, y + 16, 4) if w > 400 else (x + 12, y + 12, 3)
+    chip = (
+        f'<g class="chip">{pins}'
+        f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="{r}" fill="url(#chipg)"/>'
+        f'<rect x="{x + 1}" y="{y + 1}" width="{cw - 2}" height="{ch - 2}" rx="{r - 1}" fill="none" stroke="url(#chiphl)"/>'
+        f'<rect class="chipbd" x="{x + 0.5}" y="{y + 0.5}" width="{cw - 1}" height="{ch - 1}" rx="{r}" fill="none"/>'
+        f'<path class="notch" d="M{x + 0.5} {y + ch / 2 - 7}a7 7 0 0 1 0 14"/>'
+        f'<circle class="pin1" cx="{dot[0]}" cy="{dot[1]}" r="{dot[2]}"/>'
+        f'</g>')
+
+    mounts = ""
+    if holes:
+        mounts = "".join(f'<circle class="hole" cx="{hx}" cy="{hy}" r="5"/><circle class="holec" cx="{hx}" cy="{hy}" r="2"/>'
+                         for hx in (16, w - 16) for hy in (16, h - 16))
+
+    rx = 14 if w > 400 else 12
+    defs = (
+        '<defs>'
+        '<linearGradient id="sub" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" style="stop-color:var(--sub0)"/><stop offset="1" style="stop-color:var(--sub1)"/></linearGradient>'
+        '<pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">'
+        '<circle class="dot" cx="8" cy="8" r="1"/></pattern>'
+        '<radialGradient id="fade" cx="50%" cy="50%" r="65%">'
+        '<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
+        f'<mask id="vignette"><rect width="{w}" height="{h}" fill="url(#fade)"/></mask>'
+        '<radialGradient id="halo"><stop offset="0" style="stop-color:var(--halo);stop-opacity:var(--halo-op)"/>'
+        '<stop offset="1" style="stop-color:var(--halo);stop-opacity:0"/></radialGradient>'
+        '<linearGradient id="chipg" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" style="stop-color:var(--chip0)"/><stop offset="1" style="stop-color:var(--chip1)"/></linearGradient>'
+        '<linearGradient id="chiphl" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" style="stop-color:var(--chiphi);stop-opacity:.9"/><stop offset=".35" style="stop-color:var(--chiphi);stop-opacity:0"/></linearGradient>'
+        f'<clipPath id="panel"><rect x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="{rx}"/></clipPath>'
+        '</defs>')
+    body = (
+        defs
+        + '<g clip-path="url(#panel)">'
+        + f'<rect width="{w}" height="{h}" fill="url(#sub)"/>'
+        + f'<rect width="{w}" height="{h}" fill="url(#dots)" mask="url(#vignette)"/>'
+        + f'<ellipse cx="{x + cw / 2}" cy="{y + ch / 2}" rx="{cw * 0.75:.0f}" ry="{ch * 1.1:.0f}" fill="url(#halo)"/>'
+        + mounts + "".join(traces) + "".join(vias) + "".join(pulses) + chip + "".join(hots)
+        + '</g>'
+        + f'<rect class="frame" x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="{rx}"/>')
+    return body, "".join(css)
+
+
+def variables(t: dict) -> str:
+    return "svg{" + ";".join(f"--{k}:{v}" for k, v in t.items()) + "}"
+
+
+def base_css(n_letters: int, w: float) -> str:
+    stagger = "".join(f".c{i}{{animation-delay:{NAME_IN + i * RISE_STAGGER / 1000:.3f}s}}" for i in range(n_letters))
+    thin = 1.5 if w > 400 else 1.2
     return (
-        f'<defs>'
-        f'<linearGradient id="{ids}bg" x1="0" y1="0" x2="0" y2="1">'
-        f'<stop offset="0" class="bg0"/><stop offset="1" class="bg1"/></linearGradient>'
-        f'<pattern id="{ids}dots" width="18" height="18" patternUnits="userSpaceOnUse">'
-        f'<circle class="dots" cx="9" cy="9" r="1"/></pattern>'
-        f'<radialGradient id="{ids}fade" cx="50%" cy="45%" r="62%">'
-        f'<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
-        f'<mask id="{ids}vignette"><rect width="{w}" height="{h}" fill="url(#{ids}fade)"/></mask>'
-        f'<radialGradient id="{ids}glow"><stop offset="0" class="glow"/><stop offset="1" class="glow-end"/></radialGradient>'
-        f'<clipPath id="{ids}panel"><rect x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="14"/></clipPath>'
-        f'</defs>'
-        f'<g clip-path="url(#{ids}panel)">'
-        f'<rect width="{w}" height="{h}" fill="url(#{ids}bg)"/>'
-        f'<rect width="{w}" height="{h}" fill="url(#{ids}dots)" mask="url(#{ids}vignette)"/>'
-        f'<ellipse cx="{w / 2}" cy="{name_y - 18}" rx="{w * 0.36:.1f}" ry="{h * 0.42:.1f}" fill="url(#{ids}glow)"/>'
-        f'</g>'
-        f'<rect class="frame" x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="14" fill="none"/>'
-        + corners
-    )
-
-
-def theme_css(t: dict, scope: str = "") -> str:
-    p = f".{scope} " if scope else ""
-    return (f"{p}.bg0{{stop-color:{t['bg0']}}}{p}.bg1{{stop-color:{t['bg1']}}}"
-            f"{p}.dots{{fill:{t['dots']};fill-opacity:{t['dots_op']}}}"
-            f"{p}.glow{{stop-color:{t['glow']};stop-opacity:{t['glow_op']}}}"
-            f"{p}.glow-end{{stop-color:{t['glow']};stop-opacity:0}}"
-            f"{p}.frame{{stroke:{t['border']}}}{p}.marks{{fill:none;stroke:{t['marks']};stroke-width:1.25}}"
-            f"{p}.sh{{fill:{t['shade']}}}{p}.fc{{fill:{t['face']}}}"
-            f"{p}.sw{{fill:{t['sweep']};opacity:{t['sweep_op']}}}"
-            f"{p}.tg{{fill:{t['tag']}}}{p}.sp{{fill:{t['sep']}}}{p}.caret{{fill:{t['caret']};opacity:.85}}\n")
-
-
-def base_css(n_letters: int, sweep_to: float) -> str:
-    stagger = "".join(f".c{i}{{animation-delay:{i * RISE_STAGGER}ms}}" for i in range(n_letters))
-    return (
-        ".sh{font-family:'BShade',sans-serif}.fc,.sw{font-family:'BFace',sans-serif}\n"
+        ".frame{fill:none;stroke:var(--border)}.dot{fill:var(--dots);fill-opacity:var(--dots-op)}\n"
+        f".tr{{fill:none;stroke:var(--trace);stroke-width:{thin};stroke-linejoin:round}}\n"
+        f".via{{fill:var(--sub1);stroke:var(--via);stroke-width:{thin};animation:fade .35s ease both}}\n"
+        f".pg{{fill:none;stroke:var(--glow);stroke-opacity:.35;stroke-width:{thin * 4};stroke-linecap:round}}\n"
+        f".pc{{fill:none;stroke:var(--pulse);stroke-width:{thin * 1.15};stroke-linecap:round}}\n"
+        ".pin{fill:var(--pin)}.hot{fill:var(--hot);opacity:0}\n"
+        ".chipbd{stroke:var(--chipbd)}.notch{fill:var(--sub1);stroke:var(--chipbd)}.pin1{fill:var(--pin1)}\n"
+        ".hole{fill:none;stroke:var(--via);stroke-width:1.5}.holec{fill:var(--trace)}\n"
+        ".sh{font-family:'BShade',sans-serif;fill:var(--shade)}.fc{font-family:'BFace',sans-serif;fill:var(--face)}\n"
         ".mono{font-family:'JBMono',ui-monospace,monospace;font-weight:600;white-space:pre}\n"
-        f".sh,.fc,.sw{{animation:rise {RISE_MS}ms cubic-bezier(.2,.85,.3,1) both}}\n"
-        "@keyframes rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}\n"
+        ".tg{fill:var(--tag)}.sp{fill:var(--sep)}.caret{fill:var(--caret)}\n"
+        f".chip{{animation:chipin .7s cubic-bezier(.2,.85,.3,1) {CHIP_IN}s both}}\n"
+        f".sh,.fc{{animation:rise {RISE_MS}ms cubic-bezier(.2,.85,.3,1) both}}\n"
         f"{stagger}\n"
-        # The band moves, not the letters: translating the clipped group would
-        # carry its own clip along and nothing would appear to move.
-        f".sweep{{animation:sweep {SWEEP_PERIOD}ms linear infinite}}\n"
-        f"@keyframes sweep{{0%{{transform:translateX(0)}}44%,100%{{transform:translateX({sweep_to:.1f}px)}}}}\n"
-        "@keyframes pre{from,to{opacity:0}}@keyframes post{from,to{opacity:0}}\n"
-        "@keyframes blink{50%{opacity:0}}\n"
-        # Reduced motion drops what moves - the letters rising, the sweep, the
-        # blink - and keeps what only appears: the name fades in and the
-        # tagline still types. Turning everything off was the first version,
-        # and it froze the banner for anyone with Windows' "Animation effects"
-        # switched off, which Chrome reports to images as reduced motion.
-        "@keyframes fade{from{opacity:0}}\n"
-        "@media (prefers-reduced-motion: reduce){.sh,.fc,.sw{animation-name:fade}"
-        ".sweep,.blink{animation:none!important}}\n"
+        "@keyframes chipin{from{opacity:0;transform:translateY(8px)}}\n"
+        "@keyframes rise{from{opacity:0;transform:translateY(15px)}}\n"
+        "@keyframes fade{from{opacity:0}}@keyframes on{from,to{opacity:1}}\n"
+        # Reduced motion keeps what only appears and drops what travels.
+        "@media (prefers-reduced-motion: reduce){.chip,.sh,.fc{animation-name:fade}"
+        ".tr{animation:none!important}.pg,.pc,.hot{display:none}}\n"
     )
-
-
-def sweep_band(ids: str, h: float) -> str:
-    return (f'<clipPath id="{ids}band"><rect class="sweep" x="{-SWEEP_BAND}" y="0" '
-            f'width="{SWEEP_BAND}" height="{h}"/></clipPath>')
 
 
 def doc(w: float, h: float, label: str, css: str, body: str) -> str:
@@ -366,19 +456,59 @@ def doc(w: float, h: float, label: str, css: str, body: str) -> str:
 LABEL = f"{NAME.title()} - {SEP.join(TAGLINE)}"
 
 
+def wide_board() -> Board:
+    w = 846
+    b = Board(w, 254, (123, 62, 600, 130), 20, [143 + 20 * k for k in range(29)], (8, 9),
+              [87, 107, 127, 147, 167], (9, 8), chamfer=6, pulse=18)
+    # Top: a bus of four at each corner, a pair mid-way along, three up the middle.
+    b.bus([143, 163, 183, 203], -1, -1, 9, 10, [70, 50, None, 30])
+    b.bus([703, 683, 663, 643], -1, +1, 9, 10, [w - 70, w - 50, None, w - 30])
+    b.bus([263, 283], -1, -1, 9, 10, [238, 226])
+    b.bus([583, 563], -1, +1, 9, 10, [w - 238, w - 226])
+    b.stub(383, -1, 24); b.stub(423, -1, None); b.stub(463, -1, 24)
+    # Bottom: the same idea, varied so the board does not read as a mirror.
+    b.bus([143, 163, 183], +1, -1, 9, 10, [64, None, 36])
+    b.bus([703, 683, 663], +1, +1, 9, 10, [w - 64, None, w - 36])
+    b.bus([303, 323, 343], +1, -1, 9, 10, [278, 262, 246])
+    b.bus([543, 523, 503], +1, +1, 9, 10, [w - 278, w - 262, w - 246])
+    b.stub(403, +1, 234); b.stub(423, +1, None); b.stub(443, +1, 234)
+    for hdir, ends in ((-1, (88, None, 72)), (+1, (w - 88, None, w - 72))):
+        for y, end in zip((87, 127, 167), ends):
+            b.side(y, hdir, end)
+    return b
+
+
+def phone_board() -> Board:
+    w = 340
+    b = Board(w, 226, (24, 50, 292, 126), 16, [34 + 16 * k for k in range(18)], (6, 7),
+              [74, 98, 122, 146], (7, 6), chamfer=5, pulse=12)
+    b.bus([34, 50, 66], -1, -1, 8, 8, [12, None, 22])
+    b.bus([306, 290, 274], -1, +1, 8, 8, [w - 12, None, w - 22])
+    b.bus([114, 130], -1, -1, 8, 8, [96, 84])
+    b.bus([226, 210], -1, +1, 8, 8, [w - 96, w - 84])
+    b.stub(162, -1, None); b.stub(178, -1, 16)
+    b.bus([34, 50, 66], +1, -1, 8, 8, [None, 14, 24])
+    b.bus([306, 290, 274], +1, +1, 8, 8, [None, w - 14, w - 24])
+    b.bus([114, 130], +1, -1, 8, 8, [96, 84])
+    b.bus([226, 210], +1, +1, 8, 8, [w - 96, w - 84])
+    b.stub(162, +1, 212); b.stub(178, +1, None)
+    for y in (98, 146):
+        b.side(y, -1, None); b.side(y, +1, None)
+    return b
+
+
 def wide(f: Fonts, t: dict) -> str:
+    b = wide_board()
     runs = []
     for i, part in enumerate(TAGLINE):
         if i:
             runs.append((SEP, "sp"))
         runs.append((part, "tg"))
-    text, text_css = typed([runs], f, W / 2, TAG_Y, 0, TAG_SIZE, "w")
-    body = (backdrop(W, H, "w", NAME_Y)
-            + f"<defs>{sweep_band('w', H)}</defs>"
-            + wordmark(f, W / 2, NAME_Y, NAME_SIZE, "wband")
-            + text)
-    css = f.css() + base_css(len(NAME.replace(" ", "")), W + SWEEP_BAND) + theme_css(t) + text_css + "\n"
-    return doc(W, H, LABEL, css, body)
+    board, board_css = board_markup(b, holes=True)
+    text, text_css = typed([runs], f, b.cx + b.cw / 2, 163, 0, 16)
+    body = board + wordmark(f, b.cx + b.cw / 2, 125, 52) + text
+    css = f.css() + variables(t) + "\n" + base_css(len(NAME.replace(" ", "")), b.w) + board_css + "\n" + text_css + "\n"
+    return doc(b.w, b.h, LABEL, css, body)
 
 
 def narrow(f: Fonts) -> str:
@@ -389,20 +519,14 @@ def narrow(f: Fonts) -> str:
     media of every such source and throws the width condition away - see
     build_project_cards.adaptive_card.
     """
-    lines = [[(part, "tg")] for part in TAGLINE]
-    layers, css = [], [f.css(), base_css(len(NAME.replace(" ", "")), MW + SWEEP_BAND)]
-    for name, t in THEMES.items():
-        ids = f"m{name[0]}"
-        text, text_css = typed(lines, f, MW / 2, M_TAG_Y, M_TAG_LEAD, M_TAG_SIZE, ids)
-        layers.append(f'<g class="{name}">'
-                      + backdrop(MW, MH, ids, M_NAME_Y)
-                      + f"<defs>{sweep_band(ids, MH)}</defs>"
-                      + wordmark(f, MW / 2, M_NAME_Y, M_NAME_SIZE, f"{ids}band")
-                      + text + "</g>")
-        css += [theme_css(t, name), text_css + "\n"]
-    css.append(".light{display:none}\n"
-               "@media (prefers-color-scheme: light){.dark{display:none}.light{display:inline}}\n")
-    return doc(MW, MH, LABEL, "".join(css), "".join(layers))
+    b = phone_board()
+    board, board_css = board_markup(b, holes=False)
+    text, text_css = typed([[(part, "tg")] for part in TAGLINE], f, b.cx + b.cw / 2, 117, 18, 13)
+    body = board + wordmark(f, b.cx + b.cw / 2, 89, 26) + text
+    css = (f.css() + variables(THEMES["dark"]) + "\n"
+           + f"@media (prefers-color-scheme: light){{{variables(THEMES['light'])}}}\n"
+           + base_css(len(NAME.replace(" ", "")), b.w) + board_css + "\n" + text_css + "\n")
+    return doc(b.w, b.h, LABEL, css, body)
 
 
 def validate(svg: str, name: str) -> None:
@@ -420,7 +544,6 @@ def main() -> int:
         validate(svg, name)
         (HERE / name).write_text(svg, encoding="utf-8")
         print(f"  {name:<16} {len(svg) / 1024:.1f} KB")
-    print(f"  subsets: {', '.join(f'{p.name} {p.stat().st_size}b' for p in (f.shade, f.face, f.mono))}")
     return 0
 
 
