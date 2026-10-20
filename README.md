@@ -45,9 +45,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-night-view.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-green-animate.svg" />
-  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-night-view.svg" alt="3D contribution graph" width="820" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-indigo-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-indigo-light.svg" />
+  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/profile-3d-contrib/profile-indigo-dark.svg" alt="3D contribution graph" width="820" />
 </picture>
 
 </div>
