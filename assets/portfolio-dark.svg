@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="117" height="34" viewBox="0 0 117 34" role="img" aria-label="Portfolio — nikhilkolli.com">
+  <title>Portfolio — nikhilkolli.com</title>
+  <rect x="0.5" y="0.5" width="116" height="33" rx="9" fill="#818CF8" stroke="#818CF8"/>
+  <g transform="translate(14 10) scale(0.5833333333333334)"><path fill="#0D1117" d="M24 22.525H0l12-21.05 12 21.05z"/></g>
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="12">
+    <text x="37" y="21.2" fill="#0D1117" font-weight="600">portfolio</text>
+    
+  </g>
+</svg>

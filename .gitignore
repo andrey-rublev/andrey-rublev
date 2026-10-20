@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Downloaded faces; only the subsets cut from them are committed.
+assets/fonts/*.woff2
+!assets/fonts/*.subset.woff2

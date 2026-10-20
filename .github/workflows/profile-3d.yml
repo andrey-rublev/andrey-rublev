@@ -3,6 +3,11 @@ name: 3D contribution graph
 # Renders the contribution calendar as an isometric 3D SVG and commits it back
 # to this repo. Runs daily; the README points at the committed files.
 # Source: github.com/yoshi389111/github-profile-3d-contrib (MIT)
+#
+# The palette is ours, in .github/profile-3d-contrib.json: the README's indigo,
+# on a transparent background so the graph sits on any GitHub theme instead of
+# in a box of its own. With SETTING_JSON set the action draws only those two
+# files, not its ten stock ones.
 
 on:
   schedule:
@@ -23,6 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
+          SETTING_JSON: .github/profile-3d-contrib.json
 
       - name: Commit and push
         run: |

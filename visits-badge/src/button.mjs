@@ -8,54 +8,42 @@
  * Layout is computed rather than measured. GitHub strips external CSS from
  * proxied SVG, so no web font can load — the text is set in a monospace stack
  * where every glyph advances the same width, which makes the arithmetic exact
- * instead of an estimate. That is also why these read as a set with the
- * JetBrains Mono banner above them.
+ * instead of an estimate.
  *
- * Two variants, so the rows read as different kinds of thing:
- *   solid — the links. Taller, filled, icon-led. These are actions.
- *   ghost — the counters. Shorter, fully rounded, recessed. These are metadata.
+ * Three variants, so the rows read as different kinds of thing:
+ *   primary — the main link. Filled with the accent, like the live-site
+ *             button on the project cards.
+ *   solid   — a secondary link. Taller, filled, icon-led. Still an action.
+ *   ghost   — the counters. Shorter, fully rounded, recessed. Metadata.
  *
- * Both keep a dark fill on purpose. An outline-only variant would need
- * prefers-color-scheme inside the SVG to stay legible on GitHub's light theme,
- * and that is not reliable once the image is proxied.
+ * Each comes in a dark and a light palette. The README picks one with a
+ * <picture> keyed on prefers-color-scheme, which GitHub's themed-picture
+ * script maps to the viewer's GitHub theme - so the buttons follow the page
+ * rather than the device. The Worker takes the same choice as ?theme=light.
  */
 
 const FONT = "ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace";
 
 const VARIANTS = {
-  solid: {
-    h: 34,
-    r: 9,
-    fs: 12,
-    pad: 14,
-    icon: 14,
-    gapIcon: 9,
-    gapMid: 12,
-    bg: "#1B2029",
-    border: "#30363D",
-    iconFill: "#818CF8",
-    label: "#8B949E",
-    value: "#E6EDF3",
-    labelWeight: "400",
-    valueWeight: "600",
+  primary: { h: 34, r: 9, fs: 12, pad: 14, icon: 14, gapIcon: 9, gapMid: 12, labelWeight: "600", valueWeight: "600" },
+  solid: { h: 34, r: 9, fs: 12, pad: 14, icon: 14, gapIcon: 9, gapMid: 12, labelWeight: "400", valueWeight: "600" },
+  ghost: { h: 26, r: 13, fs: 11, pad: 12, icon: 11, gapIcon: 7, gapMid: 9, labelWeight: "400", valueWeight: "700" },
+};
+
+const PALETTES = {
+  dark: {
+    primary: { bg: "#818CF8", border: "#818CF8", iconFill: "#0D1117", label: "#0D1117", value: "#0D1117" },
+    solid: { bg: "#161B22", border: "#30363D", iconFill: "#818CF8", label: "#C9D1D9", value: "#E6EDF3" },
+    ghost: { bg: "#12161D", border: "#2C3444", iconFill: "#6B7280", label: "#7D8590", value: "#A5B4FC" },
   },
-  ghost: {
-    h: 26,
-    r: 13,
-    fs: 11,
-    pad: 12,
-    icon: 11,
-    gapIcon: 7,
-    gapMid: 9,
-    bg: "#12161D",
-    border: "#2C3444",
-    iconFill: "#6B7280",
-    label: "#7D8590",
-    value: "#A5B4FC",
-    labelWeight: "400",
-    valueWeight: "700",
+  light: {
+    primary: { bg: "#5B4BD6", border: "#5B4BD6", iconFill: "#FFFFFF", label: "#FFFFFF", value: "#FFFFFF" },
+    solid: { bg: "#F6F8FA", border: "#D0D7DE", iconFill: "#5B4BD6", label: "#24292F", value: "#1F2328" },
+    ghost: { bg: "#FFFFFF", border: "#D0D7DE", iconFill: "#8C959F", label: "#656D76", value: "#5B4BD6" },
   },
 };
+
+export const THEMES = Object.keys(PALETTES);
 
 /** Monospace advance is ~0.6em; a touch over avoids clipping on wider faces. */
 const advance = (fs) => fs * 0.605;
@@ -76,12 +64,16 @@ const esc = (s) =>
  * @param {string} [o.icon]     key of ICONS
  * @param {string} o.label      left text
  * @param {string} [o.value]    right text; omit for a label-only button
- * @param {'solid'|'ghost'} [o.variant]
+ * @param {'primary'|'solid'|'ghost'} [o.variant]
+ * @param {'dark'|'light'} [o.theme]
  * @param {string} [o.title]    accessible name
  */
-export function button({ icon, label, value, variant = "solid", title }) {
-  const v = VARIANTS[variant];
-  if (!v) throw new Error(`unknown variant: ${variant}`);
+export function button({ icon, label, value, variant = "solid", theme = "dark", title }) {
+  const geo = VARIANTS[variant];
+  if (!geo) throw new Error(`unknown variant: ${variant}`);
+  const palette = PALETTES[theme];
+  if (!palette) throw new Error(`unknown theme: ${theme}`);
+  const v = { ...geo, ...palette[variant] };
 
   const adv = advance(v.fs);
   const labelW = label.length * adv;

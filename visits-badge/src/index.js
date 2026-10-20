@@ -7,6 +7,9 @@
  * GET /github      -> GitHub profile views button (SVG)
  * GET /?debug=1    -> non-sensitive diagnostics (JSON)
  *
+ * Either button takes ?theme=light for the light palette; anything else, or
+ * nothing, draws the dark one.
+ *
  * Reads `httpRequests1dGroups`, the zone-level daily rollup behind the
  * dashboard's Traffic page. An earlier version used Web Analytics
  * (rumPageloadEventsAdaptiveGroups) and was badly wrong: that dataset is a
@@ -51,6 +54,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const debug = url.searchParams.get("debug") === "1";
+    const theme = url.searchParams.get("theme") === "light" ? "light" : "dark";
 
     if (url.pathname.replace(/\.svg$/, "") === "/github") {
       let value;
@@ -65,6 +69,7 @@ export default {
           label: "github views",
           value: value === null ? "—" : fmt(value),
           variant: "ghost",
+          theme,
           title: `GitHub profile views: ${value === null ? "unavailable" : fmt(value)}`,
         })
       );
@@ -88,6 +93,7 @@ export default {
             label: env.BADGE_LABEL || "portfolio views",
             value: fmt(stats.value),
             variant: "ghost",
+            theme,
             title: `Portfolio views: ${fmt(stats.value)}`,
           })
         );
@@ -96,7 +102,7 @@ export default {
     } catch (err) {
       // A broken badge is worse than an honest one - render the failure.
       if (!debug) {
-        return svg(button({ icon: "vercel", label: label(env), value: "—", variant: "ghost", title: "unavailable" }));
+        return svg(button({ icon: "vercel", label: label(env), value: "—", variant: "ghost", theme, title: "unavailable" }));
       }
       payload = json({ ok: false, error: String(err && err.message ? err.message : err) }, 500);
     }
