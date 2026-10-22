@@ -92,18 +92,16 @@ SPEED = 170         # px/s along a trace
 
 THEMES = {
     "dark": {
-        "sub0": "#0F1422", "sub1": "#0D1117", "border": "#262C36",
-        "dots": "#E6EDF3", "dots-op": ".07", "halo": "#6366F1", "halo-op": ".26",
-        "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF", "glow": "#818CF8",
-        "chip0": "#1B2134", "chip1": "#111624", "chipbd": "#333C5A", "chiphi": "#56618C",
+        "board": "#0F1422", "border": "#262C36", "dots": "#E6EDF3", "dots-op": ".06",
+        "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF",
+        "chip": "#161B2B", "chipbd": "#333C5A",
         "pin": "#4A5475", "pin1": "#3A4466", "hot": "#C7D2FE",
         "shade": "#6259E8", "face": "#F0F3F8", "tag": "#A5B4FC", "sep": "#4B5470", "caret": "#818CF8",
     },
     "light": {
-        "sub0": "#F3F4FE", "sub1": "#FFFFFF", "border": "#D0D7DE",
-        "dots": "#1F2328", "dots-op": ".09", "halo": "#818CF8", "halo-op": ".20",
-        "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5", "glow": "#A5B4FC",
-        "chip0": "#FFFFFF", "chip1": "#F1F2F9", "chipbd": "#C3C9E2", "chiphi": "#FFFFFF",
+        "board": "#F6F7FD", "border": "#D0D7DE", "dots": "#1F2328", "dots-op": ".08",
+        "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5",
+        "chip": "#FFFFFF", "chipbd": "#C3C9E2",
         "pin": "#A9B0D0", "pin1": "#D5D9F3", "hot": "#4F46E5",
         "shade": "#7C70E4", "face": "#16181D", "tag": "#4F46E5", "sep": "#AFB8C1", "caret": "#5B4BD6",
     },
@@ -361,8 +359,7 @@ def board_markup(b: Board, holes: bool) -> tuple:
         css.append(f"@keyframes p{i}{{0%{{stroke-dashoffset:{D + 4}}}{q:.2f}%,100%{{stroke-dashoffset:{-(n + 4):.1f}}}}}"
                    f"@keyframes h{i}{{0%,{max(q - 1, 0):.2f}%{{opacity:0}}{q:.2f}%{{opacity:1}}{q + 6:.2f}%,100%{{opacity:0}}}}")
         anim = f"p{i} {PERIOD}s cubic-bezier(.5,0,.6,1) {delay:.3f}s infinite both"
-        for cls in ("pg", "pc"):
-            pulses.append(f'<path class="{cls}" d="{d}" style="stroke-dasharray:{D} {n + D + 20:.1f};animation:{anim}"/>')
+        pulses.append(f'<path class="pc" d="{d}" style="stroke-dasharray:{D} {n + D + 20:.1f};animation:{anim}"/>')
         rx, ry, rw, rh = b.pin_at(pts[-1])
         hots.append(f'<rect class="hot" x="{rx:g}" y="{ry:g}" width="{rw:g}" height="{rh:g}" rx="1" '
                     f'style="animation:h{i} {PERIOD}s linear {delay:.3f}s infinite both"/>')
@@ -374,9 +371,7 @@ def board_markup(b: Board, holes: bool) -> tuple:
     dot = (x + 16, y + 16, 4) if w > 400 else (x + 12, y + 12, 3)
     chip = (
         f'<g class="chip">{pins}'
-        f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="{r}" fill="url(#chipg)"/>'
-        f'<rect x="{x + 1}" y="{y + 1}" width="{cw - 2}" height="{ch - 2}" rx="{r - 1}" fill="none" stroke="url(#chiphl)"/>'
-        f'<rect class="chipbd" x="{x + 0.5}" y="{y + 0.5}" width="{cw - 1}" height="{ch - 1}" rx="{r}" fill="none"/>'
+        f'<rect class="body" x="{x + 0.5}" y="{y + 0.5}" width="{cw - 1}" height="{ch - 1}" rx="{r}"/>'
         f'<path class="notch" d="M{x + 0.5} {y + ch / 2 - 7}a7 7 0 0 1 0 14"/>'
         f'<circle class="pin1" cx="{dot[0]}" cy="{dot[1]}" r="{dot[2]}"/>'
         f'</g>')
@@ -389,27 +384,15 @@ def board_markup(b: Board, holes: bool) -> tuple:
     rx = 14 if w > 400 else 12
     defs = (
         '<defs>'
-        '<linearGradient id="sub" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0" style="stop-color:var(--sub0)"/><stop offset="1" style="stop-color:var(--sub1)"/></linearGradient>'
         '<pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">'
         '<circle class="dot" cx="8" cy="8" r="1"/></pattern>'
-        '<radialGradient id="fade" cx="50%" cy="50%" r="65%">'
-        '<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
-        f'<mask id="vignette"><rect width="{w}" height="{h}" fill="url(#fade)"/></mask>'
-        '<radialGradient id="halo"><stop offset="0" style="stop-color:var(--halo);stop-opacity:var(--halo-op)"/>'
-        '<stop offset="1" style="stop-color:var(--halo);stop-opacity:0"/></radialGradient>'
-        '<linearGradient id="chipg" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0" style="stop-color:var(--chip0)"/><stop offset="1" style="stop-color:var(--chip1)"/></linearGradient>'
-        '<linearGradient id="chiphl" x1="0" y1="0" x2="0" y2="1">'
-        '<stop offset="0" style="stop-color:var(--chiphi);stop-opacity:.9"/><stop offset=".35" style="stop-color:var(--chiphi);stop-opacity:0"/></linearGradient>'
         f'<clipPath id="panel"><rect x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="{rx}"/></clipPath>'
         '</defs>')
     body = (
         defs
         + '<g clip-path="url(#panel)">'
-        + f'<rect width="{w}" height="{h}" fill="url(#sub)"/>'
-        + f'<rect width="{w}" height="{h}" fill="url(#dots)" mask="url(#vignette)"/>'
-        + f'<ellipse cx="{x + cw / 2}" cy="{y + ch / 2}" rx="{cw * 0.75:.0f}" ry="{ch * 1.1:.0f}" fill="url(#halo)"/>'
+        + f'<rect class="sub" width="{w}" height="{h}"/>'
+        + f'<rect width="{w}" height="{h}" fill="url(#dots)"/>'
         + mounts + "".join(traces) + "".join(vias) + "".join(pulses) + chip + "".join(hots)
         + '</g>'
         + f'<rect class="frame" x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" rx="{rx}"/>')
@@ -424,13 +407,12 @@ def base_css(n_letters: int, w: float) -> str:
     stagger = "".join(f".c{i}{{animation-delay:{NAME_IN + i * RISE_STAGGER / 1000:.3f}s}}" for i in range(n_letters))
     thin = 1.5 if w > 400 else 1.2
     return (
-        ".frame{fill:none;stroke:var(--border)}.dot{fill:var(--dots);fill-opacity:var(--dots-op)}\n"
+        ".sub{fill:var(--board)}.frame{fill:none;stroke:var(--border)}.dot{fill:var(--dots);fill-opacity:var(--dots-op)}\n"
         f".tr{{fill:none;stroke:var(--trace);stroke-width:{thin};stroke-linejoin:round}}\n"
-        f".via{{fill:var(--sub1);stroke:var(--via);stroke-width:{thin};animation:fade .35s ease both}}\n"
-        f".pg{{fill:none;stroke:var(--glow);stroke-opacity:.35;stroke-width:{thin * 4};stroke-linecap:round}}\n"
-        f".pc{{fill:none;stroke:var(--pulse);stroke-width:{thin * 1.15};stroke-linecap:round}}\n"
+        f".via{{fill:var(--board);stroke:var(--via);stroke-width:{thin};animation:fade .35s ease both}}\n"
+        f".pc{{fill:none;stroke:var(--pulse);stroke-width:{thin * 1.3};stroke-linecap:round}}\n"
         ".pin{fill:var(--pin)}.hot{fill:var(--hot);opacity:0}\n"
-        ".chipbd{stroke:var(--chipbd)}.notch{fill:var(--sub1);stroke:var(--chipbd)}.pin1{fill:var(--pin1)}\n"
+        ".body{fill:var(--chip);stroke:var(--chipbd)}.notch{fill:var(--board);stroke:var(--chipbd)}.pin1{fill:var(--pin1)}\n"
         ".hole{fill:none;stroke:var(--via);stroke-width:1.5}.holec{fill:var(--trace)}\n"
         ".sh{font-family:'BShade',sans-serif;fill:var(--shade)}.fc{font-family:'BFace',sans-serif;fill:var(--face)}\n"
         ".mono{font-family:'JBMono',ui-monospace,monospace;font-weight:600;white-space:pre}\n"
@@ -443,7 +425,7 @@ def base_css(n_letters: int, w: float) -> str:
         "@keyframes fade{from{opacity:0}}@keyframes on{from,to{opacity:1}}\n"
         # Reduced motion keeps what only appears and drops what travels.
         "@media (prefers-reduced-motion: reduce){.chip,.sh,.fc{animation-name:fade}"
-        ".tr{animation:none!important}.pg,.pc,.hot{display:none}}\n"
+        ".tr{animation:none!important}.pc,.hot{display:none}}\n"
     )
 
 

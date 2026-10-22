@@ -10,9 +10,8 @@ each URL carries ?v=<first 8 hex of the file's sha1>, and new contents are a new
 cache key. Line endings are normalised first, so a Windows checkout hashes the
 way CI's does. build_project_cards.py stamps the card URLs the same way.
 
-Only assets/ is stamped. The 3D contribution graph is rewritten daily by its
-own workflow, which never touches README.md, so a stamp there would only ever
-be out of date.
+The daily workflows run this after redrawing the contribution graph and the
+cards, and commit README.md with them, so those stamps follow the data.
 """
 import hashlib
 import pathlib

@@ -39,7 +39,6 @@ import hashlib
 import json
 import math
 import os
-import re
 import pathlib
 import sys
 import textwrap
@@ -96,14 +95,12 @@ BTN_Y = 12                  # centred on the title's cap height
 
 THEMES = {
     "dark": {
-        "bg": "#0D1117", "border": "#262C36", "edge": "#3D4450", "accent": "#818CF8",
-        "glow": 0.13, "rule": 0.9, "emblem": 0.42,
+        "bg": "#0D1117", "border": "#30363D", "accent": "#818CF8", "emblem": 0.42,
         "title": "#E6EDF3", "body": "#8B949E",
         "chip_bg": "#21262D", "chip_fg": "#A5B4FC", "meta": "#7D8590",
     },
     "light": {
-        "bg": "#FFFFFF", "border": "#D0D7DE", "edge": "#D0D7DE", "accent": "#5B4BD6",
-        "glow": 0.07, "rule": 0.8, "emblem": 0.5,
+        "bg": "#FFFFFF", "border": "#D0D7DE", "accent": "#5B4BD6", "emblem": 0.5,
         "title": "#1F2328", "body": "#57606A",
         "chip_bg": "#EFF1F5", "chip_fg": "#5B4BD6", "meta": "#6E7781",
     },
@@ -396,30 +393,12 @@ def art(p: dict, t: dict, data: dict, dests: list,
                       for (kind, _), x in zip(dests, button_xs(len(dests), W)))
     mark = emblem(p["name"], t, W - GAP - 20, BTN_Y + BTN_H + 6, CHIP_Y - 6, 44 if fit else 48)
 
-    # The surface: a faint accent glow from the top-left corner, a hairline of
-    # accent along the top edge that fades out to the right, and a border lit
-    # from above. Every gradient is in card coordinates (userSpaceOnUse): the
-    # halves of a split card then window one continuous surface instead of each
-    # stretching its own, and the hairline - zero height, so it has no bounding
-    # box to be relative to - renders at all.
+    # The surface is flat: one fill and a hairline border, the way GitHub draws
+    # its own pinned-repo cards. No glow, no accent stripe along an edge - the
+    # emblem and the chips carry the colour.
     x0, cw = GAP + 0.5, W - GAP * 2 - 1
-    fade = round(x0 + cw * 0.7)
     return (
-        f'<defs>'
-        f'<clipPath id="card"><rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" rx="10"/></clipPath>'
-        f'<radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="{GAP + 40}" cy="0" r="{round(W * 0.8)}">'
-        f'<stop offset="0" stop-color="{t["accent"]}" stop-opacity="{t["glow"]}"/>'
-        f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity="0"/></radialGradient>'
-        f'<linearGradient id="rule" gradientUnits="userSpaceOnUse" x1="{x0}" y1="0" x2="{fade}" y2="0">'
-        f'<stop offset="0" stop-color="{t["accent"]}" stop-opacity="{t["rule"]}"/>'
-        f'<stop offset="1" stop-color="{t["accent"]}" stop-opacity="0"/></linearGradient>'
-        f'<linearGradient id="edge" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="{H}">'
-        f'<stop offset="0" stop-color="{t["edge"]}"/><stop offset=".6" stop-color="{t["border"]}"/></linearGradient>'
-        f'</defs>'
-        f'<rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" rx="10" fill="{t["bg"]}"/>'
-        f'<rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" fill="url(#glow)" clip-path="url(#card)"/>'
-        f'<rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" rx="10" fill="none" stroke="url(#edge)"/>'
-        f'<path d="M{x0 + 10} 0.5H{fade}" stroke="url(#rule)"/>'
+        f'<rect x="{x0}" y="0.5" width="{cw}" height="{H-1}" rx="10" fill="{t["bg"]}" stroke="{t["border"]}"/>'
         f'<text x="{GAP+20}" y="{TITLE_Y}" class="t">{esc(p["name"])}</text>'
         + body + mark + "".join(chips) + meta + buttons
     ), H
@@ -467,16 +446,7 @@ def adaptive_card(layers: dict, label: str, x0: int, vw: int, H: int) -> str:
                      f".{name} .c{{fill:{t['chip_fg']}}} .{name} .m{{fill:{t['meta']}}}")
     rules += [".light{display:none}",
               "@media (prefers-color-scheme: light){.dark{display:none}.light{display:inline}}"]
-    # Each layer brings its own clip path and gradients; the ids have to stay
-    # unique, or the light layer would paint with the dark one's.
-    def scoped(markup: str, name: str) -> str:
-        for i in re.findall(r'id="([^"]+)"', markup):
-            markup = markup.replace(f'id="{i}"', f'id="{i}-{name}"').replace(f"url(#{i})", f"url(#{i}-{name})")
-        return markup
-
-    body = "".join(f'<g class="{name}">'
-                   + scoped(layers[name], name)
-                   + "</g>" for name in THEMES)
+    body = "".join(f'<g class="{name}">{layers[name]}</g>' for name in THEMES)
     return svg_doc(label, x0, vw, H, rules, body)
 
 

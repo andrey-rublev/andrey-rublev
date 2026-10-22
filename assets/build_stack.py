@@ -41,9 +41,9 @@ MW = 340                                      # phone artwork width
 
 THEMES = {
     "dark": {"bg": "#161B22", "border": "#262C36", "icon": "#A5B4FC", "label": "#C9D1D9",
-             "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF", "glow": "#818CF8"},
+             "trace": "#283050", "via": "#3A4466", "pulse": "#E0E7FF"},
     "light": {"bg": "#F6F8FA", "border": "#D0D7DE", "icon": "#5B4BD6", "label": "#24292F",
-              "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5", "glow": "#A5B4FC"},
+              "trace": "#D5D9F3", "via": "#B7BDE5", "pulse": "#4F46E5"},
 }
 
 # Each row of chips sits on a bus, as parts sit on the board in the banner: a
@@ -155,8 +155,7 @@ def buses(widths: list, rows: list, pos: list, ext: float) -> tuple:
         css.append(f"@keyframes s{r}{{0%{{stroke-dashoffset:{BUS_DASH + 4}}}{q:.2f}%,100%{{stroke-dashoffset:{-(n + 4):.1f}}}}}")
         anim = f"s{r} {BUS_PERIOD}s cubic-bezier(.4,0,.6,1) {delay:.2f}s infinite both"
         out.append(f'<path class="bus" d="{d}"/>'
-                   + "".join(f'<path class="{c}" d="{d}" style="stroke-dasharray:{BUS_DASH} {n + 40:.0f};animation:{anim}"/>'
-                             for c in ("glo", "pul"))
+                   f'<path class="pul" d="{d}" style="stroke-dasharray:{BUS_DASH} {n + 40:.0f};animation:{anim}"/>'
                    + f'<circle class="via" cx="{x0:.2f}" cy="{y}" r="3"/><circle class="via" cx="{x1:.2f}" cy="{y}" r="3"/>')
     return "".join(out), "".join(css)
 
@@ -164,7 +163,7 @@ def buses(widths: list, rows: list, pos: list, ext: float) -> tuple:
 def colours(t: dict) -> str:
     """A theme as custom properties, so the chips are drawn once whatever the theme."""
     return (f"svg{{--bg:{t['bg']};--bd:{t['border']};--ic:{t['icon']};--lb:{t['label']};"
-            f"--tr:{t['trace']};--via:{t['via']};--pu:{t['pulse']};--gl:{t['glow']}}}")
+            f"--tr:{t['trace']};--via:{t['via']};--pu:{t['pulse']}}}")
 
 
 def doc(w: float, h: float, css: str, body: str) -> str:
@@ -180,9 +179,8 @@ def main() -> int:
             f".lb{{font-family:'JBMono',ui-monospace,monospace;font-size:{FS}px;font-weight:500;fill:var(--lb)}}\n"
             ".chip{fill:var(--bg);stroke:var(--bd)}.ic{fill:var(--ic);stroke:var(--ic)}\n"
             ".bus{fill:none;stroke:var(--tr);stroke-width:1.5}.via{fill:none;stroke:var(--via);stroke-width:1.5}\n"
-            ".glo{fill:none;stroke:var(--gl);stroke-opacity:.35;stroke-width:6;stroke-linecap:round}\n"
-            ".pul{fill:none;stroke:var(--pu);stroke-width:1.7;stroke-linecap:round}\n"
-            "@media (prefers-reduced-motion: reduce){.glo,.pul{display:none}}\n")
+            ".pul{fill:none;stroke:var(--pu);stroke-width:1.9;stroke-linecap:round}\n"
+            "@media (prefers-reduced-motion: reduce){.pul{display:none}}\n")
     widths = [chip_width(label, adv) for label, _ in STACK]
 
     out = {}
