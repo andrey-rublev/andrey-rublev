@@ -118,9 +118,6 @@ PROJECTS = [
      "site": "https://nikhilkolli.com",
      "blurb": "My portfolio, dealt as a poker table.",
      "stack": ["TypeScript", "React"]},
-    {"name": "Quantum-Classical ML", "repo": "andrey-rublev/QML", "site": None,
-     "blurb": "Variational circuits classifying ciphers at 96.59% and decrypting at 99.85%, on a 4M+ sample dataset.",
-     "stack": ["PennyLane", "PyTorch"]},
     {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
      "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
      "stack": ["PennyLane", "JAX"]},
@@ -134,24 +131,15 @@ PROJECTS = [
      "site": "https://raize-psi.vercel.app",
      "blurb": "Reconstruction planning for disaster zones. Sparse video rebuilt into navigable 3D over UNOSAT damage data.",
      "stack": ["Three.js", "Gemini", "Next.js"]},
-    {"name": "project-kryptos", "repo": "andrey-rublev/project-kryptos", "site": None,
-     "blurb": "Identifies and decodes Caesar, Vigenere, skip and columnar ciphers from ciphertext alone, with no key.",
-     "stack": ["Python"]},
     {"name": "RealTalk", "repo": None, "site": None,
      "blurb": "AI hiring assistant that reviews resumes and runs interviews.",
      "stack": ["React", "FastAPI", "AWS"]},
     {"name": "Gradus", "repo": None, "site": None,
      "blurb": "Academic tracking app, shipped to 176 countries.",
      "stack": ["Flutter", "Dart"]},
-    {"name": "RLpokerAI", "repo": "andrey-rublev/RLpokerAI", "site": None,
-     "blurb": "Reinforcement learning agents for imperfect-information poker.",
-     "stack": ["Python", "RL"]},
     {"name": "SAP-AI", "repo": "andrey-rublev/SAP-AI", "site": None,
      "blurb": "Reinforcement learning agent that plays Super Auto Pets.",
      "stack": ["Python", "RL"]},
-    {"name": "Networking", "repo": "andrey-rublev/Networking", "site": None,
-     "blurb": "Java socket programming and game projects.",
-     "stack": ["Java"]},
 ]
 
 LABEL = {"site": "Live site", "repo": "Repository"}
@@ -163,26 +151,6 @@ ICONS = {
 }
 
 
-def _wheel() -> str:
-    """Cipher wheel: an outer ring of letter cells over an inner one turned half
-    a cell - the shift that is the whole of a Caesar cipher."""
-    def spokes(r0, r1, n, turn):
-        return "".join(
-            f"M{32 + r0 * math.cos(a):.2f} {32 + r0 * math.sin(a):.2f}"
-            f"L{32 + r1 * math.cos(a):.2f} {32 + r1 * math.sin(a):.2f}"
-            for a in (2 * math.pi * (k + turn) / n for k in range(n)))
-    return ('<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="16"/><circle cx="32" cy="32" r="4"/>'
-            f'<path d="{spokes(16, 25, 16, 0)}"/><path d="{spokes(4, 16, 8, 0.5)}" opacity=".6"/>'
-            '<path d="M32 6.5l-3.2-5h6.4z" fill="{c}" stroke="none"/>')
-
-
-def _chip_stripes() -> str:
-    return "".join(
-        f'<path d="M{32 + 19.5 * math.cos(a):.2f} {32 + 19.5 * math.sin(a):.2f}'
-        f'L{32 + 24.5 * math.cos(a):.2f} {32 + 24.5 * math.sin(a):.2f}" stroke-width="4.5"/>'
-        for a in (math.pi * k / 4 for k in range(8)))
-
-
 # One line-art emblem per project, drawn in a 64x64 box. {c} is the ink and
 # {bg} the card, for shapes that have to hide what is behind them.
 EMBLEMS = {
@@ -192,15 +160,6 @@ EMBLEMS = {
         '<g transform="rotate(10 38 31)"><rect x="24" y="12" width="28" height="38" rx="3.5" fill="{bg}"/>'
         '<path d="M38 22c-4.5 4.5-8 7.2-8 10.6a3.4 3.4 0 0 0 6 2.2L35 39h6l-1-4.2a3.4 3.4 0 0 0 6-2.2'
         'c0-3.4-3.5-6.1-8-10.6z" fill="{c}" stroke="none"/></g>'),
-    # A circuit: Hadamard, CNOT, a rotation and a measurement.
-    "Quantum-Classical ML": (
-        '<path d="M5 18H59M5 32H59M5 46H59"/>'
-        '<rect x="11" y="11" width="14" height="14" rx="2" fill="{bg}"/><path d="M15.5 14.5v7M20.5 14.5v7M15.5 18h5"/>'
-        '<path d="M35 18V37"/><circle cx="35" cy="18" r="2.6" fill="{c}"/>'
-        '<circle cx="35" cy="32" r="5" fill="{bg}"/><path d="M35 27v10M30 32h10"/>'
-        '<rect x="11" y="39" width="14" height="14" rx="2" fill="{bg}"/><path d="M14 47c1.7-3.2 3.3-3.2 5 0s3.3 3.2 5 0"/>'
-        '<rect x="43" y="38" width="15" height="16" rx="2" fill="{bg}"/>'
-        '<path d="M46 49.5a4.5 4.5 0 0 1 9 0M50.5 49.5l3-5"/>'),
     # Zero-noise extrapolation: three noisy runs, the quadratic through them,
     # and the zero-noise value where it meets the axis.
     "Quantum Error Mitigation": (
@@ -227,7 +186,6 @@ EMBLEMS = {
         '<path d="M21 14L43 26M43 14L21 26M10 31L32 43L54 31M21 26V48M43 26V48" opacity=".55"/>'
         + "".join(f'<circle cx="{x}" cy="{y}" r="1.8" fill="{{c}}" stroke="none"/>'
                   for x, y in ((32, 8), (54, 20), (32, 32), (10, 20), (10, 42), (32, 54), (54, 42)))),
-    "project-kryptos": _wheel(),
     # An interview: a question, and an answer being typed.
     "RealTalk": (
         '<path d="M8 10h30a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H20l-7 6v-6H8a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z"/>'
@@ -240,9 +198,6 @@ EMBLEMS = {
         '<path d="M32 10L60 22L32 34L4 22Z" fill="{bg}"/>'
         '<path d="M32 22L52 27V42"/><path d="M50 42h4l1.5 8h-7z" fill="{c}"/>'
         '<circle cx="32" cy="22" r="1.8" fill="{c}" stroke="none"/>'),
-    "RLpokerAI": (
-        '<circle cx="32" cy="32" r="25"/><circle cx="32" cy="32" r="15"/>' + _chip_stripes()
-        + '<path d="M32 23.5l6.5 8.5-6.5 8.5-6.5-8.5z" fill="{c}" stroke="none"/>'),
     "SAP-AI": (
         '<path d="M32 33c-7.5 0-14.5 7.5-14.5 13.5 0 4 3 6.5 7 6.5 3.2 0 4.8-1.6 7.5-1.6s4.3 1.6 7.5 1.6'
         'c4 0 7-2.5 7-6.5 0-6-7-13.5-14.5-13.5z"/>'
@@ -250,13 +205,6 @@ EMBLEMS = {
         '<ellipse cx="25" cy="16" rx="5" ry="6.6" transform="rotate(-8 25 16)"/>'
         '<ellipse cx="39" cy="16" rx="5" ry="6.6" transform="rotate(8 39 16)"/>'
         '<ellipse cx="49" cy="30" rx="4.6" ry="6.2" transform="rotate(22 49 30)"/>'),
-    # Sockets: a small network, one packet in flight.
-    "Networking": (
-        '<path d="M14 16L36 11M14 16L30 34M36 11L30 34M36 11L53 26M30 34L53 26M30 34L13 51M30 34L47 51M53 26L47 51"/>'
-        + "".join(f'<circle cx="{x}" cy="{y}" r="4.2" fill="{{bg}}"/>'
-                  for x, y in ((14, 16), (36, 11), (53, 26), (13, 51), (47, 51)))
-        + '<circle cx="30" cy="34" r="5.5" fill="{c}" stroke="none"/>'
-        '<circle cx="41.5" cy="30" r="1.8" fill="{c}" stroke="none"/>'),
 }
 
 
