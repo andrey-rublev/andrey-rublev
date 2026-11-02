@@ -118,12 +118,12 @@ PROJECTS = [
      "site": "https://nikhilkolli.com",
      "blurb": "My portfolio, dealt as a poker table.",
      "stack": ["TypeScript", "React"]},
-    {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
-     "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
-     "stack": ["PennyLane", "JAX"]},
     {"name": "GeoGuessr AI", "repo": "andrey-rublev/geoguessr-AI", "site": None,
      "blurb": "Self-trained geolocation model that plays OpenGuessr from screen pixels alone, then finds the spot on the map and drops the pin.",
      "stack": ["PyTorch", "CLIP"]},
+    {"name": "SAP-AI", "repo": "andrey-rublev/SAP-AI", "site": None,
+     "blurb": "Reinforcement learning agent that plays Super Auto Pets.",
+     "stack": ["Python", "RL"]},
     {"name": "Vigil", "repo": "seno3/vigil", "site": None,
      "blurb": "Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.",
      "stack": ["Next.js", "Supabase", "Mapbox"]},
@@ -137,9 +137,9 @@ PROJECTS = [
     {"name": "Gradus", "repo": None, "site": None,
      "blurb": "Academic tracking app, shipped to 176 countries.",
      "stack": ["Flutter", "Dart"]},
-    {"name": "SAP-AI", "repo": "andrey-rublev/SAP-AI", "site": None,
-     "blurb": "Reinforcement learning agent that plays Super Auto Pets.",
-     "stack": ["Python", "RL"]},
+    {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
+     "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
+     "stack": ["PennyLane", "JAX"]},
 ]
 
 LABEL = {"site": "Live site", "repo": "Repository"}
