@@ -40,6 +40,6 @@
 
 <div align="center">
 
-<picture><source media="(max-width: 539px), (min-width: 768px) and (max-width: 823px)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-m.svg?v=4b54655d" width="100%" /><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-dark.svg?v=771fed5c" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-light.svg?v=0fbe864a" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-dark.svg?v=771fed5c" alt="3D contribution graph" width="846" /></picture>
+<picture><source media="(max-width: 539px), (min-width: 768px) and (max-width: 823px)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-m.svg?v=4a7e30ac" width="100%" /><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-dark.svg?v=6cba542c" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-light.svg?v=dc2a90cf" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/contrib-dark.svg?v=6cba542c" alt="3D contribution graph" width="846" /></picture>
 
 </div>
