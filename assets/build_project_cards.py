@@ -14,19 +14,21 @@ Why only the buttons are links
 An SVG inside an <img> is not interactive, so a button painted into the card is
 decoration: the click has to come from the <a> wrapping the image, and one image
 can carry exactly one link. So a card is written out as several images, each a
-window onto the same artwork through its viewBox: the body, with no link, then
-a narrow strip per button, each wrapped in its own <a>. Emitted adjacent with no
-whitespace between the tags they butt together into one seamless card. Clicking
-the card does nothing; clicking a button goes where the button says. A bare
-<picture> is left alone by GitHub - only a bare <img> gets wrapped in a link to
-the image file.
+window onto the same artwork through its viewBox. A band across the top holds
+the title and the buttons, cut into the title, a small box around each button -
+each wrapped in its own <a> - and the margin after them. The rest of the card is
+one more image under the band. Clicking the card does nothing; clicking a
+button goes where the button says. A bare <picture> is left alone by GitHub -
+only a bare <img> gets wrapped in a link to the image file.
 
-The cuts have to be vertical, and that is what fixes the buttons side by side
-on the title row. Images on consecutive lines are held apart by the line box, so
-there is no horizontal cut available - which rules out stacking the two buttons
-one above the other, or giving them a row of their own under the card. Each
-strip therefore runs the card's full height, and nothing else is drawn in it:
-the emblem and the language line sit left of the strips, in the body.
+The band can sit on the rest of the card because every image has align="top",
+one of the few presentational attributes GitHub keeps. Images otherwise sit on
+the text baseline, and a line of them keeps room below for descenders, which
+opened a gap between consecutive lines of images. Aligned to the top, a line is
+exactly as tall as its tallest image, and the next line starts where it ends.
+
+Lines fill left to right, which is why the README markup is not simply card
+after card - see the end of main().
 
 Two things worth knowing before editing:
 
@@ -51,12 +53,9 @@ HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "cards"
 OUT.mkdir(exist_ok=True)
 
-# 412 is measured, not chosen. GitHub's README column caps at 846px (identical
-# at 1440 and 1920 viewports) but is 831px at a 1280-wide window, and two cards
-# that overflow the column wrap to one per row instead of shrinking - inline
-# images each fit on their own. 831 is therefore the ceiling that matters, and
-# 2x412 = 824 clears it while still filling the width. Below ~1150 the column
-# drops to ~703 and the grid goes single-column, which is the right fallback.
+# 412 is measured, not chosen: two of them fill GitHub's README column, which
+# caps at 846px. Two-up, cards are drawn at a share of the column rather than
+# at 412 - see WIDE - and one-up they keep it.
 W, H = 412, 134     # box width; artwork is inset by GAP each side
 GAP = 5
 WRAP = 46           # scaled with the card: 42 chars looked right at 380
@@ -67,25 +66,27 @@ BLURB_Y, BLURB_LEAD = 54, 16
 
 # Narrow screens get their own artwork, same design at 340 wide. Below a 412px
 # column the pixel widths fail: each <img> shrinks to the column on its own, so
-# a card's body fills the line and its button strips wrap underneath.
-# Every card also shrinks to ~70%, and 12px body text becomes 8px.
+# a card's top band breaks apart across lines. Every card also shrinks to
+# ~70%, and 12px body text becomes 8px.
 #
 # So each <picture> gets narrow sources, and those carry a percentage width.
 # <source width> replaces the <img>'s own width when that source is chosen, so
-# desktop keeps its pixels while on a phone the slices of a card take fixed
-# shares of the column and scale together, buttons and all. The shares are
-# floored to 0.01%: a total a hair over 100% would wrap a strip again, while
-# a hair under leaves a seam far below a pixel.
+# on a phone the pieces of a card take fixed shares of the column and scale
+# together, buttons and all. The shares are floored to 0.01%: a total a hair
+# over 100% would wrap a piece again, while a hair under leaves a seam far
+# below a pixel.
 #
 # The column is narrower than 412 below a ~509px viewport, and from 768 to ~796
 # where GitHub's profile sidebar appears. Overshooting those bounds is harmless
 # - the narrow card just fills the column - so both carry margin for scrollbars.
 #
 # Narrow cards stack one per line, so each is only as tall as its own blurb.
-# MPAD is clear space under the card: two cards in one <p> sit a bare line-gap
-# apart on a phone while consecutive <p>s get a paragraph margin.
-MW, MWRAP, MLINES, MPAD = 340, 38, 4, 8
-NARROW = ["(max-width: 539px)", "(min-width: 768px) and (max-width: 823px)"]
+# The gap between cards is the rule between them - see the end of main().
+MW, MWRAP, MLINES = 340, 38, 4
+# Upper bounds stop .02px short of the next lower bound: at a zoom or display
+# scale the viewport can be a fraction of a pixel wide, and "max-width: 539px"
+# and "min-width: 540px" then both miss 539.5.
+NARROW = ["(max-width: 539.98px)", "(min-width: 768px) and (max-width: 823.98px)"]
 
 # The buttons sit on the card rather than under it, so they cost no height.
 # They are icon-only because that is what fits: the longest title, "Quantum
@@ -93,6 +94,18 @@ NARROW = ["(max-width: 539px)", "(min-width: 768px) and (max-width: 823px)"]
 # row. Two labelled pills come to ~138 and would all but touch it.
 BTN_W, BTN_H, BTN_GAP = 30, 26, 8
 BTN_Y = 12                  # centred on the title's cap height
+TOP = BTN_Y + BTN_H + 4     # the band the title and buttons sit in
+
+# Where cards go two to a line, and where one. From ~1012 up the column is the
+# viewport less 434px, or 449px with a classic scrollbar, so no breakpoint can
+# say exactly where 824px - two cards - starts to fit. Instead, two-up cards
+# are sized as a share of the column, 49.9% each, so two always fit and a third
+# never does. One-up cards keep their pixel size, so they need a column under
+# 824 to be sure of a line each - true below 1240 with either scrollbar. At
+# 1240 the two-up cards are ~395 wide; at the 846 cap they are ~422.
+WIDE, SINGLE = "(min-width: 1240px)", "(max-width: 1239.98px)"
+MID = "(min-width: 540px) and (max-width: 767.98px), (min-width: 824px) and (max-width: 1239.98px)"
+HALF = 49.9
 
 THEMES = {
     "dark": {
@@ -253,16 +266,15 @@ def button_xs(n: int, w: int = W) -> list:
     return [right - run + i * (BTN_W + BTN_GAP) for i in range(n)]
 
 
-def cuts(n: int, w: int = W) -> list:
-    """Where a card with n buttons is cut: half a gap left of each button, so a
-    strip holds one button and the cuts between two land midway."""
-    return [round(x - BTN_GAP / 2) for x in button_xs(n, w)]
-
-
-def content_right(n: int, w: int = W) -> float:
-    """The right edge the emblem and the language line align to - clear of the
-    button strips, which carry nothing but their button."""
-    return cuts(n, w)[0] - 6 if n else w - GAP - 20
+def top_cuts(n: int, w: int = W) -> list:
+    """x edges of the top band's pieces: the title, a box per button, then the
+    margin right of the last button. A box runs half a gap either side of its
+    button, so two boxes meet midway between their buttons."""
+    xs = button_xs(n, w)
+    if not xs:
+        return [0, w]
+    return ([0] + [round(x - BTN_GAP / 2) for x in xs]
+            + [round(xs[-1] + BTN_W + BTN_GAP / 2), w])
 
 
 def icon_button(kind: str, t: dict, x: float, y: float = BTN_Y) -> str:
@@ -289,21 +301,15 @@ def art(p: dict, t: dict, data: dict, dests: list,
         fit: bool = False) -> tuple:
     """The whole card and its height, in card coordinates.
 
-    Every slice of a card shares it. Wide cards reserve max_lines so a row
+    Every piece of a card shares it. Wide cards reserve max_lines so a row
     of two lines up; `fit` sizes the card to its own blurb instead.
-
-    A phone card (`fit`) has no room beside the blurb once the button strips
-    are taken out, so it drops the emblem, wraps the blurb to the width left,
-    and moves the language line under the chips when they would meet.
     """
-    right = content_right(len(dests), W)
-    if fit:
-        wrap = min(wrap, int((right - GAP - 20) / 6.3))
     lines = textwrap.wrap(p["blurb"], width=wrap)
     if len(lines) > max_lines:
         print(f"    {p['name']}: blurb cut at {max_lines} lines, {wrap} chars", file=sys.stderr)
     lines = lines[:max_lines]
     CHIP_Y = chip_y(len(lines) if fit else max_lines)
+    H = CHIP_Y + 36
     body = "".join(
         f'<text x="{GAP+20}" y="{BLURB_Y + i * BLURB_LEAD}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
@@ -319,22 +325,20 @@ def art(p: dict, t: dict, data: dict, dests: list,
         )
         x += w + 6
 
-    meta, META_Y = "", CHIP_Y
-    if fit and x + 2 > right - 88:
-        META_Y += 26
-    H = META_Y + 36
+    meta = ""
     lang = data.get("language")
     if lang:
-        meta += f'<circle cx="{right-84}" cy="{META_Y+9}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
-        meta += f'<text x="{right-75}" y="{META_Y+13}" class="m">{esc(lang)}</text>'
+        meta += f'<circle cx="{W-GAP-104}" cy="{CHIP_Y+9}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
+        meta += f'<text x="{W-GAP-95}" y="{CHIP_Y+13}" class="m">{esc(lang)}</text>'
     if data.get("stars"):
-        meta += f'<text x="{right}" y="{META_Y+13}" class="m e">&#9733; {data["stars"]}</text>'
+        meta += f'<text x="{W-GAP-20}" y="{CHIP_Y+13}" class="m e">&#9733; {data["stars"]}</text>'
 
     # Right-aligned on the title row, in the same order as `dests` - site then
-    # repo - each inside the strip that links to it.
+    # repo - so the cut below lands between them and each button ends up inside
+    # the image that links to it.
     buttons = "".join(icon_button(kind, t, x)
                       for (kind, _), x in zip(dests, button_xs(len(dests), W)))
-    mark = "" if fit else emblem(p["name"], t, right, BTN_Y + BTN_H + 6, CHIP_Y - 6, 48)
+    mark = emblem(p["name"], t, W - GAP - 20, BTN_Y + BTN_H + 6, CHIP_Y - 6, 44 if fit else 48)
 
     # The surface is flat: one fill and a hairline border, the way GitHub draws
     # its own pinned-repo cards. No glow, no accent stripe along an edge - the
@@ -350,16 +354,17 @@ def art(p: dict, t: dict, data: dict, dests: list,
 FONT = "text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}"
 
 
-def svg_doc(label: str, x0: int, vw: int, H: int, rules: list, body: str) -> str:
-    """An SVG whose viewBox windows the artwork down to one slice."""
+def svg_doc(label: str, box: tuple, rules: list, body: str) -> str:
+    """An SVG whose viewBox (x, y, w, h) windows the artwork down to one piece."""
     css = "".join(f"  {r}\n" for r in rules)
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} 0 {vw} {H}" width="{vw}" height="{H}" role="img" aria-label="{esc(label)}">\n'
+    x0, y0, vw, vh = box
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x0} {y0} {vw} {vh}" width="{vw}" height="{vh}" role="img" aria-label="{esc(label)}">\n'
             f"<title>{esc(label)}</title>\n<style>\n{css}</style>\n{body}\n</svg>\n")
 
 
-def card(inner: str, t: dict, label: str, x0: int, vw: int, H: int = H) -> str:
-    """A card in one theme."""
-    return svg_doc(label, x0, vw, H, [
+def card(inner: str, t: dict, label: str, box: tuple) -> str:
+    """A piece of a card in one theme."""
+    return svg_doc(label, box, [
         FONT,
         f".t{{font-size:15.5px;font-weight:700;fill:{t['title']}}}",
         f".d{{font-size:12px;fill:{t['body']}}}",
@@ -369,7 +374,7 @@ def card(inner: str, t: dict, label: str, x0: int, vw: int, H: int = H) -> str:
     ], inner)
 
 
-def adaptive_card(layers: dict, label: str, x0: int, vw: int, H: int) -> str:
+def adaptive_card(layers: dict, label: str, box: tuple) -> str:
     """A card carrying every theme, which picks its own from prefers-color-scheme.
 
     Narrow sources cannot say which theme they are for. For anyone who has set
@@ -390,7 +395,19 @@ def adaptive_card(layers: dict, label: str, x0: int, vw: int, H: int) -> str:
     rules += [".light{display:none}",
               "@media (prefers-color-scheme: light){.dark{display:none}.light{display:inline}}"]
     body = "".join(f'<g class="{name}">{layers[name]}</g>' for name in THEMES)
-    return svg_doc(label, x0, vw, H, rules, body)
+    return svg_doc(label, box, rules, body)
+
+
+def pieces(p: dict, dests: list, w: int, h: int) -> list:
+    """(file tag, viewBox, label) for each image a card w wide and h tall
+    becomes: its top band cut into the title, a box per button and the margin
+    after them, then the rest of the card in one piece."""
+    xs = top_cuts(len(dests), w)
+    tags = ["-t"] + [f"-{kind}-btn" for kind, _ in dests] + (["-tr"] if dests else [])
+    labels = ([p["name"]] + [f'{p["name"]} {LABEL[kind]}' for kind, _ in dests]
+              + ([p["name"]] if dests else []))
+    band = [(tag, (a, 0, b - a, TOP), label) for tag, a, b, label in zip(tags, xs, xs[1:], labels)]
+    return band + [("-b", (0, TOP, w, h - TOP), p["name"])]
 
 
 def slug(name: str) -> str:
@@ -416,32 +433,36 @@ def main() -> int:
             ET.fromstring(svg)  # a stray < or & is a silent broken image
             (OUT / f"{stem}.svg").write_text(svg, encoding="utf-8")
 
-        def slices(w: int) -> list:
-            """(file tag, x0, width, label) for each image a card of width w
-            becomes: the body, then a strip per button."""
-            xs = [0] + cuts(len(dests), w) + [w]
-            tags = [""] + [f"-{kind}" for kind, _ in dests]
-            labels = [p["name"]] + [f'{p["name"]} {LABEL[kind]}' for kind, _ in dests]
-            return [(tag, a, b - a, label) for tag, a, b, label in zip(tags, xs, xs[1:], labels)]
-
-        # Wide cards: a file per theme, chosen by the <picture>.
-        for theme_name, t in THEMES.items():
-            inner, h = art(p, t, data, dests)
-            for tag, x0, vw, label in slices(W):
-                write(f"{s}{tag}-{theme_name}", card(inner, t, label, x0, vw, h))
+        # Wide cards: a file per theme, chosen by the <picture> two-up, and one
+        # carrying both ("a") for the one-up layout - see adaptive_card.
+        wide = {name: art(p, t, data, dests) for name, t in THEMES.items()}
+        h = wide["dark"][1]
+        for tag, box, label in pieces(p, dests, W, h):
+            for theme_name, t in THEMES.items():
+                write(f"{s}{tag}-{theme_name}", card(wide[theme_name][0], t, label, box))
+            write(f"{s}{tag}-a", adaptive_card({n: a for n, (a, _) in wide.items()}, label, box))
 
         # Narrow cards ("m"): one file carrying both themes - see adaptive_card.
         layers = {name: art(p, t, data, dests, MW, MWRAP, MLINES, fit=True)
                   for name, t in THEMES.items()}
-        h = layers["dark"][1] + MPAD
-        for tag, x0, vw, label in slices(MW):
+        h = layers["dark"][1]
+        for tag, box, label in pieces(p, dests, MW, h):
             write(f"{s}{tag}-m",
-                  adaptive_card({n: a for n, (a, _) in layers.items()}, label, x0, vw, h))
+                  adaptive_card({n: a for n, (a, _) in layers.items()}, label, box))
 
         made.append((p, s, data, dests))
         bits = [k for k in ("language", "stars") if data.get(k)]
         print(f"  {p['name']:<26} {len(dests)} link  "
               f"{'live: ' + ', '.join(bits) if bits else 'static'}")
+
+    # What a copy of an image shows where it must not: nothing, at no size.
+    (OUT / "blank.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" viewBox="0 0 1 1"/>\n',
+        encoding="utf-8")
+    # A spacer: as wide as it is told, never any taller.
+    (OUT / "rule.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="0" viewBox="0 0 100 0"/>\n',
+        encoding="utf-8")
 
     print(f"\n{len(list(OUT.glob('*.svg')))} files written to assets/cards/\n")
     print("README markup:\n")
@@ -457,43 +478,85 @@ def main() -> int:
         digest = hashlib.sha1((OUT / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:8]
         return f"{base}/{name}?v={digest}"
 
-    def pic(stem: str, width: int, alt: str, href: str | None = None,
-            narrow: str | None = None, share: float = 100) -> str:
-        # The first matching <source> wins, so the narrow one goes first,
-        # carrying its share of the column; the height follows the artwork. Its
-        # media must never mention prefers-color-scheme - see adaptive_card.
-        sources = [(", ".join(NARROW), narrow, f' width="{share:g}%"')] if narrow else []
-        sources += [(f"(prefers-color-scheme: {th})", f"{stem}-{th}", "") for th in THEMES]
+    def pic(stem: str, width: int, alt: str, href: str | None, mshare: float,
+            wshare: float, show: str = "always") -> str:
+        # The first matching <source> wins, so the width-only ones go first;
+        # their media must never mention prefers-color-scheme - see
+        # adaptive_card. Phones get the narrow artwork as a share of the
+        # column, one-up layouts the wide artwork at its own size, and the
+        # two-up layout the themed files as a share of the column. Heights
+        # follow the artwork. `show` limits a copy to the two-up layout
+        # ("wide") or the one-up ones ("single"); elsewhere it is blank, 0 wide.
+        sources = []
+        if show == "wide":
+            sources.append((SINGLE, "blank", ' width="0"'))
+        else:
+            sources += [(", ".join(NARROW), f"{stem}-m", f' width="{mshare:g}%"'),
+                        (MID, f"{stem}-a", f' width="{width}"')]
+            if show == "single":
+                sources.append((WIDE, "blank", ' width="0"'))
+        if show != "single":
+            sources += [(f"(prefers-color-scheme: {th})", f"{stem}-{th}", f' width="{wshare:g}%"')
+                        for th in THEMES]
+        # align="top" is what lets the bands meet: see the module docstring.
         img = ('<picture>'
                + "".join(f'<source media="{q}" srcset="{url(st)}"{wa} />'
                          for q, st, wa in sources)
-               + f'<img src="{url(stem + "-dark")}" alt="{esc(alt)}" width="{width}" />'
+               + f'<img src="{url(stem + "-dark")}" alt="{esc(alt)}" width="{width}" align="top" />'
                '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
         return f'<a href="{href}" title="{esc(alt)}">{img}</a>' if href else img
 
-    def share(px: int) -> float:
-        return math.floor(px / MW * 10000) / 100
+    def share(px: int, of: int, pct: float = 100) -> float:
+        return math.floor(px / of * pct * 100) / 100
 
-    cells = []
-    for p, s, _, dests in made:
-        xs, mxs = [0] + cuts(len(dests)) + [W], [0] + cuts(len(dests), MW) + [MW]
-        # The body carries no link; each strip after it links to its button's
-        # destination.
-        parts = [(s, p["name"], None)] + [
-            (f"{s}-{kind}", f'{p["name"]} {LABEL[kind].lower()}', href) for kind, href in dests]
-        cells.append("".join(
-            pic(stem, b - a, alt, href, f"{stem}-m", share(mb - ma))
-            for (stem, alt, href), a, b, ma, mb in zip(parts, xs, xs[1:], mxs, mxs[1:])))
+    def top(p: dict, s: str, dests: list, show: str = "always") -> str:
+        """A card's top band: the title, a linked box per button, the margin."""
+        xs, mxs = top_cuts(len(dests)), top_cuts(len(dests), MW)
+        parts = ([(f"{s}-t", p["name"], None)]
+                 + [(f"{s}-{kind}-btn", f'{p["name"]} {LABEL[kind].lower()}', href) for kind, href in dests]
+                 + ([(f"{s}-tr", "", None)] if dests else []))
+        return "".join(pic(stem, b - a, alt, href, share(mb - ma, MW), share(b - a, W, HALF), show)
+                       for (stem, alt, href), a, b, ma, mb in zip(parts, xs, xs[1:], mxs, mxs[1:]))
 
-    # Two per row, no table: GitHub strips every style attribute, so a table's
-    # cell borders cannot be turned off and they ring each card. No whitespace
-    # between tags either - an inline gap would open a seam down the middle of
+    def bottom(p: dict, s: str) -> str:
+        """The rest of the card in one piece; its alt text is the blurb."""
+        return pic(f"{s}-b", W, p["blurb"], None, 100, HALF)
+
+    def rule(show: str = "always") -> str:
+        """A full-width, zero-height image: a line to itself, so whatever comes
+        next starts a new one. The line is a text line tall, which is the gap
+        between cards."""
+        sources = f'<source media="{WIDE}" srcset="{url("blank")}" width="0" />' if show == "single" else ""
+        return f'<picture>{sources}<img src="{url("rule")}" alt="" width="100%" align="top" /></picture>'
+
+    # All in one paragraph, no table: GitHub strips every style attribute, so a
+    # table's cell borders cannot be turned off and they ring each card. No
+    # whitespace between tags either - an inline gap would open a seam in
     # every card.
-    for i in range(0, len(cells), 2):
-        print(f'<p align="center">{"".join(cells[i:i + 2])}</p>')
-        print()
+    #
+    # Lines fill left to right, so the two-up layout needs both top bands
+    # before either bottom band, and the one-up layouts need each card whole
+    # before the next. The second card of a pair has its top band written
+    # twice to serve both: once where the two-up layout wants it, once where
+    # the others do, each copy blank and 0 wide where it does not belong. A
+    # rule between the cards of a pair, one-up only, keeps the second card's
+    # title off the first card's last line wherever the column could fit both;
+    # a rule between pairs does the same in every layout.
+    cells = []
+    for i in range(0, len(made), 2):
+        (pa, sa, _, da), rest = made[i], made[i + 1:i + 2]
+        cell = top(pa, sa, da)
+        if rest:
+            pb, sb, _, db = rest[0]
+            cell += (top(pb, sb, db, "wide") + bottom(pa, sa) + rule("single")
+                     + top(pb, sb, db, "single") + bottom(pb, sb))
+        else:
+            cell += bottom(pa, sa)
+        cells.append(cell)
+    print(f'<p align="center">{rule().join(cells)}</p>')
+    print()
 
     return 0
 
