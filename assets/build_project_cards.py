@@ -5,9 +5,9 @@ Renders one card per project into assets/cards/, dark and light.
 
 Live metrics (language, stars, forks) come from the GitHub API for the projects
 that have a public repo. The blurb and the stack chips stay hand-written here,
-because the curated copy in this README is better than the repo descriptions and
-several projects - RealTalk, Gradus - have no repo to read from at
-all. So the card is a merge: your words, live numbers.
+because the curated copy in this README is better than the repo descriptions,
+and a project need not have a repo to read from at all. So the card is a
+merge: your words, live numbers.
 
 How two buttons sit on one card
 -------------------------------
@@ -124,6 +124,9 @@ PROJECTS = [
     {"name": "SAP-AI", "repo": "andrey-rublev/SAP-AI", "site": None,
      "blurb": "Reinforcement learning agent that plays Super Auto Pets.",
      "stack": ["Python", "RL"]},
+    {"name": "Cadence", "repo": "andrey-rublev/cadence", "site": None,
+     "blurb": "A second factor made from how you type and click. Learns your sign-in rhythm per site and only asks for a check when unsure.",
+     "stack": ["scikit-learn", "FastAPI"]},
     {"name": "Vigil", "repo": "seno3/vigil", "site": None,
      "blurb": "Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.",
      "stack": ["Next.js", "Supabase", "Mapbox"]},
@@ -131,15 +134,6 @@ PROJECTS = [
      "site": "https://raize-psi.vercel.app",
      "blurb": "Reconstruction planning for disaster zones. Sparse video rebuilt into navigable 3D over UNOSAT damage data.",
      "stack": ["Three.js", "Gemini", "Next.js"]},
-    {"name": "RealTalk", "repo": None, "site": None,
-     "blurb": "AI hiring assistant that reviews resumes and runs interviews.",
-     "stack": ["React", "FastAPI", "AWS"]},
-    {"name": "Gradus", "repo": None, "site": None,
-     "blurb": "Academic tracking app, shipped to 176 countries.",
-     "stack": ["Flutter", "Dart"]},
-    {"name": "Quantum Error Mitigation", "repo": "andrey-rublev/quantum-error-mitigation", "site": None,
-     "blurb": "Zero-noise extrapolation recovering H2 ground-state energy from a noisy 4-qubit VQE. Quadratic fit cut error ~10x over linear.",
-     "stack": ["PennyLane", "JAX"]},
 ]
 
 LABEL = {"site": "Live site", "repo": "Repository"}
@@ -160,14 +154,6 @@ EMBLEMS = {
         '<g transform="rotate(10 38 31)"><rect x="24" y="12" width="28" height="38" rx="3.5" fill="{bg}"/>'
         '<path d="M38 22c-4.5 4.5-8 7.2-8 10.6a3.4 3.4 0 0 0 6 2.2L35 39h6l-1-4.2a3.4 3.4 0 0 0 6-2.2'
         'c0-3.4-3.5-6.1-8-10.6z" fill="{c}" stroke="none"/></g>'),
-    # Zero-noise extrapolation: three noisy runs, the quadratic through them,
-    # and the zero-noise value where it meets the axis.
-    "Quantum Error Mitigation": (
-        '<path d="M10 7V55H59"/>'
-        '<path d="M10 42Q32.5 38.8 55 14.9" stroke-dasharray="3 3"/>'
-        '<circle cx="24" cy="38" r="2.6" fill="{c}"/><circle cx="38" cy="30" r="2.6" fill="{c}"/>'
-        '<circle cx="52" cy="18" r="2.6" fill="{c}"/>'
-        '<circle cx="10" cy="42" r="4" fill="{bg}"/><circle cx="10" cy="42" r="1.4" fill="{c}"/>'),
     # A globe, and the pin it drops.
     "GeoGuessr AI": (
         '<circle cx="27" cy="37" r="20"/><ellipse cx="27" cy="37" rx="9" ry="20"/>'
@@ -186,18 +172,6 @@ EMBLEMS = {
         '<path d="M21 14L43 26M43 14L21 26M10 31L32 43L54 31M21 26V48M43 26V48" opacity=".55"/>'
         + "".join(f'<circle cx="{x}" cy="{y}" r="1.8" fill="{{c}}" stroke="none"/>'
                   for x, y in ((32, 8), (54, 20), (32, 32), (10, 20), (10, 42), (32, 54), (54, 42)))),
-    # An interview: a question, and an answer being typed.
-    "RealTalk": (
-        '<path d="M8 10h30a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H20l-7 6v-6H8a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5z"/>'
-        '<path d="M11 19h24M11 26h15"/>'
-        '<path d="M26 28h30a5 5 0 0 1 5 5v13a5 5 0 0 1-5 5h-5v6l-7-6H26a5 5 0 0 1-5-5V33a5 5 0 0 1 5-5z" fill="{bg}"/>'
-        '<circle cx="33" cy="40" r="2.2" fill="{c}" stroke="none"/><circle cx="41" cy="40" r="2.2" fill="{c}" stroke="none"/>'
-        '<circle cx="49" cy="40" r="2.2" fill="{c}" stroke="none"/>'),
-    "Gradus": (
-        '<path d="M16 27v11c0 4 7 7.5 16 7.5s16-3.5 16-7.5V27"/>'
-        '<path d="M32 10L60 22L32 34L4 22Z" fill="{bg}"/>'
-        '<path d="M32 22L52 27V42"/><path d="M50 42h4l1.5 8h-7z" fill="{c}"/>'
-        '<circle cx="32" cy="22" r="1.8" fill="{c}" stroke="none"/>'),
     "SAP-AI": (
         '<path d="M32 33c-7.5 0-14.5 7.5-14.5 13.5 0 4 3 6.5 7 6.5 3.2 0 4.8-1.6 7.5-1.6s4.3 1.6 7.5 1.6'
         'c4 0 7-2.5 7-6.5 0-6-7-13.5-14.5-13.5z"/>'
@@ -205,6 +179,12 @@ EMBLEMS = {
         '<ellipse cx="25" cy="16" rx="5" ry="6.6" transform="rotate(-8 25 16)"/>'
         '<ellipse cx="39" cy="16" rx="5" ry="6.6" transform="rotate(8 39 16)"/>'
         '<ellipse cx="49" cy="30" rx="4.6" ry="6.2" transform="rotate(22 49 30)"/>'),
+    # A keycap, and the rhythm of the keys typed after it.
+    "Cadence": (
+        '<rect x="5" y="28" width="24" height="24" rx="4"/>'
+        '<rect x="9.5" y="31" width="15" height="14" rx="2.5"/>'
+        '<path d="M36 52V32M43 52V18M50 52V38M57 52V25" stroke-width="3.5"/>'
+        '<path d="M33 56H60" opacity=".55"/>'),
 }
 
 
