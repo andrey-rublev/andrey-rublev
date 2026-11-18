@@ -9,23 +9,24 @@ because the curated copy in this README is better than the repo descriptions,
 and a project need not have a repo to read from at all. So the card is a
 merge: your words, live numbers.
 
-How two buttons sit on one card
--------------------------------
+Why only the buttons are links
+------------------------------
 An SVG inside an <img> is not interactive, so a button painted into the card is
 decoration: the click has to come from the <a> wrapping the image, and one image
-can carry exactly one link. A card with both a site and a repo is therefore
-written out as two images, each a window onto the same 380-wide artwork through
-its viewBox, each wrapped in its own <a>. Emitted adjacent with no whitespace
-between the tags they butt together into one seamless card carrying two links.
+can carry exactly one link. So a card is written out as several images, each a
+window onto the same artwork through its viewBox: the body, with no link, then
+a narrow strip per button, each wrapped in its own <a>. Emitted adjacent with no
+whitespace between the tags they butt together into one seamless card. Clicking
+the card does nothing; clicking a button goes where the button says. A bare
+<picture> is left alone by GitHub - only a bare <img> gets wrapped in a link to
+the image file.
 
-The cut runs between the two buttons rather than down the middle, so each button
-lands inside the image that links to it: most of the card for the site, a narrow
-strip on the right for the repo.
-
-The cut also has to be vertical, and that is what fixes the buttons side by side
+The cuts have to be vertical, and that is what fixes the buttons side by side
 on the title row. Images on consecutive lines are held apart by the line box, so
 there is no horizontal cut available - which rules out stacking the two buttons
-one above the other, or giving them a row of their own under the card.
+one above the other, or giving them a row of their own under the card. Each
+strip therefore runs the card's full height, and nothing else is drawn in it:
+the emblem and the language line sit left of the strips, in the body.
 
 Two things worth knowing before editing:
 
@@ -66,14 +67,14 @@ BLURB_Y, BLURB_LEAD = 54, 16
 
 # Narrow screens get their own artwork, same design at 340 wide. Below a 412px
 # column the pixel widths fail: each <img> shrinks to the column on its own, so
-# a split card's wide half fills the line and its repo strip wraps underneath.
+# a card's body fills the line and its button strips wrap underneath.
 # Every card also shrinks to ~70%, and 12px body text becomes 8px.
 #
 # So each <picture> gets narrow sources, and those carry a percentage width.
 # <source width> replaces the <img>'s own width when that source is chosen, so
-# desktop keeps its pixels while on a phone the two halves of a split card take
-# fixed shares of the column and scale together, buttons and all. The shares are
-# floored to 0.01%: a total a hair over 100% would wrap the strip again, while
+# desktop keeps its pixels while on a phone the slices of a card take fixed
+# shares of the column and scale together, buttons and all. The shares are
+# floored to 0.01%: a total a hair over 100% would wrap a strip again, while
 # a hair under leaves a seam far below a pixel.
 #
 # The column is narrower than 412 below a ~509px viewport, and from 768 to ~796
@@ -196,7 +197,7 @@ def mix(a: str, b: str, t: float) -> str:
 
 def emblem(name: str, t: dict, right: float, top: float, bottom: float, cap: float) -> str:
     """The project's emblem, right-aligned in the space between the buttons and
-    the chip row - or nothing, on a phone card too short to hold it."""
+    the chip row - or nothing, on a card too short to hold it."""
     size = min(cap, bottom - top)
     if name not in EMBLEMS or size < 30:
         return ""
@@ -252,10 +253,16 @@ def button_xs(n: int, w: int = W) -> list:
     return [right - run + i * (BTN_W + BTN_GAP) for i in range(n)]
 
 
-def split_x(w: int = W) -> int:
-    """Where a two-destination card is cut, midway between its two buttons."""
-    a, b = button_xs(2, w)
-    return round((a + BTN_W + b) / 2)
+def cuts(n: int, w: int = W) -> list:
+    """Where a card with n buttons is cut: half a gap left of each button, so a
+    strip holds one button and the cuts between two land midway."""
+    return [round(x - BTN_GAP / 2) for x in button_xs(n, w)]
+
+
+def content_right(n: int, w: int = W) -> float:
+    """The right edge the emblem and the language line align to - clear of the
+    button strips, which carry nothing but their button."""
+    return cuts(n, w)[0] - 6 if n else w - GAP - 20
 
 
 def icon_button(kind: str, t: dict, x: float, y: float = BTN_Y) -> str:
@@ -282,15 +289,21 @@ def art(p: dict, t: dict, data: dict, dests: list,
         fit: bool = False) -> tuple:
     """The whole card and its height, in card coordinates.
 
-    Both halves of a split card share it. Wide cards reserve max_lines so a row
+    Every slice of a card shares it. Wide cards reserve max_lines so a row
     of two lines up; `fit` sizes the card to its own blurb instead.
+
+    A phone card (`fit`) has no room beside the blurb once the button strips
+    are taken out, so it drops the emblem, wraps the blurb to the width left,
+    and moves the language line under the chips when they would meet.
     """
+    right = content_right(len(dests), W)
+    if fit:
+        wrap = min(wrap, int((right - GAP - 20) / 6.3))
     lines = textwrap.wrap(p["blurb"], width=wrap)
     if len(lines) > max_lines:
         print(f"    {p['name']}: blurb cut at {max_lines} lines, {wrap} chars", file=sys.stderr)
     lines = lines[:max_lines]
     CHIP_Y = chip_y(len(lines) if fit else max_lines)
-    H = CHIP_Y + 36
     body = "".join(
         f'<text x="{GAP+20}" y="{BLURB_Y + i * BLURB_LEAD}" class="d">{esc(l)}</text>'
         for i, l in enumerate(lines)
@@ -306,20 +319,22 @@ def art(p: dict, t: dict, data: dict, dests: list,
         )
         x += w + 6
 
-    meta = ""
+    meta, META_Y = "", CHIP_Y
+    if fit and x + 2 > right - 88:
+        META_Y += 26
+    H = META_Y + 36
     lang = data.get("language")
     if lang:
-        meta += f'<circle cx="{W-GAP-104}" cy="{CHIP_Y+9}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
-        meta += f'<text x="{W-GAP-95}" y="{CHIP_Y+13}" class="m">{esc(lang)}</text>'
+        meta += f'<circle cx="{right-84}" cy="{META_Y+9}" r="4.5" fill="{LANG_DOT.get(lang, t["meta"])}"/>'
+        meta += f'<text x="{right-75}" y="{META_Y+13}" class="m">{esc(lang)}</text>'
     if data.get("stars"):
-        meta += f'<text x="{W-GAP-20}" y="{CHIP_Y+13}" class="m e">&#9733; {data["stars"]}</text>'
+        meta += f'<text x="{right}" y="{META_Y+13}" class="m e">&#9733; {data["stars"]}</text>'
 
     # Right-aligned on the title row, in the same order as `dests` - site then
-    # repo - so the cut below lands between them and each button ends up inside
-    # the image that links to it.
+    # repo - each inside the strip that links to it.
     buttons = "".join(icon_button(kind, t, x)
                       for (kind, _), x in zip(dests, button_xs(len(dests), W)))
-    mark = emblem(p["name"], t, W - GAP - 20, BTN_Y + BTN_H + 6, CHIP_Y - 6, 44 if fit else 48)
+    mark = "" if fit else emblem(p["name"], t, right, BTN_Y + BTN_H + 6, CHIP_Y - 6, 48)
 
     # The surface is flat: one fill and a hairline border, the way GitHub draws
     # its own pinned-repo cards. No glow, no accent stripe along an edge - the
@@ -402,12 +417,12 @@ def main() -> int:
             (OUT / f"{stem}.svg").write_text(svg, encoding="utf-8")
 
         def slices(w: int) -> list:
-            """(file tag, x0, width, label) for each image a card of width w becomes."""
-            if len(dests) != 2:
-                return [("", 0, w, p["name"])]
-            cut = split_x(w)
-            return [("-l", 0, cut, f'{p["name"]} {LABEL[dests[0][0]]}'),
-                    ("-r", cut, w - cut, f'{p["name"]} {LABEL[dests[1][0]]}')]
+            """(file tag, x0, width, label) for each image a card of width w
+            becomes: the body, then a strip per button."""
+            xs = [0] + cuts(len(dests), w) + [w]
+            tags = [""] + [f"-{kind}" for kind, _ in dests]
+            labels = [p["name"]] + [f'{p["name"]} {LABEL[kind]}' for kind, _ in dests]
+            return [(tag, a, b - a, label) for tag, a, b, label in zip(tags, xs, xs[1:], labels)]
 
         # Wide cards: a file per theme, chosen by the <picture>.
         for theme_name, t in THEMES.items():
@@ -420,7 +435,7 @@ def main() -> int:
                   for name, t in THEMES.items()}
         h = layers["dark"][1] + MPAD
         for tag, x0, vw, label in slices(MW):
-            write(f"{s}{tag or '-'}m",
+            write(f"{s}{tag}-m",
                   adaptive_card({n: a for n, (a, _) in layers.items()}, label, x0, vw, h))
 
         made.append((p, s, data, dests))
@@ -463,20 +478,19 @@ def main() -> int:
 
     cells = []
     for p, s, _, dests in made:
-        if len(dests) == 2:
-            cut, mcut = split_x(), split_x(MW)
-            cells.append(
-                pic(f"{s}-l", cut, f'{p["name"]} live site', dests[0][1], f"{s}-lm", share(mcut))
-                + pic(f"{s}-r", W - cut, f'{p["name"]} repository', dests[1][1], f"{s}-rm", share(MW - mcut)))
-        elif dests:
-            cells.append(pic(s, W, p["name"], dests[0][1], f"{s}-m"))
-        else:
-            cells.append(pic(s, W, p["name"], narrow=f"{s}-m"))
+        xs, mxs = [0] + cuts(len(dests)) + [W], [0] + cuts(len(dests), MW) + [MW]
+        # The body carries no link; each strip after it links to its button's
+        # destination.
+        parts = [(s, p["name"], None)] + [
+            (f"{s}-{kind}", f'{p["name"]} {LABEL[kind].lower()}', href) for kind, href in dests]
+        cells.append("".join(
+            pic(stem, b - a, alt, href, f"{stem}-m", share(mb - ma))
+            for (stem, alt, href), a, b, ma, mb in zip(parts, xs, xs[1:], mxs, mxs[1:])))
 
     # Two per row, no table: GitHub strips every style attribute, so a table's
     # cell borders cannot be turned off and they ring each card. No whitespace
     # between tags either - an inline gap would open a seam down the middle of
-    # every split card.
+    # every card.
     for i in range(0, len(cells), 2):
         print(f'<p align="center">{"".join(cells[i:i + 2])}</p>')
         print()
