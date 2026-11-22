@@ -51,7 +51,6 @@ import os
 import pathlib
 import sys
 import textwrap
-import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
