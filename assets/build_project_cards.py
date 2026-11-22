@@ -44,6 +44,7 @@ Two things worth knowing before editing:
     em-dashes in these blurbs came back as mojibake without this.
 """
 import hashlib
+import http.client
 import json
 import math
 import os
@@ -262,7 +263,7 @@ def live(repo: str | None) -> dict:
         d = api(f"repos/{repo}")
         return {"language": d.get("language"), "stars": d.get("stargazers_count", 0),
                 "forks": d.get("forks_count", 0)}
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+    except (OSError, http.client.HTTPException, ValueError) as e:  # URLError and dropped connections are OSErrors
         print(f"    {repo}: live data unavailable ({e})", file=sys.stderr)
         return {}
 
