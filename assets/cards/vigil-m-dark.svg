@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 166" width="320" height="166" role="img" aria-label="Vigil: Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.">
+<title>Vigil: Waze for emergencies. Location-tagged reports scored for credibility by Claude, then pushed to everyone within 10 miles.</title>
+<style>
+  text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+  .t{font-size:15.5px;font-weight:700;fill:#E6EDF3}
+  .d{font-size:12px;fill:#8B949E}
+  .c{font-size:10.5px;fill:#A5B4FC;text-anchor:middle}
+  .m{font-size:11px;fill:#7D8590}
+  .e{text-anchor:end}
+</style>
+<rect x="5.5" y="0.5" width="309" height="165" rx="10" fill="#0D1117" stroke="#30363D"/><text x="25" y="31" class="t">Vigil</text><text x="25" y="54" class="d">Waze for emergencies.</text><text x="25" y="70" class="d">Location-tagged reports scored</text><text x="25" y="86" class="d">for credibility by Claude, then</text><text x="25" y="102" class="d">pushed to everyone within 10</text><text x="25" y="118" class="d">miles.</text><g transform="translate(251 62) scale(0.6875)" fill="none" stroke="#50589A" stroke-width="2.18" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="50" rx="27" ry="9" stroke-dasharray="2.5 3.5"/><ellipse cx="32" cy="50" rx="16" ry="5.5"/><path d="M32 16a11 11 0 0 0-11 11c0 9.5 11 21 11 21s11-11.5 11-21a11 11 0 0 0-11-11z" fill="#0D1117"/><circle cx="32" cy="27" r="4"/></g><rect x="25" y="130" width="55" height="20" rx="5" fill="#21262D"/><text x="53" y="144" class="c">Next.js</text><rect x="86" y="130" width="61" height="20" rx="5" fill="#21262D"/><text x="117" y="144" class="c">Supabase</text><rect x="154" y="130" width="49" height="20" rx="5" fill="#21262D"/><text x="178" y="144" class="c">Mapbox</text><circle cx="211" cy="26" r="4.5" fill="#3178C6"/><text x="220" y="30" class="m">TypeScript</text>
+</svg>

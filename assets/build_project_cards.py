@@ -471,17 +471,21 @@ def main() -> int:
                 write(f"{s}{tag}-{theme_name}", card(wide[theme_name][0], t, label, box))
             write(f"{s}{tag}-a", adaptive_card({n: a for n, (a, _) in wide.items()}, label, box))
 
-        # Phone cards ("m"): whole, buttonless - the pills under them link -
-        # and carrying both themes, see adaptive_card.
+        # Phone cards ("m"): whole and buttonless - the pills under them link.
+        # A file per theme, and one carrying both for whatever ignores
+        # <source> and so cannot be told the theme.
+        def phone(stem: str, layers: dict, label: str, box: tuple) -> None:
+            for theme_name, t in THEMES.items():
+                write(f"{stem}-{theme_name}", card(layers[theme_name], t, label, box))
+            write(stem, adaptive_card(layers, label, box))
+
         layers = {name: art(p, t, data, [], MW, MWRAP, MLINES, fit=True)
                   for name, t in THEMES.items()}
-        write(f"{s}-m", adaptive_card({n: a for n, (a, _) in layers.items()},
-                                      f'{p["name"]}: {p["blurb"]}', (0, 0, MW, layers["dark"][1])))
+        phone(f"{s}-m", {n: a for n, (a, _) in layers.items()},
+              f'{p["name"]}: {p["blurb"]}', (0, 0, MW, layers["dark"][1]))
         for kind, _ in dests:
-            write(f"{s}-{kind}-pill",
-                  adaptive_card({n: pill(kind, t) for n, t in THEMES.items()},
-                                f'{p["name"]} {LABEL[kind].lower()}',
-                                (0, 0, PILL_W[kind], PILL_PAD + PILL_H)))
+            phone(f"{s}-{kind}-pill", {n: pill(kind, t) for n, t in THEMES.items()},
+                  f'{p["name"]} {LABEL[kind].lower()}', (0, 0, PILL_W[kind], PILL_PAD + PILL_H))
 
         made.append((p, s, data, dests))
         bits = [k for k in ("language", "stars") if data.get(k)]
@@ -513,7 +517,7 @@ def main() -> int:
         return f"{base}/{name}?v={digest}"
 
     def pic(stem: str, width: int, alt: str, href: str | None, wshare: float,
-            show: str = "always", phone: str | None = None) -> str:
+            show: str = "always") -> str:
         # The first matching <source> wins, so the width-only ones go first;
         # their media must never mention prefers-color-scheme - see
         # adaptive_card. One-up layouts get the wide artwork at its own size,
@@ -522,27 +526,24 @@ def main() -> int:
         # layout ("wide") or the one-up ones ("single"); elsewhere it is
         # "none", 0 wide.
         #
-        # Phones show only `phone`, the whole card, if this piece carries it.
-        # So does anything that ignores <source> altogether, through the
-        # <img>: every other piece falls back to nothing, and what is left is
-        # the phone layout - a card whole, then its pills.
+        # Phones show none of the pieces, and nor does anything that ignores
+        # <source>, whose <img> is nothing - see phone_pic.
         sources = []
         if show == "wide":
             sources.append((SINGLE, "none", ' width="0"'))
         else:
-            sources += [(", ".join(NARROW), phone or "none", ' width="100%"' if phone else ' width="0"'),
+            sources += [(", ".join(NARROW), "none", ' width="0"'),
                         (MID, f"{stem}-a", f' width="{width}"')]
             if show == "single":
                 sources.append((WIDE, "none", ' width="0"'))
         if show != "single":
             sources += [(f"(prefers-color-scheme: {th})", f"{stem}-{th}", f' width="{wshare:g}%"')
                         for th in THEMES]
-        fallback = f'src="{url(phone)}" width="100%"' if phone else f'src="{url("none")}" width="0"'
         # align="top" is what lets the bands meet: see the module docstring.
         img = ('<picture>'
                + "".join(f'<source media="{q}" srcset="{url(st)}"{wa} />'
                          for q, st, wa in sources)
-               + f'<img {fallback} alt="{esc(alt)}" align="top" />'
+               + f'<img src="{url("none")}" width="0" alt="{esc(alt)}" align="top" />'
                '</picture>')
         # The buttons are icon-only, so the hover tooltip is the only place the
         # destination is spelled out for a sighted reader.
@@ -560,16 +561,28 @@ def main() -> int:
         return "".join(pic(stem, b - a, alt, href, share(b - a, W, HALF), show)
                        for (stem, alt, href), a, b in zip(parts, xs, xs[1:]))
 
+    def phone_pic(stem: str, pct: float, alt: str, href: str | None = None) -> str:
+        """An image only phones show. Anything that ignores <source> shows it
+        too, in the file carrying both themes, while every piece of the
+        wide card falls back to nothing - so what such a viewer gets is the
+        phone layout. The theme is the <picture>'s to choose wherever it
+        can be: WebKit drew the first card on github.com in the wrong theme
+        when the SVG chose for itself."""
+        img = ('<picture>'
+               f'<source media="{NOT_NARROW}" srcset="{url("none")}" width="0" />'
+               + "".join(f'<source media="(prefers-color-scheme: {th})" srcset="{url(f"{stem}-{th}")}" width="{pct:g}%" />'
+                         for th in THEMES)
+               + f'<img src="{url(stem)}" width="{pct:g}%" alt="{esc(alt)}" align="top" /></picture>')
+        return f'<a href="{href}" title="{esc(alt)}">{img}</a>' if href else img
+
     def bottom(p: dict, s: str, dests: list) -> str:
-        """The rest of the card in one piece - on a phone, the whole card -
-        then the phone's pills. Its alt text is the blurb."""
-        pills = "".join(
-            f'<a href="{href}" title="{esc(p["name"])} {LABEL[kind].lower()}"><picture>'
-            f'<source media="{NOT_NARROW}" srcset="{url("none")}" width="0" />'
-            f'<img src="{url(f"{s}-{kind}-pill")}" alt="{esc(p["name"])} {LABEL[kind].lower()}" '
-            f'width="{share(PILL_W[kind], MW)}%" align="top" /></picture></a>'
-            for kind, href in dests)
-        return pic(f"{s}-b", W, p["blurb"], None, HALF, phone=f"{s}-m") + pills
+        """The rest of the card in one piece, its alt text the blurb; then,
+        for phones, the whole card and a pill per button."""
+        return (pic(f"{s}-b", W, p["blurb"], None, HALF)
+                + phone_pic(f"{s}-m", 100, f'{p["name"]}: {p["blurb"]}')
+                + "".join(phone_pic(f"{s}-{kind}-pill", share(PILL_W[kind], MW),
+                                    f'{p["name"]} {LABEL[kind].lower()}', href)
+                          for kind, href in dests))
 
     def rule(show: str = "always") -> str:
         """A full-width, zero-height image: a line to itself, so whatever comes
