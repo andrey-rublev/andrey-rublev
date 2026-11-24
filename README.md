@@ -1,6 +1,30 @@
 <div align="center">
 
-<a href="https://nikhilkolli.com"><picture><source media="(max-width: 539px), (min-width: 768px) and (max-width: 823px)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/hero-m.svg?v=43d36672" width="100%" /><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/hero-dark.svg?v=ad1b2853" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/hero-light.svg?v=9dee02b3" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/hero-dark.svg?v=ad1b2853" alt="Nikhil Kolli — RL/ML/AI, SWE, ECE | CompE @ Purdue | nikhilkolli.com" width="846" /></picture></a>
+<details open>
+<summary>Show or hide animated cover</summary>
+
+<h1><a href="assets/v5/performance.md" title="Open the deck close-up"><picture>
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-color-scheme: dark) and (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark-still.webp?v=df2eb733" />
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-color-scheme: dark) and (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark-still.webp?v=53373218" />
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="assets/v5/wide-dark-still.webp?v=fdbf54f4" />
+  <source type="image/avif" media="(prefers-color-scheme: dark) and (max-width: 519.98px), (prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark.avif?v=b7872c33" />
+  <source media="(prefers-color-scheme: dark) and (max-width: 519.98px), (prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark.webp?v=31c046d0" />
+  <source type="image/avif" media="(prefers-color-scheme: dark) and (max-width: 709.98px), (prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark.avif?v=550e5136" />
+  <source media="(prefers-color-scheme: dark) and (max-width: 709.98px), (prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark.webp?v=5e026fac" />
+  <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="assets/v5/wide-dark.avif?v=a8d8f7c8" />
+  <source media="(prefers-color-scheme: dark)" srcset="assets/v5/wide-dark.webp?v=607bfe5b" />
+  <source media="(prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-still.webp?v=78d548ec" />
+  <source media="(prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-still.webp?v=48e0808d" />
+  <source media="(prefers-reduced-motion: reduce)" srcset="assets/v5/wide-still.webp?v=77b68fb3" />
+  <source type="image/avif" media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile.avif?v=59336a14" />
+  <source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile.webp?v=b4db9a29" />
+  <source type="image/avif" media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid.avif?v=ed211fe2" />
+  <source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid.webp?v=0fea12d0" />
+  <source type="image/avif" srcset="assets/v5/wide.avif?v=5355dc5c" />
+  <img src="assets/v5/wide.webp?v=e5616609" width="846" alt="Nikhil Kolli. Computer Engineering at Purdue. The deck bows and releases a face-up spring. The blue topographic ace flips in the air, lands face-up, and pivots over the opening fan." />
+</picture></a></h1>
+
+</details>
 
 <a href="https://nikhilkolli.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-light.svg?v=664ba4f7" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" alt="Portfolio" height="34" /></picture></a> <a href="https://linkedin.com/in/nikhilxkolli"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-light.svg?v=f9e9a27b" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" alt="LinkedIn" height="34" /></picture></a>
 

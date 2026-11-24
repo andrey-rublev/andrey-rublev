@@ -1,0 +1,6 @@
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{min-height:100svh;display:grid;align-items:center;justify-items:center;padding:24px;background:#dee3dd;color:#1a2237}
+#deck-film{width:min(920px,100%);max-width:100%;max-height:none;box-shadow:0 12px 50px #25293d24}
+.deck-stage{max-height:74svh;max-width:calc(74svh * 740/482)}
+@media(max-width:480px){body{padding:9px}.deck-head{padding:12px 10px}.deck-orbit{padding:8px 10px}}

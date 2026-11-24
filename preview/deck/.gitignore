@@ -1,0 +1,5 @@
+node_modules/
+viewer.iife.js
+faces.webp
+score.bin
+scene.json

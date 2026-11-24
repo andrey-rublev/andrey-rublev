@@ -1,0 +1,31 @@
+.preview-bar button:focus-visible,summary:focus-visible,.markdown-body a:focus-visible,dialog :focus-visible{outline:3px solid #5675f3;outline-offset:3px}
+#deck-film{background:#f7f6f0;color:#19263a;border:1px solid #909a97;border-radius:5px;box-sizing:border-box;padding:0;width:min(850px,96vw);max-width:96vw;max-height:95dvh;overflow:auto;box-shadow:0 22px 80px #12233744;font:450 15px/1.4 PublicSans,Arial,sans-serif}
+#deck-film::backdrop{background:#111d32b8}
+.deck-head,.deck-orbit{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px}
+.deck-head{border-bottom:1px solid #c2c8bf}
+.deck-head :is(h1,h2){margin:0;font:460 clamp(22px,3.3vw,32px)/1.05 Newsreader,Georgia,serif;letter-spacing:-.035em}
+.deck-actions,.deck-orbit [role=group]{display:flex;align-items:center;gap:6px}
+#deck-film button,.deck-tricks select{appearance:none;border:1px solid #aab3ac;background:#f7f6f0;color:#263647;border-radius:3px;cursor:pointer;white-space:nowrap;font:540 13px/1.25 PublicSans,Arial,sans-serif;min-height:38px;padding:6px 11px}
+#deck-film button:hover,.deck-tricks select:hover{background:#e4e9e3}
+#deck-film [data-close]{background:#1c2a42;border-color:#1c2a42;color:#fff}
+#deck-film [data-close]:hover{background:#30415c}
+.deck-stage{position:relative;aspect-ratio:740/482;background:radial-gradient(ellipse at 60% 35%,#f5f2e9,#e7e4d7);margin:0 auto;max-height:68dvh;width:100%;max-width:calc(68dvh * 740/482)}
+.deck-stage picture,.deck-stage img,.deck-stage canvas{width:100%;height:100%;display:block;object-fit:contain}
+.deck-stage.interactive picture{display:none}
+.deck-stage canvas{position:absolute;inset:0;touch-action:none;cursor:grab}
+.deck-stage canvas[data-dragging]{cursor:grabbing}
+.deck-stage canvas:focus-visible{outline-offset:-4px}
+.deck-orbit{border-top:1px solid #c2c8bf;color:#495559;font-size:13px}
+.deck-orbit[hidden]{display:none}
+#deck-film [data-orbit]:not([data-orbit=reset]){font-size:18px;width:38px;padding:4px}
+.deck-tricks{display:flex;align-items:center;gap:12px}
+.deck-tricks select{appearance:auto;max-width:100%;cursor:pointer}
+@media(max-width:555px){
+  .deck-head,.deck-orbit{padding:10px;gap:8px}
+  .deck-orbit{flex-wrap:wrap}
+  .deck-tricks{justify-content:space-between;flex:auto}
+  .deck-tricks span{font-size:12px}
+  #deck-film button,.deck-tricks select{min-height:40px}
+  .deck-head h2{max-width:48%}
+  .deck-orbit [role=group]{gap:5px}
+}

@@ -1,0 +1,14 @@
+{
+  "name": "topographic-deck-inspector",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild viewer.js --bundle --format=iife --global-name=DeckExplorer --platform=browser --target=es2020 --minify --legal-comments=inline --outfile=viewer.iife.js"
+  },
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
