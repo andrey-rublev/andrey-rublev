@@ -1,30 +1,31 @@
-<div align="center">
+<!-- GitHub replaces each color-scheme query when an account theme is selected. Keep it on its own source so viewport and motion preferences still reach the browser.
+     Line breaks stay inside the picture tags so the inactive image cannot wrap onto a blank line. -->
+<h1 align="center"><a href="assets/v5/performance.md" title="Open the deck close-up"><picture
+  ><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0"
+  ><source media="(prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-still.webp?v=78d548ec" width="360"
+  ><source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" type="image/avif" srcset="assets/v5/mobile.avif?v=59336a14" width="360"
+  ><source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile.webp?v=b4db9a29" width="360"
+  ><source media="(prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-still.webp?v=48e0808d" width="560"
+  ><source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" type="image/avif" srcset="assets/v5/mid.avif?v=ed211fe2" width="560"
+  ><source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid.webp?v=0fea12d0" width="560"
+  ><source media="(prefers-reduced-motion: reduce)" srcset="assets/v5/wide-still.webp?v=77b68fb3" width="846"
+  ><source type="image/avif" srcset="assets/v5/wide.avif?v=5355dc5c" width="846"
+  ><img src="assets/v5/wide.webp?v=e5616609" width="846" alt="Nikhil Kolli. Computer Engineering at Purdue. The deck bows and releases a face-up spring. The blue topographic ace flips in the air, lands face-up, and pivots over the opening fan."
+></picture><picture
+  ><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0"
+  ><source media="(prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark-still.webp?v=df2eb733" width="360"
+  ><source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" type="image/avif" srcset="assets/v5/mobile-dark.avif?v=b7872c33" width="360"
+  ><source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark.webp?v=31c046d0" width="360"
+  ><source media="(prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark-still.webp?v=53373218" width="560"
+  ><source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" type="image/avif" srcset="assets/v5/mid-dark.avif?v=550e5136" width="560"
+  ><source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark.webp?v=5e026fac" width="560"
+  ><source media="(prefers-reduced-motion: reduce)" srcset="assets/v5/wide-dark-still.webp?v=fdbf54f4" width="846"
+  ><source type="image/avif" srcset="assets/v5/wide-dark.avif?v=a8d8f7c8" width="846"
+  ><source srcset="assets/v5/wide-dark.webp?v=607bfe5b" width="846"
+  ><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" alt=""
+></picture></a></h1>
 
-<!-- GitHub replaces each color-scheme query when an account theme is selected. Keep it on its own source so viewport and motion preferences still reach the browser. -->
-<h1><a href="assets/v5/performance.md" title="Open the deck close-up"><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" />
-  <source media="(prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-still.webp?v=78d548ec" width="360" />
-  <source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" type="image/avif" srcset="assets/v5/mobile.avif?v=59336a14" width="360" />
-  <source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile.webp?v=b4db9a29" width="360" />
-  <source media="(prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-still.webp?v=48e0808d" width="560" />
-  <source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" type="image/avif" srcset="assets/v5/mid.avif?v=ed211fe2" width="560" />
-  <source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid.webp?v=0fea12d0" width="560" />
-  <source media="(prefers-reduced-motion: reduce)" srcset="assets/v5/wide-still.webp?v=77b68fb3" width="846" />
-  <source type="image/avif" srcset="assets/v5/wide.avif?v=5355dc5c" width="846" />
-  <img src="assets/v5/wide.webp?v=e5616609" width="846" alt="Nikhil Kolli. Computer Engineering at Purdue. The deck bows and releases a face-up spring. The blue topographic ace flips in the air, lands face-up, and pivots over the opening fan." />
-</picture><picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" />
-  <source media="(prefers-reduced-motion: reduce) and (max-width: 519.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark-still.webp?v=df2eb733" width="360" />
-  <source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" type="image/avif" srcset="assets/v5/mobile-dark.avif?v=b7872c33" width="360" />
-  <source media="(max-width: 519.98px), (min-width: 768px) and (max-width: 801.98px)" srcset="assets/v5/mobile-dark.webp?v=31c046d0" width="360" />
-  <source media="(prefers-reduced-motion: reduce) and (max-width: 709.98px), (prefers-reduced-motion: reduce) and (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark-still.webp?v=53373218" width="560" />
-  <source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" type="image/avif" srcset="assets/v5/mid-dark.avif?v=550e5136" width="560" />
-  <source media="(max-width: 709.98px), (min-width: 768px) and (max-width: 1059.98px)" srcset="assets/v5/mid-dark.webp?v=5e026fac" width="560" />
-  <source media="(prefers-reduced-motion: reduce)" srcset="assets/v5/wide-dark-still.webp?v=fdbf54f4" width="846" />
-  <source type="image/avif" srcset="assets/v5/wide-dark.avif?v=a8d8f7c8" width="846" />
-  <source srcset="assets/v5/wide-dark.webp?v=607bfe5b" width="846" />
-  <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" alt="" />
-</picture></a></h1>
+<div align="center">
 
 <a href="https://nikhilkolli.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-light.svg?v=664ba4f7" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" alt="Portfolio" height="34" /></picture></a> <a href="https://linkedin.com/in/nikhilxkolli"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-light.svg?v=f9e9a27b" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" alt="LinkedIn" height="34" /></picture></a>
 
