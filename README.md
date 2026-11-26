@@ -1,8 +1,5 @@
 <div align="center">
 
-<details open>
-<summary>Show or hide animated cover</summary>
-
 <!-- GitHub replaces each color-scheme query when an account theme is selected. Keep it on its own source so viewport and motion preferences still reach the browser. -->
 <h1><a href="assets/v5/performance.md" title="Open the deck close-up"><picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" />
@@ -28,8 +25,6 @@
   <source srcset="assets/v5/wide-dark.webp?v=607bfe5b" width="846" />
   <img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/cards/none.svg?v=42c26dbb" width="0" height="0" alt="" />
 </picture></a></h1>
-
-</details>
 
 <a href="https://nikhilkolli.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-light.svg?v=664ba4f7" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/portfolio-dark.svg?v=8e0e5871" alt="Portfolio" height="34" /></picture></a> <a href="https://linkedin.com/in/nikhilxkolli"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" /><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-light.svg?v=f9e9a27b" /><img src="https://raw.githubusercontent.com/andrey-rublev/andrey-rublev/main/assets/linkedin-dark.svg?v=24e048d8" alt="LinkedIn" height="34" /></picture></a>
 
